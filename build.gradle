@@ -18,7 +18,6 @@ plugins {
 }
 
 group 'uk.co.thomasc'
-version '1.0-SNAPSHOT'
 
 apply plugin: 'kotlin'
 apply plugin: 'org.springframework.boot'
