@@ -8,6 +8,6 @@ COPY build/libs/thealley-${BUILDVER}.jar .
 
 ENV BUILDVER=$BUILDVER
 
-ENTRYPOINT ["java -jar ${JAVA_ARGS} /app/thealley-${BUILDVER}.jar"]
+CMD ["sh", "-c", "java -jar thealley-${BUILDVER}.jar"]
 
 EXPOSE 8080
