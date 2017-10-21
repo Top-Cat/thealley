@@ -14,7 +14,7 @@ var plugs = listOf("pcroom", "tv").map { "hs110-$it.kirkstall.top-cat.me" }
 data class BulbResponse(
     val host: String,
     val name: String,
-    val state: Boolean,
+    val state: Int,
     val power: Int,
     val rssi: Int
 )
@@ -22,7 +22,7 @@ data class BulbResponse(
 data class PlugResponse(
     val host: String,
     val name: String,
-    val state: Boolean,
+    val state: Int,
     val power: Float,
     val voltage: Float,
     val current: Float,
@@ -41,7 +41,7 @@ class Stats(val kasa: LocalClient) {
                     is Plug -> PlugResponse(
                         host,
                         it.getName(),
-                        it.getPowerState(),
+                        if (it.getPowerState()) 1 else 0,
                         it.getPowerUsage(),
                         it.getVoltage(),
                         it.getCurrent(),
@@ -68,7 +68,7 @@ class Stats(val kasa: LocalClient) {
                     is Bulb -> BulbResponse(
                         host,
                         it.getName(),
-                        it.getPowerState(),
+                        if (it.getPowerState()) 1 else 0,
                         it.getPowerUsage(),
                         it.getSignalStrength()
                     )
