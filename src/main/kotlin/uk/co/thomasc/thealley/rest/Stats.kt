@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.rest
 
 import kotlinx.coroutines.experimental.runBlocking
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.co.thomasc.thealley.LocalClient
 import uk.co.thomasc.thealley.devices.Bulb
@@ -29,7 +30,8 @@ data class PlugResponse(
     val rssi: Int
 )
 
-@RestController("/stats")
+@RestController
+@RequestMapping("/stats")
 class Stats(val kasa: LocalClient) {
     @GetMapping("/plug")
     fun getPowerStats(): List<PlugResponse> {
