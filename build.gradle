@@ -38,6 +38,12 @@ dependencies {
 
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.0"
 
+    // DB & Migrations
+    compile("org.springframework.boot:spring-boot-starter-jdbc")
+    compile("mysql:mysql-connector-java")
+
+    runtime("org.flywaydb:flyway-core")
+
     testCompile "org.junit.platform:junit-platform-launcher:1.0.0"
     testCompile "org.junit.jupiter:junit-jupiter-api:5.0.0"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.0"

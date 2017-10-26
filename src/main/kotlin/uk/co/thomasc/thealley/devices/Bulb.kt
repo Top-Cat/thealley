@@ -12,7 +12,7 @@ class Bulb(private val client: LocalClient, private val host: String, private va
     fun getSignalStrength() = bulb.rssi
     fun getPowerUsage() = realtimePower.power_mw
 
-    val realtimePower by lazy {
+    private val realtimePower by lazy {
         runBlocking {
             val response = send("{\"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}")
 
@@ -35,6 +35,9 @@ class Bulb(private val client: LocalClient, private val host: String, private va
 
         return Bulb(client, host, bulb.copy(light_state = result.lightingService.transition_light_state))
     }
+
+    fun togglePowerState() =
+        setPowerState(!getPowerState())
 
     private suspend fun send(json: String) = client.send(json, host)
 }

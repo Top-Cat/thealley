@@ -18,7 +18,8 @@ import java.nio.ByteBuffer
 val mapper = jacksonObjectMapper()
 
 interface DeviceResponse {
-    fun <T> then(l: (Any) -> T): Deferred<T?>
+    fun <T> bulb(l: (Bulb) -> T): Deferred<T?>
+    fun <T> plug(l: (Plug) -> T): Deferred<T?>
 }
 
 @Component
@@ -30,11 +31,20 @@ class LocalClient {
         }
 
         return object : DeviceResponse {
-            override fun <T> then(l: (Any) -> T): Deferred<T?> =
+            override fun <T> bulb(l: (Bulb) -> T): Deferred<T?> =
                 async(CommonPool) {
                     deviceInfo.await()?.let {
                         when (it) {
                             is BulbData -> l(Bulb(this@LocalClient, host, it))
+                            else -> null
+                        }
+                    }
+                }
+
+            override fun <T> plug(l: (Plug) -> T): Deferred<T?> =
+                async(CommonPool) {
+                    deviceInfo.await()?.let {
+                        when (it) {
                             is PlugData -> l(Plug(this@LocalClient, host, it))
                             else -> null
                         }

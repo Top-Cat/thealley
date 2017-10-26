@@ -5,8 +5,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.co.thomasc.thealley.LocalClient
-import uk.co.thomasc.thealley.devices.Bulb
-import uk.co.thomasc.thealley.devices.Plug
 
 var bulbs = listOf("pcroom", "landing", "bedroom", "kitchen", "frontroom", "hall").map { "lb130-$it.kirkstall.top-cat.me" }
 var plugs = listOf("pcroom", "tv").map { "hs110-$it.kirkstall.top-cat.me" }
@@ -36,20 +34,17 @@ class Stats(val kasa: LocalClient) {
     @GetMapping("/plug")
     fun getPowerStats(): List<PlugResponse> {
         val res = plugs.map { host ->
-            kasa.getDevice(host).then {
-                when (it) {
-                    is Plug -> PlugResponse(
-                        host,
-                        it.getName(),
-                        if (it.getPowerState()) 1 else 0,
-                        it.getPowerUsage(),
-                        it.getVoltage(),
-                        it.getCurrent(),
-                        it.getUptime(),
-                        it.getSignalStrength()
-                    )
-                    else -> null
-                }
+            kasa.getDevice(host).plug {
+                PlugResponse(
+                    host,
+                    it.getName(),
+                    if (it.getPowerState()) 1 else 0,
+                    it.getPowerUsage(),
+                    it.getVoltage(),
+                    it.getCurrent(),
+                    it.getUptime(),
+                    it.getSignalStrength()
+                )
             }
         }
 
@@ -63,17 +58,14 @@ class Stats(val kasa: LocalClient) {
     @GetMapping("/bulb")
     fun getBulbStats(): List<BulbResponse> {
         val res = bulbs.map { host ->
-            kasa.getDevice(host).then {
-                when (it) {
-                    is Bulb -> BulbResponse(
-                        host,
-                        it.getName(),
-                        if (it.getPowerState()) 1 else 0,
-                        it.getPowerUsage(),
-                        it.getSignalStrength()
-                    )
-                    else -> null
-                }
+            kasa.getDevice(host).bulb {
+                BulbResponse(
+                    host,
+                    it.getName(),
+                    if (it.getPowerState()) 1 else 0,
+                    it.getPowerUsage(),
+                    it.getSignalStrength()
+                )
             }
         }
 
