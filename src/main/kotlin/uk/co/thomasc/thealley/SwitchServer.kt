@@ -54,43 +54,61 @@ class SwitchClient(
 
     private var cfg: SwitchConfig? = null
 
-    enum class SwitchColorState(val state: Int) {
-        ON(1),
-        HALF(2),
-        OFF(0)
+    enum class SwitchColorState(val state: Int, val flash: Boolean) {
+        ON(1, false),
+        FULL_FLASH(1, true),
+        HALF(2, false),
+        HALF_FLASH(2, true),
+        OFF(0, false)
     }
 
     data class SwitchColor(
         val r: SwitchColorState,
         val g: SwitchColorState,
         val b: SwitchColorState
-    )
+    ) {
+        companion object {
+            val RED = SwitchColor(SwitchColorState.ON, SwitchColorState.OFF, SwitchColorState.OFF)
+            val GREEN = SwitchColor(SwitchColorState.OFF, SwitchColorState.ON, SwitchColorState.OFF)
+            val BLUE = SwitchColor(SwitchColorState.OFF, SwitchColorState.OFF, SwitchColorState.ON)
 
-    companion object {
-        val RED = SwitchColor(SwitchColorState.ON, SwitchColorState.OFF, SwitchColorState.OFF)
-        val GREEN = SwitchColor(SwitchColorState.OFF, SwitchColorState.ON, SwitchColorState.OFF)
-        val BLUE = SwitchColor(SwitchColorState.OFF, SwitchColorState.OFF, SwitchColorState.ON)
+            val YELLOW = SwitchColor(SwitchColorState.HALF, SwitchColorState.ON, SwitchColorState.OFF)
+            val PINK = SwitchColor(SwitchColorState.HALF, SwitchColorState.OFF, SwitchColorState.ON)
+            val TEAL = SwitchColor(SwitchColorState.OFF, SwitchColorState.ON, SwitchColorState.ON)
 
-        val YELLOW = SwitchColor(SwitchColorState.HALF, SwitchColorState.ON, SwitchColorState.OFF)
-        val PINK = SwitchColor(SwitchColorState.HALF, SwitchColorState.OFF, SwitchColorState.ON)
-        val TEAL = SwitchColor(SwitchColorState.OFF, SwitchColorState.ON, SwitchColorState.ON)
+            val WHITE = SwitchColor(SwitchColorState.HALF, SwitchColorState.ON, SwitchColorState.ON)
 
-        val WHITE = SwitchColor(SwitchColorState.HALF, SwitchColorState.ON, SwitchColorState.ON)
+            // Blue flashing
+            val CONNECTED = BLUE.flash()
+        }
+
+        private fun mapToFlash(colorState: SwitchColorState) = when (colorState) {
+            SwitchColorState.ON -> SwitchColorState.FULL_FLASH
+            SwitchColorState.HALF -> SwitchColorState.HALF_FLASH
+            else -> colorState
+        }
+
+        fun flash(): SwitchColor =
+            this.copy(
+                r = mapToFlash(r),
+                g = mapToFlash(g),
+                b = mapToFlash(b)
+            )
     }
 
     private fun getPowerStateAnd(bulbA: (Bulb) -> (Bulb), bulbB: (Bulb) -> (Bulb)) {
         cfg?.let {
             val states = arrayOf(
-                kasa.getDevice("lb130-${it.hostA}.kirkstall.top-cat.me").bulb {
+                kasa.getDevice("lb130-${it.hostA}.guest.kirkstall.top-cat.me").bulb {
                     bulbA(it).getPowerState()
                 },
-                kasa.getDevice("lb130-${it.hostB}.kirkstall.top-cat.me").bulb {
+                kasa.getDevice("lb130-${it.hostB}.guest.kirkstall.top-cat.me").bulb {
                     bulbB(it).getPowerState()
                 }
             )
 
             runBlocking {
-                val colors = states.map { if (it.await() == true) GREEN else RED }
+                val colors = states.map { if (it.await() == true) SwitchColor.GREEN else SwitchColor.RED }
                 setColor(colors[0], colors[1])
             }
         }
@@ -125,13 +143,14 @@ class SwitchClient(
         // 0b000000 HALF
 
         val inArr = arrayOf(colorA.r, colorA.g, colorA.b, colorB.r, colorB.g, colorB.b)//.reversed()
+        val flashArr = inArr.map { if (it.flash) 1 else 0 }.reduceIndexed { index, acc, i -> (i shl index) or acc }
         val onArr = inArr.map { it.state and 0x01 }.reduceIndexed { index, acc, i -> (i shl index) or acc }
         val halfArr = inArr.map { (it.state and 0x02) shr 1 }.reduceIndexed { index, acc, i -> (i shl index) or acc }
 
-        println("$onArr, $halfArr")
+        println("$onArr, $halfArr, $flashArr")
 
-        val sendBuffer = ByteBuffer.allocate(3)
-            .put(0).put(onArr.toByte()).put(halfArr.toByte())
+        val sendBuffer = ByteBuffer.allocate(4)
+            .put(0).put(onArr.toByte()).put(halfArr.toByte()).put(flashArr.toByte())
 
         sendBuffer.flip()
 
@@ -152,30 +171,34 @@ class SwitchClient(
 
             bb.flip()
 
-            when (bb.get().toInt()) {
-                0 -> {
-                    val mac = arrayOf(bb.get(), bb.get(), bb.get())
-                    val deviceMac = String.format("%02X:%02X:%02X", mac[0], mac[1], mac[2])
-                    println("Switch init $deviceMac")
+            while (bb.hasRemaining()) {
+                when (bb.get().toInt()) {
+                    0 -> {
+                        val mac = arrayOf(bb.get(), bb.get(), bb.get())
+                        val deviceMac = String.format("%02X:%02X:%02X", mac[0], mac[1], mac[2])
+                        println("Switch init $deviceMac")
 
-                    launch(CommonPool) {
-                        cfg = switchRepo.getSwitchConfig(deviceMac)
-                        getPowerStateAnd({ it }, { it })
-                    }
-                }
-                1 -> {
-                    val button = bb.get()
-                    println("Button state changed! ($button)")
-
-                    arrayOf<Byte>(0x01, 0x02).forEachIndexed { index, it ->
-                        if ((button and it) > 0 && (buttonState and it) < 1) {
-                            buttonDown(index)
-                        } else if ((button and it) < 1 && (buttonState and it) > 0) {
-                            buttonUp(index)
+                        launch(CommonPool) {
+                            cfg = switchRepo.getSwitchConfig(deviceMac)
+                            getPowerStateAnd({ it }, { it })
                         }
-                    }
 
-                    buttonState = button
+                        setColor(SwitchColor.CONNECTED, SwitchColor.CONNECTED)
+                    }
+                    1 -> {
+                        val button = bb.get()
+                        println("Button state changed! ($button)")
+
+                        arrayOf<Byte>(0x01, 0x02).forEachIndexed { index, it ->
+                            if ((button and it) > 0 && (buttonState and it) < 1) {
+                                buttonDown(index)
+                            } else if ((button and it) < 1 && (buttonState and it) > 0) {
+                                buttonUp(index)
+                            }
+                        }
+
+                        buttonState = button
+                    }
                 }
             }
         }

@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.co.thomasc.thealley.LocalClient
 
-var bulbs = listOf("pcroom", "landing", "bedroom", "kitchen", "frontroom", "hall").map { "lb130-$it.kirkstall.top-cat.me" }
-var plugs = listOf("pcroom", "tv").map { "hs110-$it.kirkstall.top-cat.me" }
+var bulbs = listOf("pcroom", "landing", "bedroom", "kitchen", "frontroom", "hall").map { "lb130-$it.guest.kirkstall.top-cat.me" }
+var plugs = listOf("pcroom", "tv").map { "hs110-$it.guest.kirkstall.top-cat.me" }
 
 data class BulbResponse(
     val host: String,
