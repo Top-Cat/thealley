@@ -5,3 +5,7 @@ spring:
     url: jdbc:mysql://${MYSQL_HOSTNAME}/thealley?autoReconnect=true&useSSL=false
     username: ${MYSQL_USER}
     password: ${MYSQL_PASSWORD}
+
+thealley:
+  relay:
+    apiKey: ${RELAY_API_KEY}

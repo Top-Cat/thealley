@@ -10,6 +10,18 @@ data class SwitchConfig(
     val hostB: String
 )
 
+data class Device(
+    val hostname: String,
+    val name: String,
+    val type: DeviceType
+)
+
+enum class DeviceType {
+    BULB,
+    PLUG,
+    RELAY
+}
+
 @Component
 class SwitchRepository(val db: JdbcTemplate) {
 
@@ -28,10 +40,39 @@ class SwitchRepository(val db: JdbcTemplate) {
             this::switchConfigMapper
         )
 
+    fun getDevicesForType(type: DeviceType): List<Device> =
+        db.query(
+            """
+                |SELECT hostname, name, type
+                |   FROM device
+                |   WHERE type = ?
+            """.trimMargin(),
+            arrayOf(type.toString()),
+            this::deviceMapper
+        )
+
+    fun getDeviceForId(id: Int): Device =
+        db.queryForObject(
+            """
+                |SELECT hostname, name, type
+                |   FROM device
+                |   WHERE id = ?
+            """.trimMargin(),
+            arrayOf(id),
+            this::deviceMapper
+        )
+
     private fun switchConfigMapper(rs: ResultSet, row: Int) =
         SwitchConfig(
             rs.getString("macAddr"),
             rs.getString("hostA"),
             rs.getString("hostB")
+        )
+
+    private fun deviceMapper(rs: ResultSet, row: Int) =
+        Device(
+            rs.getString("hostname"),
+            rs.getString("name"),
+            DeviceType.valueOf(rs.getString("type").toUpperCase())
         )
 }

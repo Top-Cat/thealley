@@ -2,8 +2,8 @@ package uk.co.thomasc.thealley.devices
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.experimental.runBlocking
-import uk.co.thomasc.thealley.LocalClient
-import uk.co.thomasc.thealley.mapper
+import uk.co.thomasc.thealley.client.LocalClient
+import uk.co.thomasc.thealley.client.mapper
 
 class Plug(private val client: LocalClient, private val host: String, private val plug: PlugData) {
 

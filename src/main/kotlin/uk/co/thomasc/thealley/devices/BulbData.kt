@@ -10,37 +10,52 @@ data class LightingServiceUpdate(
     var lightingService: LightingService
 )
 
-data class LightingService(val transition_light_state: BulbOnOff)
+data class LightingService(val transition_light_state: BulbUpdate)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class BulbUpdate(
-    val transition_period: Int?,
-    on_off: Boolean,
-    mode: String?,
-    hue: Int?,
-    saturation: Int?,
-    brightness: Int?,
-    color_temp: Int?
-): BulbState(on_off, mode, hue, saturation, brightness, color_temp) {
+data class BulbUpdate(
+    override val transition_period: Int?,
+    override val on_off: Boolean,
+    override val mode: String?,
+    override val hue: Int?,
+    override val saturation: Int?,
+    override val brightness: Int?,
+    override val color_temp: Int?
+) : IBulbUpdate() {
     constructor(on_off: Boolean) : this(null, on_off, null, null, null, null, null)
 }
 
-open class BulbState(
-    on_off: Boolean,
-    val mode: String?,
-    val hue: Int?,
-    val saturation: Int?,
-    val brightness: Int?,
-    val color_temp: Int?
-): BulbOnOff(on_off) {
-    constructor(on_off: Boolean) : this(on_off, null, null, null, null, null)
+abstract class IBulbUpdate : IBulbState() {
+    abstract val transition_period: Int?
+}
+
+abstract class IBulbState : IBulbOnOff() {
+    abstract val mode: String?
+    abstract val hue: Int?
+    abstract val saturation: Int?
+    abstract val brightness: Int?
+    abstract val color_temp: Int?
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-open class BulbOnOff(val on_off: Boolean) {
+abstract class IBulbOnOff {
+    abstract val on_off: Boolean
+
     @JsonGetter("on_off")
     private fun getState() = if (on_off) 1 else 0
 }
+
+/*data class BulbState(
+    override val on_off: Boolean,
+    override val mode: String?,
+    override val hue: Int?,
+    override val saturation: Int?,
+    override val brightness: Int?,
+    override val color_temp: Int?
+) : IBulbState()
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class BulbOnOff(override val on_off: Boolean) : IBulbOnOff()*/
 
 data class BulbData(
     val sw_ver: String,
@@ -57,7 +72,7 @@ data class BulbData(
     val is_factory: Boolean,
     val disco_ver: String,
     val ctrl_protocols: CtrlProtocol,
-    val light_state: BulbOnOff,
+    val light_state: BulbUpdate,
     val is_dimmable: Boolean,
     val is_color: Boolean,
     val is_variable_color_temp: Boolean,

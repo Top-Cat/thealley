@@ -2,10 +2,10 @@ package uk.co.thomasc.thealley.devices
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.experimental.runBlocking
-import uk.co.thomasc.thealley.LocalClient
-import uk.co.thomasc.thealley.mapper
+import uk.co.thomasc.thealley.client.LocalClient
+import uk.co.thomasc.thealley.client.mapper
 
-class Bulb(private val client: LocalClient, private val host: String, private val bulb: BulbData) {
+class Bulb(private val client: LocalClient, private val host: String, private val bulb: BulbData) : Light<Bulb> {
 
     fun getName() = bulb.alias
     fun getPowerState() = bulb.light_state.on_off
@@ -22,7 +22,7 @@ class Bulb(private val client: LocalClient, private val host: String, private va
         }
     }
 
-    fun setPowerState(value: Boolean): Bulb =
+    override fun setPowerState(value: Boolean): Bulb =
         runBlocking {
             setLightState(BulbUpdate(value))
         }
@@ -40,4 +40,10 @@ class Bulb(private val client: LocalClient, private val host: String, private va
         setPowerState(!getPowerState())
 
     private suspend fun send(json: String) = client.send(json, host)
+}
+
+interface Light<out T> {
+
+    fun setPowerState(value: Boolean): T
+
 }

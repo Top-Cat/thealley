@@ -7,6 +7,7 @@ import kotlinx.sockets.ServerSocket
 import kotlinx.sockets.Socket
 import kotlinx.sockets.aSocket
 import org.springframework.stereotype.Component
+import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.repo.SwitchConfig
 import uk.co.thomasc.thealley.repo.SwitchRepository

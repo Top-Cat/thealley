@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley
+package uk.co.thomasc.thealley.client
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -9,10 +9,12 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import org.springframework.stereotype.Component
+import uk.co.thomasc.thealley.decryptWithHeader
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.BulbData
 import uk.co.thomasc.thealley.devices.Plug
 import uk.co.thomasc.thealley.devices.PlugData
+import uk.co.thomasc.thealley.encryptWithHeader
 import java.nio.ByteBuffer
 
 val mapper = jacksonObjectMapper()
