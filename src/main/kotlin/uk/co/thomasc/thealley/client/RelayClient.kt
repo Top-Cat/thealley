@@ -22,17 +22,16 @@ class RelayClient(val restTemplate: RestTemplate, val config: Config) {
 class Relay(val host: String, val restTemplate: RestTemplate, val apiKey: String) : Light<Unit> {
 
     override fun setPowerState(value: Boolean) =
-        runBlocking {
-            setLightState(if (value) 1 else 0)
-        }
+        setLightState(if (value) 1 else 0)
 
-    private suspend fun setLightState(state: Int) {
+    private fun setLightState(state: Int) {
         val bodyMap = LinkedMultiValueMap<String, String>()
         bodyMap["apikey"] = apiKey
         bodyMap["value"] = "$state"
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+        headers.accept = listOf(MediaType.APPLICATION_JSON)
 
         val request = HttpEntity<MultiValueMap<String, String>>(bodyMap, headers)
         restTemplate.exchange("http://$host/api/relay/0", HttpMethod.PUT, request, String::class.java).body

@@ -33,7 +33,7 @@ class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepositor
                 it.setPowerState(state)
                 ret.setResult(ControlResult(true))
             }
-            DeviceType.RELAY -> launch (CommonPool) {
+            DeviceType.RELAY -> {
                 relay.getRelay(res.hostname).setPowerState(state)
                 ret.setResult(ControlResult(true))
             }
