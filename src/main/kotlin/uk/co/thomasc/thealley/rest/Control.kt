@@ -1,7 +1,5 @@
 package uk.co.thomasc.thealley.rest
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -9,7 +7,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.request.async.DeferredResult
 import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.RelayClient
-import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.repo.DeviceType
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.util.concurrent.TimeUnit

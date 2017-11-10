@@ -17,11 +17,9 @@ class Plug(private val client: LocalClient, private val host: String, private va
 
     val realtimePower by lazy {
         runBlocking {
-            val response = send("{\"emeter\":{\"get_realtime\":{}}}")
-
-            val result = mapper.readValue<EmeterResponse>(response)
-
-            result.emeter.get_realtime
+            send("{\"emeter\":{\"get_realtime\":{}}}")?.let {
+                mapper.readValue<EmeterResponse>(it).emeter.get_realtime
+            } ?: RealtimePower(0F, 0F, 0F, 0F, -1)
         }
     }
 

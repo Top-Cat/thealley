@@ -101,10 +101,14 @@ class SwitchClient(
         cfg?.let {
             val states = arrayOf(
                 kasa.getDevice("lb130-${it.hostA}.guest.kirkstall.top-cat.me").bulb {
-                    bulbA(it).getPowerState()
+                    it?.let {
+                        bulbA(it).getPowerState()
+                    } ?: false
                 },
                 kasa.getDevice("lb130-${it.hostB}.guest.kirkstall.top-cat.me").bulb {
-                    bulbB(it).getPowerState()
+                    it?.let {
+                        bulbB(it).getPowerState()
+                    } ?: false
                 }
             )
 

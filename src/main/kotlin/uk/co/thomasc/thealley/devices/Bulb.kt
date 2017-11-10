@@ -14,11 +14,9 @@ class Bulb(private val client: LocalClient, private val host: String, private va
 
     private val realtimePower by lazy {
         runBlocking {
-            val response = send("{\"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}")
-
-            val result = mapper.readValue<BulbEmeterResponse>(response)
-
-            result.emeter.get_realtime
+            send("{\"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}")?.let {
+                mapper.readValue<BulbEmeterResponse>(it).emeter.get_realtime
+            } ?: BulbRealtimePower(0, -1)
         }
     }
 
@@ -29,11 +27,13 @@ class Bulb(private val client: LocalClient, private val host: String, private va
 
     private suspend fun setLightState(state: BulbUpdate): Bulb {
         val obj = LightingServiceUpdate(LightingService(state))
-        val response = send(mapper.writeValueAsString(obj))
 
-        val result = mapper.readValue<LightingServiceUpdate>(response)
+        val newBulb = send(mapper.writeValueAsString(obj))?.let {
+            val result = mapper.readValue<LightingServiceUpdate>(it)
+            bulb.copy(light_state = result.lightingService.transition_light_state)
+        } ?: bulb
 
-        return Bulb(client, host, bulb.copy(light_state = result.lightingService.transition_light_state))
+        return Bulb(client, host, newBulb)
     }
 
     fun togglePowerState() =
