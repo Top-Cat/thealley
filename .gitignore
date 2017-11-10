@@ -32,6 +32,5 @@ secrets/
 .DS_Store
 
 ### Firmware ###
-main
 *.o
 *.bin

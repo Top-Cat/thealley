@@ -1,5 +1,5 @@
 CC = xtensa-lx106-elf-gcc
-CFLAGS = -I. -DICACHE_FLASH -mlongcalls -fdata-sections -ffunction-sections -DWPA2_PASSWORD=\"$WPA2_PASSWORD\"
+CFLAGS = -I. -DICACHE_FLASH -mlongcalls -fdata-sections -ffunction-sections -DWPA2_PASSWORD=\"${WPA2_PASSWORD}\"
 LDLIBS = -nostdlib -Wl,--start-group -lmain -lnet80211 -lwpa -lwpa2 -llwip -lpp -lphy -lc -Wl,--end-group -lgcc -Wl,--gc-sections
 LDFLAGS = -Teagle.app.v6.ld
 
