@@ -34,16 +34,18 @@ class Stats(val kasa: LocalClient, val switchRepository: SwitchRepository) {
     fun getPowerStats(): List<PlugResponse> {
         val res = switchRepository.getDevicesForType(DeviceType.PLUG).map { plug ->
             kasa.getDevice(plug.hostname).plug {
-                PlugResponse(
-                    plug.hostname,
-                    it.getName(),
-                    if (it.getPowerState()) 1 else 0,
-                    it.getPowerUsage(),
-                    it.getVoltage(),
-                    it.getCurrent(),
-                    it.getUptime(),
-                    it.getSignalStrength()
-                )
+                it?.let {
+                    PlugResponse(
+                        plug.hostname,
+                        it.getName(),
+                        if (it.getPowerState()) 1 else 0,
+                        it.getPowerUsage(),
+                        it.getVoltage(),
+                        it.getCurrent(),
+                        it.getUptime(),
+                        it.getSignalStrength()
+                    )
+                }
             }
         }
 
@@ -58,13 +60,15 @@ class Stats(val kasa: LocalClient, val switchRepository: SwitchRepository) {
     fun getBulbStats(): List<BulbResponse> {
         val res = switchRepository.getDevicesForType(DeviceType.BULB).map { bulb ->
             kasa.getDevice(bulb.hostname).bulb {
-                BulbResponse(
-                    bulb.hostname,
-                    it.getName(),
-                    if (it.getPowerState()) 1 else 0,
-                    it.getPowerUsage(),
-                    it.getSignalStrength()
-                )
+                it?.let {
+                    BulbResponse(
+                        bulb.hostname,
+                        it.getName(),
+                        if (it.getPowerState()) 1 else 0,
+                        it.getPowerUsage(),
+                        it.getSignalStrength()
+                    )
+                }
             }
         }
 

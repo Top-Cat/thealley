@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.request.async.DeferredResult
 import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.RelayClient
+import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.repo.DeviceType
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.util.concurrent.TimeUnit
@@ -30,8 +31,10 @@ class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepositor
 
         when (res.type) {
             DeviceType.BULB -> kasa.getDevice(res.hostname).bulb {
-                it.setPowerState(state)
-                ret.setResult(ControlResult(true))
+                it?.let {
+                    it.setPowerState(state)
+                    ret.setResult(ControlResult(true))
+                } ?: ret.setResult(ControlResult(false))
             }
             DeviceType.RELAY -> {
                 relay.getRelay(res.hostname).setPowerState(state)
