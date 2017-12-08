@@ -1,6 +1,5 @@
 package uk.co.thomasc.thealley.client
 
-import kotlinx.coroutines.experimental.runBlocking
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import uk.co.thomasc.thealley.devices.Light

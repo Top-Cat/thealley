@@ -9,7 +9,6 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
-import kotlinx.coroutines.experimental.withTimeout
 import kotlinx.coroutines.experimental.withTimeoutOrNull
 import org.springframework.stereotype.Component
 import uk.co.thomasc.thealley.decryptWithHeader
@@ -87,7 +86,7 @@ class LocalClient {
         }
 
     suspend fun send(json: String, host: String, port: Int = 9999) =
-        withTimeoutOrNull(100) {
+        withTimeoutOrNull(250) {
             async(threadPool) {
                 try {
                     aSocket().tcp().connect(InetSocketAddress(InetAddress.getByName(host), 9999)).use {
