@@ -1,7 +1,10 @@
 package uk.co.thomasc.thealley.client
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.springframework.http.HttpEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -10,6 +13,28 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import uk.co.thomasc.thealley.Config
+
+enum class TadoMode(@JsonValue val mode: Int) {
+    HOME(0),
+    AWAY(1),
+    UNKNOWN(2);
+
+    companion object {
+        @JsonCreator @JvmStatic fun fromString(str: String): TadoMode =
+            values().firstOrNull { it.name == str } ?: UNKNOWN
+    }
+}
+
+enum class TadoPower(@JsonValue val power: Int) {
+    OFF(0),
+    ON(1),
+    UNKNOWN(2);
+
+    companion object {
+        @JsonCreator @JvmStatic fun fromString(str: String): TadoPower =
+            TadoPower.values().firstOrNull { it.name == str } ?: TadoPower.UNKNOWN
+    }
+}
 
 data class TokenResponse(
     val access_token: String,
@@ -21,14 +46,14 @@ data class TokenResponse(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ZoneState(
-    val tadoMode: String,
+    val tadoMode: TadoMode,
     val setting: JsonNode,
     val activityDataPoints: Map<String, JsonNode>,
     val sensorDataPoints: Map<String, JsonNode>
 )
 
 data class TransformedZoneState(
-    val tadoMode: String,
+    val tadoMode: TadoMode,
     val setting: TadoSetting?,
     val activityDataPoints: Map<String, TadoData?>,
     val sensorDataPoints: Map<String, TadoData?>
@@ -50,7 +75,7 @@ data class TemperatureData(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HeatingSetting(
-    val power: String,
+    val power: TadoPower,
     val temperature: TemperatureSetting
 ) : TadoSetting()
 
