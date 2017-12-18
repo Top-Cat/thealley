@@ -9,3 +9,5 @@ spring:
 thealley:
   relay:
     apiKey: ${RELAY_API_KEY}
+  tado:
+    refreshToken: ${TADO_KEY}

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.co.thomasc.thealley.client.LocalClient
+import uk.co.thomasc.thealley.client.TadoClient
 import uk.co.thomasc.thealley.repo.DeviceType
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
@@ -29,7 +30,7 @@ data class PlugResponse(
 
 @RestController
 @RequestMapping("/stats")
-class Stats(val kasa: LocalClient, val switchRepository: SwitchRepository) {
+class Stats(val kasa: LocalClient, val switchRepository: SwitchRepository, val tadoClient: TadoClient) {
     @GetMapping("/plug")
     fun getPowerStats(): List<PlugResponse> {
         val res = switchRepository.getDevicesForType(DeviceType.PLUG).map { plug ->
@@ -78,4 +79,7 @@ class Stats(val kasa: LocalClient, val switchRepository: SwitchRepository) {
             }
         }
     }
+
+    @GetMapping("/tado")
+    fun getTadoStats() = tadoClient.getState()
 }
