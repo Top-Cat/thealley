@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.springframework.http.HttpEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -76,7 +75,7 @@ data class TemperatureData(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HeatingSetting(
     val power: TadoPower,
-    val temperature: TemperatureSetting
+    val temperature: TemperatureSetting?
 ) : TadoSetting()
 
 data class TemperatureSetting(
