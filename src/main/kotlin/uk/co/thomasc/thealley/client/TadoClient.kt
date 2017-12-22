@@ -52,6 +52,7 @@ data class ZoneState(
 )
 
 data class TransformedZoneState(
+    val zone: Int,
     val tadoMode: TadoMode,
     val setting: TadoSetting?,
     val activityDataPoints: Map<String, TadoData?>,
@@ -111,8 +112,8 @@ class TadoClient(val rest: RestTemplate, val config: Config) {
             TokenResponse::class.java
         ).access_token
 
-    fun getRawState(): ZoneState? = rest.exchange(
-            "$tadoApi/api/v2/homes/149676/zones/1/state",
+    fun getRawState(zone: Int): ZoneState? = rest.exchange(
+            "$tadoApi/api/v2/homes/149676/zones/$zone/state",
             HttpMethod.GET,
             HttpEntity<ZoneState>(HttpHeaders().apply {
                 add("Authorization", "Bearer ${getToken()}")
@@ -120,8 +121,10 @@ class TadoClient(val rest: RestTemplate, val config: Config) {
             ZoneState::class.java
         ).body
 
-    fun getState() = getRawState()?.let {
+    fun getState() = (1..3).mapNotNull {
+        zone -> getRawState(zone)?.let {
             TransformedZoneState(
+                zone,
                 it.tadoMode,
                 when (it.setting.get("type").textValue()) {
                     "HEATING" -> mapper.treeToValue(it.setting, HeatingSetting::class.java)
@@ -131,11 +134,12 @@ class TadoClient(val rest: RestTemplate, val config: Config) {
                 it.sensorDataPoints.mapValues(this::mapDataPoints)
             )
         }
+    }
 
     fun mapDataPoints(node: Map.Entry<String, JsonNode>) = when (node.value.get("type").textValue()) {
-            "PERCENTAGE" -> mapper.treeToValue(node.value, PercentageData::class.java)
-            "TEMPERATURE" -> mapper.treeToValue(node.value, TemperatureData::class.java)
-            else -> null
-        }
+        "PERCENTAGE" -> mapper.treeToValue(node.value, PercentageData::class.java)
+        "TEMPERATURE" -> mapper.treeToValue(node.value, TemperatureData::class.java)
+        else -> null
+    }
 
 }
