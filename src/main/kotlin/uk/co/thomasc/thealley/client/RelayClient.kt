@@ -38,7 +38,17 @@ class Relay(val host: String, val restTemplate: RestTemplate, val apiKey: String
         restTemplate.exchange("http://$host/api/relay/0", HttpMethod.PUT, request, String::class.java).body
     }
 
-    fun getState(): Boolean =
-        restTemplate.getForObject("http://$host/api/relay/0?apikey={apiKey}", Boolean::class.java, apiKey)
+    fun getState(): Boolean {
+        val headers = HttpHeaders()
+        headers.accept = listOf(MediaType.APPLICATION_JSON)
+
+        val request = HttpEntity<MultiValueMap<String, String>>(headers)
+        return restTemplate.exchange(
+            "http://$host/api/relay/0?apikey=$apiKey",
+            HttpMethod.GET,
+            request,
+            RelayState::class.java
+        ).body?.relay0 ?: false
+    }
 
 }
