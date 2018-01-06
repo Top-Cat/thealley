@@ -86,7 +86,7 @@ class LocalClient {
         }
 
     suspend fun send(json: String, host: String, port: Int = 9999) =
-        withTimeoutOrNull(250) {
+        withTimeoutOrNull(500) {
             async(threadPool) {
                 try {
                     aSocket().tcp().connect(InetSocketAddress(InetAddress.getByName(host), 9999)).use {

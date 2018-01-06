@@ -11,6 +11,7 @@ data class SwitchConfig(
 )
 
 data class Device(
+    val id: Int,
     val hostname: String,
     val name: String,
     val type: DeviceType
@@ -43,7 +44,7 @@ class SwitchRepository(val db: JdbcTemplate) {
     fun getDevicesForType(type: DeviceType): List<Device> =
         db.query(
             """
-                |SELECT hostname, name, type
+                |SELECT id, hostname, name, type
                 |   FROM device
                 |   WHERE type = ?
             """.trimMargin(),
@@ -54,7 +55,7 @@ class SwitchRepository(val db: JdbcTemplate) {
     fun getDeviceForId(id: Int): Device =
         db.queryForObject(
             """
-                |SELECT hostname, name, type
+                |SELECT id, hostname, name, type
                 |   FROM device
                 |   WHERE id = ?
             """.trimMargin(),
@@ -71,6 +72,7 @@ class SwitchRepository(val db: JdbcTemplate) {
 
     private fun deviceMapper(rs: ResultSet, row: Int) =
         Device(
+            rs.getInt("id"),
             rs.getString("hostname"),
             rs.getString("name"),
             DeviceType.valueOf(rs.getString("type").toUpperCase())
