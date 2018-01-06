@@ -1,0 +1,18 @@
+body {
+    font-family: Arial;
+}
+.far {
+    color: #888;
+    padding: 20px;
+    cursor: pointer;
+    text-align: center;
+    font-family: Font Awesome\ 5 Free, Arial !important;
+}
+.far:hover {
+    background: aliceblue;
+}
+.far span {
+    font-size: 128px;
+    display: block;
+    margin: 12px;
+}
