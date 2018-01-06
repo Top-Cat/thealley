@@ -11,6 +11,8 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.http.HttpMethod
 import uk.co.thomasc.thealley.Config
 
+data class RelayState(val relay0: Boolean)
+
 @Component
 class RelayClient(val restTemplate: RestTemplate, val config: Config) {
 
@@ -35,5 +37,8 @@ class Relay(val host: String, val restTemplate: RestTemplate, val apiKey: String
         val request = HttpEntity<MultiValueMap<String, String>>(bodyMap, headers)
         restTemplate.exchange("http://$host/api/relay/0", HttpMethod.PUT, request, String::class.java).body
     }
+
+    fun getState(): Boolean =
+        restTemplate.getForObject("http://$host/api/relay/0?apikey={apiKey}", Boolean::class.java, apiKey)
 
 }

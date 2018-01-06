@@ -12,14 +12,15 @@ import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.util.concurrent.TimeUnit
 
 data class ControlResult(val success: Boolean)
+data class BulbState(val state: Boolean)
 
 @RestController
 @RequestMapping("/control")
 class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepository: SwitchRepository) {
-    @GetMapping("/on/{id}")
+    @GetMapping("/{id}/on")
     fun turnOn(@PathVariable id: Int) = setState(id, true)
 
-    @GetMapping("/off/{id}")
+    @GetMapping("/{id}/off")
     fun turnOff(@PathVariable id: Int) = setState(id, false)
 
     fun setState(id: Int, state: Boolean): DeferredResult<ControlResult> {
@@ -38,6 +39,26 @@ class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepositor
                 ret.setResult(ControlResult(true))
             }
             DeviceType.PLUG -> ret.setResult(ControlResult(false))
+        }
+
+        return ret
+    }
+
+    @GetMapping("/{id}")
+    fun getState(@PathVariable id: Int): DeferredResult<BulbState> {
+        val res = switchRepository.getDeviceForId(id)
+        val ret = DeferredResult<BulbState>(TimeUnit.SECONDS.toMillis(10), ControlResult(false))
+
+        when (res.type) {
+            DeviceType.BULB -> kasa.getDevice(res.hostname).bulb {
+                it?.let {
+                    ret.setResult(BulbState(it.getPowerState()))
+                } ?: ret.setResult(BulbState(false))
+            }
+            DeviceType.RELAY -> {
+                ret.setResult(BulbState(relay.getRelay(res.hostname).getState()))
+            }
+            DeviceType.PLUG -> ret.setResult(BulbState(false))
         }
 
         return ret
