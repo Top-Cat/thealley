@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.client
 
+import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.sockets.aSocket
@@ -17,6 +18,7 @@ import uk.co.thomasc.thealley.devices.BulbData
 import uk.co.thomasc.thealley.devices.Plug
 import uk.co.thomasc.thealley.devices.PlugData
 import uk.co.thomasc.thealley.encryptWithHeader
+import java.net.SocketException
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
 
@@ -67,7 +69,12 @@ class LocalClient {
     suspend fun getSysInfo(host: String): Any? =
         this.send("{\"system\":{\"get_sysinfo\":{}}}", host)?.let { json ->
 
-            val node = mapper.readValue(json, JsonNode::class.java)
+            val node = try {
+                mapper.readValue(json, JsonNode::class.java)
+            } catch (e: JsonParseException) {
+                println("Failed to parse json from $host")
+                return@let null
+            }
             val deviceNode = node.get("system").get("get_sysinfo")
 
             val type = if (deviceNode.has("mic_type")) {
@@ -100,6 +107,8 @@ class LocalClient {
                         String(decryptWithHeader(bb.array()))
                     }
                 } catch (e: UnknownHostException) {
+                    null
+                } catch (e: SocketException) {
                     null
                 }
             }.await()
