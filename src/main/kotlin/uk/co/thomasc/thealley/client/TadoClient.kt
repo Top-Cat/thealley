@@ -2,6 +2,8 @@ package uk.co.thomasc.thealley.client
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.JsonNode
 import org.springframework.http.HttpEntity
@@ -74,6 +76,7 @@ data class TemperatureData(
 ): TadoTemperature, TadoData()
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
 data class HeatingSetting(
     val power: TadoPower,
     val temperature: TemperatureSetting?
