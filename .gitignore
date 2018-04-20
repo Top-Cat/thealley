@@ -24,6 +24,8 @@ dist/
 nbdist/
 .nb-gradle/
 /catalogue/out/
+node_modules/
+package-lock.json
 
 /**/out/
 

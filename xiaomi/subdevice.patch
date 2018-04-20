@@ -1,0 +1,20 @@
+--- node_modules/miio/lib/devices/gateway/subdevice.js	2018-04-20 23:44:46.000000000 +0100
++++ node_modules/miio/lib/devices/gateway/subdevice.js	2018-04-20 23:45:19.000000000 +0100
+@@ -172,7 +172,7 @@
+ 			 * Fallback behavior, use a regular call if properties have not
+ 			 * been resolved in a second.
+ 			 */
+-			setTimeout(() => {
++/*			setTimeout(() => {
+ 				this.debug('Read via DEV timed out, using fallback API');
+ 				this._parent.call('get_device_prop_exp', [ [ 'lumi.' + this.internalId, ...this._propertiesToMonitor ]])
+ 					.then(result => {
+@@ -193,7 +193,7 @@
+ 						this._currentRead = null;
+ 						reject(err);
+ 					});
+-			}, 1000);
++			}, 1000);*/
+ 		});
+ 
+ 		return this._currentRead.promise;

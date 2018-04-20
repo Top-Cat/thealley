@@ -1,0 +1,25 @@
+--- node_modules/miio/lib/devices/gateway/developer-api.js	2018-04-20 23:45:35.000000000 +0100
++++ node_modules/miio/lib/devices/gateway/developer-api.js	2018-04-20 23:43:52.000000000 +0100
+@@ -33,7 +33,13 @@
+ 		this.socket.on('message', this._onMessage.bind(this));
+ 		this.socket.on('listening', () => {
+ 			// Add membership to the multicast addresss for all network interfaces
+-			const interfaces = os.networkInterfaces();
++			const raw = os.networkInterfaces();
++			const interfaces = Object.keys(raw)
++				.filter(key => !key.includes(':0'))
++				.reduce((obj, key) => {
++					obj[key] = raw[key];
++					return obj;
++				}, {});
+ 			for(const name of Object.keys(interfaces)) {
+ 				const addresses = interfaces[name];
+
+@@ -58,6 +64,7 @@
+ 			}, 1000);
+ 		});
+ 		this.socket.bind({
++			address: '0.0.0.0',
+ 			port: SERVER_PORT,
+ 			exclusive: true
+ 		});
