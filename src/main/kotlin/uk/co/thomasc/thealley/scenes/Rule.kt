@@ -8,17 +8,15 @@ import kotlin.math.absoluteValue
 class Rule(
     private val sceneRepository: SceneRepository,
 
-    val id: Int,
+    private val id: Int,
     val sensorId: String,
-    val state: Boolean,
+    private val timeout: Int,
     var lastActive: LocalDateTime?,
     private val scene: Scene
 ) {
 
-    private val timeout = 5 * 60
-
     fun onChange() {
-        if (state) {
+        if (timeout == 0) {
             scene.execute()
         } else {
             lastActive = LocalDateTime.now()
@@ -27,10 +25,12 @@ class Rule(
     }
 
     fun tick() {
+        if (lastActive == null) return
+
         val difference = Duration.between(LocalDateTime.now(), lastActive)
         val secondsSinceActivity = difference.seconds.absoluteValue
 
-        if (lastActive != null && secondsSinceActivity > timeout) {
+        if (secondsSinceActivity > timeout) {
             scene.execute()
 
             lastActive = null

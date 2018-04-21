@@ -14,7 +14,7 @@ class SceneRepository(val db: JdbcTemplate, private val kasa: LocalClient) {
 
     fun getRules(): List<Rule> =
         db.query(
-            "SELECT rule_id, sensor_id, state, last_active, scene_id FROM rule",
+            "SELECT rule_id, sensor_id, timeout, last_active, scene_id FROM rule",
             this::rulesMapper
         )
 
@@ -40,8 +40,8 @@ class SceneRepository(val db: JdbcTemplate, private val kasa: LocalClient) {
             this,
             rs.getInt("rule_id"),
             rs.getString("sensor_id"),
-            rs.getBoolean("state"),
-            rs.getTimestamp("last_active").toLocalDateTime(),
+            rs.getInt("timeout"),
+            rs.getTimestamp("last_active")?.toLocalDateTime(),
             getScene(rs.getInt("scene_id"))
         )
 
