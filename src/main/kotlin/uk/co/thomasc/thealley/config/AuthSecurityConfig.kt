@@ -53,6 +53,7 @@ class AuthSecurityConfig : AuthorizationServerConfigurerAdapter() {
     override fun configure(endpoints: AuthorizationServerEndpointsConfigurer) {
         endpoints
             .pathMapping("/oauth/authorize","/external/oauth/authorize")
+            .pathMapping("/oauth/token","/external/oauth/token")
             .tokenStore(tokenStore())
             .authenticationManager(authenticationManagerBean)
             .tokenGranter(tokenGranter(endpoints))

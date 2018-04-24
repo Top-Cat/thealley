@@ -25,11 +25,11 @@ clients.clients:
     scopes:
       - "read"
 
-security:
-  oauth2:
-    client:
-      client-id: google
-      client-secret: example
+#security:
+#  oauth2:
+#    client:
+#      client-id: google
+#      client-secret: example
 #      client-secret: "W/RuQl640lsRA/a89rL7hd35bz90MCJnYPOfBVEoMbg="
 #      scope: read,write
 #      auto-approve-scopes: '.*'

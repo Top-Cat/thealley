@@ -10,7 +10,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 class WebSecurityConfig : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
         http.csrf().disable()
-            .authorizeRequests().antMatchers("/external/**").authenticated()
+            .authorizeRequests()
+                .antMatchers("/external/**").authenticated()
                 .antMatchers("/**").permitAll()
             .and().formLogin().loginPage("/login").loginProcessingUrl("/external/login").permitAll()
     }
