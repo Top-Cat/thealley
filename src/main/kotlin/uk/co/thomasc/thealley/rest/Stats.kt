@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.TadoClient
-import uk.co.thomasc.thealley.repo.DeviceType
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
 data class BulbResponse(
@@ -33,7 +32,7 @@ data class PlugResponse(
 class Stats(val kasa: LocalClient, val switchRepository: SwitchRepository, val tadoClient: TadoClient) {
     @GetMapping("/plug")
     fun getPowerStats(): List<PlugResponse> {
-        val res = switchRepository.getDevicesForType(DeviceType.PLUG).map { plug ->
+        val res = switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).map { plug ->
             kasa.getDevice(plug.hostname).plug {
                 it?.let {
                     PlugResponse(
@@ -59,7 +58,7 @@ class Stats(val kasa: LocalClient, val switchRepository: SwitchRepository, val t
 
     @GetMapping("/bulb")
     fun getBulbStats(): List<BulbResponse> {
-        val res = switchRepository.getDevicesForType(DeviceType.BULB).map { bulb ->
+        val res = switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB).map { bulb ->
             kasa.getDevice(bulb.hostname).bulb {
                 it?.let {
                     BulbResponse(

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.request.async.DeferredResult
 import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.RelayClient
-import uk.co.thomasc.thealley.repo.DeviceType
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.util.concurrent.TimeUnit
 
@@ -28,17 +27,17 @@ class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepositor
         val ret = DeferredResult<ControlResult>(TimeUnit.SECONDS.toMillis(10), ControlResult(false))
 
         when (res.type) {
-            DeviceType.BULB -> kasa.getDevice(res.hostname).bulb {
+            SwitchRepository.DeviceType.BULB -> kasa.getDevice(res.hostname).bulb {
                 it?.let {
                     it.setPowerState(state)
                     ret.setResult(ControlResult(true))
                 } ?: ret.setResult(ControlResult(false))
             }
-            DeviceType.RELAY -> {
+            SwitchRepository.DeviceType.RELAY -> {
                 relay.getRelay(res.hostname).setPowerState(state)
                 ret.setResult(ControlResult(true))
             }
-            DeviceType.PLUG -> ret.setResult(ControlResult(false))
+            SwitchRepository.DeviceType.PLUG -> ret.setResult(ControlResult(false))
         }
 
         return ret
@@ -50,15 +49,15 @@ class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepositor
         val ret = DeferredResult<BulbState>(TimeUnit.SECONDS.toMillis(10), ControlResult(false))
 
         when (res.type) {
-            DeviceType.BULB -> kasa.getDevice(res.hostname).bulb {
+            SwitchRepository.DeviceType.BULB -> kasa.getDevice(res.hostname).bulb {
                 it?.let {
                     ret.setResult(BulbState(it.getPowerState()))
                 } ?: ret.setResult(BulbState(false))
             }
-            DeviceType.RELAY -> {
+            SwitchRepository.DeviceType.RELAY -> {
                 ret.setResult(BulbState(relay.getRelay(res.hostname).getState()))
             }
-            DeviceType.PLUG -> ret.setResult(BulbState(false))
+            SwitchRepository.DeviceType.PLUG -> ret.setResult(BulbState(false))
         }
 
         return ret
