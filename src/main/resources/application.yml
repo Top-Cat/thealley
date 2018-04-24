@@ -20,10 +20,10 @@ clients.clients:
     scopes:
       - "read"
       - "write"
-  - clientId: tomsclientid
-    secret: magners
+  - clientId: google
+    secret: ${GOOGLE_SECRET}
     scopes:
-      - "ASDFASDFA"
+      - "read"
 
 security:
   oauth2:
