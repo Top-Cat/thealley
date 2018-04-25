@@ -47,7 +47,7 @@ class AuthSecurityConfig(
         clientProperties.clients.forEach {
             db.withClient(it.clientId)
                 .secret(it.secret)
-                .scopes(*it.scope)
+                .scopes(*it.scopes)
                 .authorizedGrantTypes("authorization_code", "refresh_token")
         }
     }

@@ -12,5 +12,5 @@ class ClientProperties {
 class ClientProperty {
     var clientId: String? = null
     var secret: String? = null
-    var scope: Array<String> = emptyArray()
+    var scopes: Array<String> = emptyArray()
 }
