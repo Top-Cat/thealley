@@ -13,17 +13,19 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer
 import org.springframework.security.oauth2.provider.CompositeTokenGranter
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices
-import org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore
+import javax.sql.DataSource
 
 @EnableAuthorizationServer
 @Configuration
-class AuthSecurityConfig : AuthorizationServerConfigurerAdapter() {
-    @Autowired
-    lateinit var authenticationManagerBean: AuthenticationManager
-    @Autowired lateinit var clientProperties: ClientProperties
+class AuthSecurityConfig(
+    val db: DataSource,
+    val authenticationManagerBean: AuthenticationManager,
+    val clientProperties: ClientProperties
+) : AuthorizationServerConfigurerAdapter() {
 
     @Bean
-    fun tokenStore() = InMemoryTokenStore()
+    fun tokenStore() = JdbcTokenStore(db)
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
@@ -65,6 +67,7 @@ class AuthSecurityConfig : AuthorizationServerConfigurerAdapter() {
         security.checkTokenAccess("permitAll()")
         // this lets anyone get the public key for our JWT's
         security.tokenKeyAccess("permitAll()")
+        security.allowFormAuthenticationForClients()
     }
 
 }
