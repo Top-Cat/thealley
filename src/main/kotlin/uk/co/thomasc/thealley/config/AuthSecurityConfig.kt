@@ -17,7 +17,8 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore
 class AuthSecurityConfig(
     val tokenStore: JdbcTokenStore,
     val authenticationManagerBean: AuthenticationManager,
-    val clientProperties: ClientProperties
+    val clientProperties: ClientProperties,
+    val alleyUserDetails: AlleyUserDetails
 ) : AuthorizationServerConfigurerAdapter() {
 
     @Bean
@@ -39,6 +40,7 @@ class AuthSecurityConfig(
             .pathMapping("/oauth/token", "/external/oauth/token")
             .tokenStore(tokenStore)
             .authenticationManager(authenticationManagerBean)
+            .userDetailsService(alleyUserDetails)
         //.tokenGranter(tokenGranter(endpoints))
     }
 
@@ -47,8 +49,8 @@ class AuthSecurityConfig(
         // change it to isAuthenticated() to require clientid/secret with basic auth
         security.checkTokenAccess("permitAll()")
         // this lets anyone get the public key for our JWT's
-        security.tokenKeyAccess("permitAll()")
-        security.allowFormAuthenticationForClients()
+            .tokenKeyAccess("permitAll()")
+            .allowFormAuthenticationForClients()
     }
 
 }
