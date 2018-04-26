@@ -15,21 +15,8 @@ thealley:
 logging.level.org.springframework.security: DEBUG
 
 clients.clients:
-  - clientId: stevesclientid
-    secret: stevessecret
-    scopes:
-      - "read"
-      - "write"
   - clientId: google
     secret: ${GOOGLE_SECRET}
     scopes:
       - "read"
-
-#security:
-#  oauth2:
-#    client:
-#      client-id: google
-#      client-secret: example
-#      client-secret: "W/RuQl640lsRA/a89rL7hd35bz90MCJnYPOfBVEoMbg="
-#      scope: read,write
-#      auto-approve-scopes: '.*'
+      - "write"
