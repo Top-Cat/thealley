@@ -18,7 +18,7 @@ data class GoogleHomeRes(val requestId: String, val payload: Any)
 @JsonInclude(Include.NON_NULL)
 data class AlleyDevice(val id: String, val type: String, val traits: List<String>, val name: AlleyDeviceNames, val willReportState: Boolean, val deviceInfo: AlleyDeviceInfo? = null, val attributes: Map<String, Any>? = null, val customData: Any? = null)
 @JsonInclude(Include.NON_NULL)
-data class AlleyDeviceNames(val defaultNames: List<String>, val name: String? = null, val nicknames: List<String>? = null)
+data class AlleyDeviceNames(val defaultNames: List<String>? = null, val name: String? = null, val nicknames: List<String>? = null)
 data class AlleyDeviceInfo(val manufacturer: String, val model: String, val hwVersion: String, val swVersion: String)
 
 data class SyncIntent(val intent: String)
@@ -70,9 +70,23 @@ class External(val switchRepository: SwitchRepository) {
                                     "action.devices.traits.ColorSpectrum"
                                 ),
                                 AlleyDeviceNames(
-                                    listOf(
-                                        it.name
-                                    )
+                                    name = it.name
+                                ),
+                                false,
+                                attributes = mapOf(
+                                    "temperatureMinK" to 2500,
+                                    "temperatureMaxK" to 9000
+                                )
+                            )
+                        } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY).map {
+                            AlleyDevice(
+                                it.id.toString(),
+                                "action.devices.types.LIGHT",
+                                listOf(
+                                    "action.devices.traits.OnOff"
+                                ),
+                                AlleyDeviceNames(
+                                    name = it.name
                                 ),
                                 false
                             )
