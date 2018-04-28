@@ -1,7 +1,6 @@
 package uk.co.thomasc.thealley.rest
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import javafx.scene.paint.Color
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.runBlocking
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.devices.BulbData
 import uk.co.thomasc.thealley.repo.SwitchRepository
+import java.awt.Color
 
 @RestController
 @RequestMapping("/external")
@@ -91,16 +91,17 @@ class External(val switchRepository: SwitchRepository, val localClient: LocalCli
                                             )
                                         } else {
                                             val colorHex = ex.params["spectrumRGB"] as Int
-                                            val color = Color.rgb(
+                                            val color = Color.RGBtoHSB(
                                                 (colorHex shr 16) and 255,
                                                 (colorHex shr 8) and 255,
-                                                colorHex and 255
+                                                colorHex and 255,
+                                                null
                                             )
 
                                             bulbN.setComplexState(
-                                                (color.brightness * 100).toInt(),
-                                                (color.hue).toInt(),
-                                                (color.saturation * 100).toInt()
+                                                (color[2] * 100).toInt(),
+                                                (color[0] * 360).toInt(),
+                                                (color[1] * 100).toInt()
                                             )
                                         }
 
@@ -168,17 +169,12 @@ class External(val switchRepository: SwitchRepository, val localClient: LocalCli
                             temperature = sysInfo.light_state.color_temp
                         )
                     } else {
-                        val color = Color.hsb(
-                            (sysInfo.light_state.hue ?: 0).toDouble(),
-                            (sysInfo.light_state.saturation ?: 0) / 100.0,
-                            (sysInfo.light_state.brightness ?: 0) / 100.0
-                        )
-                        val colorCode = ((color.red * 255).toInt() shl 16) or
-                            ((color.green * 255).toInt() shl 8) or
-                            (color.blue * 255).toInt()
-
                         DeviceColor(
-                            spectrumRGB = colorCode
+                            spectrumRGB = Color.HSBtoRGB(
+                                (sysInfo.light_state.hue ?: 0) / 360f,
+                                (sysInfo.light_state.saturation ?: 0) / 100f,
+                                (sysInfo.light_state.brightness ?: 0) / 100f
+                            )
                         )
                     }
                 )
