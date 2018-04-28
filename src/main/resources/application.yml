@@ -12,8 +12,6 @@ thealley:
   tado:
     refreshToken: ${TADO_KEY}
 
-logging.level.org.springframework.security: DEBUG
-
 clients.clients:
   - clientId: google
     secret: ${GOOGLE_SECRET}
