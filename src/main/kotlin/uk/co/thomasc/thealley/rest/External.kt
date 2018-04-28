@@ -86,6 +86,10 @@ class External(val switchRepository: SwitchRepository, val localClient: LocalCli
                                     bulb?.let { bulbN ->
                                         val colorObj = ex.params["color"]
 
+                                        // Turns light on with transition in last state,
+                                        // otherwise the call below will only go to the last state
+                                        bulb.setComplexState(transitionTime = 30000)
+
                                         if (colorObj is Map<*, *>) {
                                             if (colorObj.containsKey("temperature")) {
                                                 bulbN.setComplexState(

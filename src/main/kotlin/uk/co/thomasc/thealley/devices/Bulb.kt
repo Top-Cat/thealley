@@ -25,13 +25,13 @@ class Bulb(private val client: LocalClient, private val host: String, private va
             setLightState(BulbUpdate(value))
         }
 
-    override fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?) =
+    override fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?, transitionTime: Int?) =
         runBlocking {
             setLightState(temperature?.let {
-                BulbUpdate(1000, true, null, null, null, brightness, temperature)
+                BulbUpdate(transitionTime, true, null, null, null, brightness, temperature)
             } ?: hue?.let {
-                BulbUpdate(1000, true, null, hue, saturation, brightness, 0)
-            } ?: BulbUpdate(1000, (brightness ?: 1) > 0, null, null, null, brightness, null))
+                BulbUpdate(transitionTime, true, null, hue, saturation, brightness, 0)
+            } ?: BulbUpdate(transitionTime, (brightness ?: 1) > 0, null, null, null, brightness, null))
         }
 
     private suspend fun setLightState(state: BulbUpdate): Bulb {
@@ -55,6 +55,6 @@ interface Light<out T> {
 
     fun setPowerState(value: Boolean): T
 
-    fun setComplexState(brightness: Int? = null, hue: Int? = null, saturation: Int? = null, temperature: Int? = null): T
+    fun setComplexState(brightness: Int? = null, hue: Int? = null, saturation: Int? = null, temperature: Int? = null, transitionTime: Int? = 1000): T
 
 }
