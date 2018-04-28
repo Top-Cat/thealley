@@ -84,30 +84,35 @@ class External(val switchRepository: SwitchRepository, val localClient: LocalCli
                             "action.devices.commands.ColorAbsolute" -> {
                                 devices.second.bulb { bulb ->
                                     bulb?.let { bulbN ->
+                                        val colorObj = ex.params["color"]
 
-                                        if (ex.params.containsKey("temperature")) {
-                                            bulbN.setComplexState(
-                                                temperature = ex.params["temperature"] as Int
-                                            )
+                                        if (colorObj is Map<*, *>) {
+                                            if (colorObj.containsKey("temperature")) {
+                                                bulbN.setComplexState(
+                                                    temperature = colorObj["temperature"] as Int
+                                                )
+                                            } else {
+                                                val colorHex = colorObj["spectrumRGB"] as Int
+                                                val color = Color.RGBtoHSB(
+                                                    (colorHex shr 16) and 255,
+                                                    (colorHex shr 8) and 255,
+                                                    colorHex and 255,
+                                                    null
+                                                )
+
+                                                bulbN.setComplexState(
+                                                    (color[2] * 100).toInt(),
+                                                    (color[0] * 360).toInt(),
+                                                    (color[1] * 100).toInt()
+                                                )
+                                            }
+
+                                            // TODO: Check values were set?
+
+                                            ExecuteStatus.SUCCESS
                                         } else {
-                                            val colorHex = ex.params["spectrumRGB"] as Int
-                                            val color = Color.RGBtoHSB(
-                                                (colorHex shr 16) and 255,
-                                                (colorHex shr 8) and 255,
-                                                colorHex and 255,
-                                                null
-                                            )
-
-                                            bulbN.setComplexState(
-                                                (color[2] * 100).toInt(),
-                                                (color[0] * 360).toInt(),
-                                                (color[1] * 100).toInt()
-                                            )
+                                            ExecuteStatus.ERROR
                                         }
-
-                                        // TODO: Check values were set?
-
-                                        ExecuteStatus.SUCCESS
                                     } ?: ExecuteStatus.OFFLINE
                                 }.await()
                             }
