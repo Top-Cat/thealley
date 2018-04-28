@@ -8,14 +8,17 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import uk.co.thomasc.thealley.client.DeviceResponse
 import uk.co.thomasc.thealley.client.LocalClient
+import uk.co.thomasc.thealley.client.Relay
+import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.devices.BulbData
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.awt.Color
 
 @RestController
 @RequestMapping("/external")
-class External(val switchRepository: SwitchRepository, val localClient: LocalClient) {
+class External(val switchRepository: SwitchRepository, val relayClient: RelayClient, val localClient: LocalClient) {
 
     val mapper = jacksonObjectMapper()
 
@@ -54,7 +57,11 @@ class External(val switchRepository: SwitchRepository, val localClient: LocalCli
             cmd to cmd.devices.map {
                 switchRepository.getDeviceForId(Integer.parseInt(it.id))
             }.map {
-                it.id to localClient.getDevice(it.hostname)
+                it.id to when (it.type) {
+                    SwitchRepository.DeviceType.BULB -> localClient.getDevice(it.hostname)
+                    SwitchRepository.DeviceType.RELAY -> relayClient.getRelay(it.hostname)
+                    else -> null
+                }
             }
         }.map { // Execute commands
             it.second.map {
@@ -62,65 +69,61 @@ class External(val switchRepository: SwitchRepository, val localClient: LocalCli
 
                 async(CommonPool) {
                     devices.first to it.first.execution.map { ex ->
-                        when (ex.command) {
-                            "action.devices.commands.OnOff" -> {
-                                devices.second.bulb { bulb ->
-                                    bulb?.let { bulbN ->
+                        val dev = devices.second
+
+                        when (dev) {
+                            is Relay -> dev
+                            is DeviceResponse -> dev.bulb { it }.await()
+                            else -> null
+                        }?.let { bulbN ->
+                            when (ex.command) {
+                                "action.devices.commands.OnOff" -> {
                                         bulbN.setPowerState(ex.params["on"] as Boolean)
 
                                         ExecuteStatus.SUCCESS
-                                    } ?: ExecuteStatus.OFFLINE
-                                }.await()
-                            }
-                            "action.devices.commands.BrightnessAbsolute" -> {
-                                devices.second.bulb { bulb ->
-                                    bulb?.let { bulbN ->
+                                }
+                                "action.devices.commands.BrightnessAbsolute" -> {
                                         bulbN.setComplexState(ex.params["brightness"] as Int)
 
                                         ExecuteStatus.SUCCESS
-                                    } ?: ExecuteStatus.OFFLINE
-                                }.await()
-                            }
-                            "action.devices.commands.ColorAbsolute" -> {
-                                devices.second.bulb { bulb ->
-                                    bulb?.let { bulbN ->
-                                        val colorObj = ex.params["color"]
+                                }
+                                "action.devices.commands.ColorAbsolute" -> {
+                                    val colorObj = ex.params["color"]
 
-                                        // Turns light on with transition in last state,
-                                        // otherwise the call below will only go to the last state
-                                        bulb.setComplexState(transitionTime = 30000)
+                                    // Turns light on with transition in last state,
+                                    // otherwise the call below will only go to the last state
+                                    bulbN.setComplexState(transitionTime = 30000)
 
-                                        if (colorObj is Map<*, *>) {
-                                            if (colorObj.containsKey("temperature")) {
-                                                bulbN.setComplexState(
-                                                    temperature = colorObj["temperature"] as Int
-                                                )
-                                            } else {
-                                                val colorHex = colorObj["spectrumRGB"] as Int
-                                                val color = Color.RGBtoHSB(
-                                                    (colorHex shr 16) and 255,
-                                                    (colorHex shr 8) and 255,
-                                                    colorHex and 255,
-                                                    null
-                                                )
-
-                                                bulbN.setComplexState(
-                                                    (color[2] * 100).toInt(),
-                                                    (color[0] * 360).toInt(),
-                                                    (color[1] * 100).toInt()
-                                                )
-                                            }
-
-                                            // TODO: Check values were set?
-
-                                            ExecuteStatus.SUCCESS
+                                    if (colorObj is Map<*, *>) {
+                                        if (colorObj.containsKey("temperature")) {
+                                            bulbN.setComplexState(
+                                                temperature = colorObj["temperature"] as Int
+                                            )
                                         } else {
-                                            ExecuteStatus.ERROR
+                                            val colorHex = colorObj["spectrumRGB"] as Int
+                                            val color = Color.RGBtoHSB(
+                                                (colorHex shr 16) and 255,
+                                                (colorHex shr 8) and 255,
+                                                colorHex and 255,
+                                                null
+                                            )
+
+                                            bulbN.setComplexState(
+                                                (color[2] * 100).toInt(),
+                                                (color[0] * 360).toInt(),
+                                                (color[1] * 100).toInt()
+                                            )
                                         }
-                                    } ?: ExecuteStatus.OFFLINE
-                                }.await()
+
+                                        // TODO: Check values were set?
+
+                                        ExecuteStatus.SUCCESS
+                                    } else {
+                                        ExecuteStatus.ERROR
+                                    }
+                                }
+                                else -> ExecuteStatus.ERROR
                             }
-                            else -> ExecuteStatus.ERROR
                         }
                     }
                 }
