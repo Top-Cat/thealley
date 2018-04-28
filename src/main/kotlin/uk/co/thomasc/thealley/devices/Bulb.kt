@@ -29,7 +29,9 @@ class Bulb(private val client: LocalClient, private val host: String, private va
         runBlocking {
             setLightState(temperature?.let {
                 BulbUpdate(1000, true, null, null, null, brightness, temperature)
-            } ?: BulbUpdate(1000, true, null, hue, saturation, brightness, null))
+            } ?: hue?.let {
+                BulbUpdate(1000, true, null, hue, saturation, brightness, 0)
+            } ?: BulbUpdate(1000, (brightness ?: 1) > 0, null, null, null, brightness, null))
         }
 
     private suspend fun setLightState(state: BulbUpdate): Bulb {
