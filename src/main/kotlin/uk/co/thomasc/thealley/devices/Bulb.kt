@@ -25,9 +25,11 @@ class Bulb(private val client: LocalClient, private val host: String, private va
             setLightState(BulbUpdate(value))
         }
 
-    override fun setComplexState(brightness: Int, hue: Int) =
+    override fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?) =
         runBlocking {
-            setLightState(BulbUpdate(1000, true, null, hue, 0, brightness, null))
+            setLightState(temperature?.let {
+                BulbUpdate(1000, true, null, null, null, brightness, temperature)
+            } ?: BulbUpdate(1000, true, null, hue, saturation, brightness, null))
         }
 
     private suspend fun setLightState(state: BulbUpdate): Bulb {
@@ -44,13 +46,13 @@ class Bulb(private val client: LocalClient, private val host: String, private va
     fun togglePowerState() =
         setPowerState(!getPowerState())
 
-    private suspend fun send(json: String) = client.send(json, host)
+    private suspend fun send(json: String) = client.send(json, host, timeout = 500)
 }
 
 interface Light<out T> {
 
     fun setPowerState(value: Boolean): T
 
-    fun setComplexState(brightness: Int, hue: Int): T
+    fun setComplexState(brightness: Int? = null, hue: Int? = null, saturation: Int? = null, temperature: Int? = null): T
 
 }

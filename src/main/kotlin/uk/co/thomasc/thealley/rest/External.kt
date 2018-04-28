@@ -1,41 +1,21 @@
 package uk.co.thomasc.thealley.rest
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.springframework.security.core.context.SecurityContextHolder
+import javafx.scene.paint.Color
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.runBlocking
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import uk.co.thomasc.thealley.client.LocalClient
+import uk.co.thomasc.thealley.devices.BulbData
 import uk.co.thomasc.thealley.repo.SwitchRepository
-
-data class GoogleHomeReq(val requestId: String, val inputs: List<JsonNode>)
-data class GoogleHomeDevice(val id: String, val customData: JsonNode)
-data class GoogleHomeRes(val requestId: String, val payload: Any)
-
-@JsonInclude(Include.NON_NULL)
-data class AlleyDevice(val id: String, val type: String, val traits: List<String>, val name: AlleyDeviceNames, val willReportState: Boolean, val deviceInfo: AlleyDeviceInfo? = null, val attributes: Map<String, Any>? = null, val customData: Any? = null)
-@JsonInclude(Include.NON_NULL)
-data class AlleyDeviceNames(val defaultNames: List<String>? = null, val name: String? = null, val nicknames: List<String>? = null)
-data class AlleyDeviceInfo(val manufacturer: String, val model: String, val hwVersion: String, val swVersion: String)
-
-data class SyncIntent(val intent: String)
-@JsonInclude(Include.NON_NULL)
-data class SyncResponse(val agentUserId: String? = null, val errorCode: String? = null, val debugString: String? = null, val devices: List<AlleyDevice>)
-
-data class QueryIntent(val intent: String, val payload: QueryIntentPayload)
-data class QueryIntentPayload(val devices: List<GoogleHomeDevice>)
-
-data class ExecuteIntent(val intent: String, val payload: ExecuteIntentPayload)
-data class ExecuteIntentPayload(val commands: List<ExecuteIntentCommand>)
-data class ExecuteIntentCommand(val devices: List<GoogleHomeDevice>, val execution: List<ExecuteIntentExecution>)
-data class ExecuteIntentExecution(val command: String, val params: Map<String, Any>)
 
 @RestController
 @RequestMapping("/external")
-class External(val switchRepository: SwitchRepository) {
+class External(val switchRepository: SwitchRepository, val localClient: LocalClient) {
 
     val mapper = jacksonObjectMapper()
 
@@ -55,49 +35,210 @@ class External(val switchRepository: SwitchRepository) {
         )
 
         return when (intent) {
-            is SyncIntent -> {
-                GoogleHomeRes(
-                    obj.requestId,
-                    SyncResponse(
-                        devices = switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB).map {
-                            AlleyDevice(
-                                it.id.toString(),
-                                "action.devices.types.LIGHT",
-                                listOf(
-                                    "action.devices.traits.OnOff",
-                                    "action.devices.traits.Brightness",
-                                    "action.devices.traits.ColorTemperature",
-                                    "action.devices.traits.ColorSpectrum"
-                                ),
-                                AlleyDeviceNames(
-                                    name = it.name
-                                ),
-                                false,
-                                attributes = mapOf(
-                                    "temperatureMinK" to 2500,
-                                    "temperatureMaxK" to 9000
-                                )
-                            )
-                        } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY).map {
-                            AlleyDevice(
-                                it.id.toString(),
-                                "action.devices.types.LIGHT",
-                                listOf(
-                                    "action.devices.traits.OnOff"
-                                ),
-                                AlleyDeviceNames(
-                                    name = it.name
-                                ),
-                                false
-                            )
-                        }
-                    )
-                )
-            }
+            is SyncIntent -> syncRequest(intent)
+            is QueryIntent -> queryRequest(intent)
+            is ExecuteIntent -> executeRequest(intent)
             else -> null
+        }?.let {
+            GoogleHomeRes(
+                obj.requestId,
+                it
+            )
         }
         //[{"intent":"action.devices.SYNC"}]
         //println(obj.inputs)
     }
+
+    fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
+        intent.payload.commands.map { cmd -> // Fetch Devices
+            cmd to cmd.devices.map {
+                switchRepository.getDeviceForId(Integer.parseInt(it.id))
+            }.map {
+                it.id to localClient.getDevice(it.hostname)
+            }
+        }.map { // Execute commands
+            it.second.map {
+                devices ->
+
+                async(CommonPool) {
+                    devices.first to it.first.execution.map { ex ->
+                        when (ex.command) {
+                            "action.devices.commands.OnOff" -> {
+                                devices.second.bulb { bulb ->
+                                    bulb?.let { bulbN ->
+                                        bulbN.setPowerState(ex.params["on"] as Boolean)
+
+                                        ExecuteStatus.SUCCESS
+                                    } ?: ExecuteStatus.OFFLINE
+                                }.await()
+                            }
+                            "action.devices.commands.BrightnessAbsolute" -> {
+                                devices.second.bulb { bulb ->
+                                    bulb?.let { bulbN ->
+                                        bulbN.setComplexState(ex.params["brightness"] as Int)
+
+                                        ExecuteStatus.SUCCESS
+                                    } ?: ExecuteStatus.OFFLINE
+                                }.await()
+                            }
+                            "action.devices.commands.ColorAbsolute" -> {
+                                devices.second.bulb { bulb ->
+                                    bulb?.let { bulbN ->
+
+                                        if (ex.params.containsKey("temperature")) {
+                                            bulbN.setComplexState(
+                                                temperature = ex.params["temperature"] as Int
+                                            )
+                                        } else {
+                                            val colorHex = ex.params["spectrumRGB"] as Int
+                                            val color = Color.rgb(
+                                                (colorHex shr 16) and 255,
+                                                (colorHex shr 8) and 255,
+                                                colorHex and 255
+                                            )
+
+                                            bulbN.setComplexState(
+                                                (color.brightness * 100).toInt(),
+                                                (color.hue).toInt(),
+                                                (color.saturation * 100).toInt()
+                                            )
+                                        }
+
+                                        // TODO: Check values were set?
+
+                                        ExecuteStatus.SUCCESS
+                                    } ?: ExecuteStatus.OFFLINE
+                                }.await()
+                            }
+                            else -> ExecuteStatus.ERROR
+                        }
+                    }
+                }
+            }
+        }.flatMap { // Collate results
+            // Commands -> Devices -> Executions
+            cmd ->
+            cmd.map {
+                _devices ->
+
+                val devices = runBlocking { _devices.await() }
+
+                devices.first to devices.second.fold(ExecuteStatus.SUCCESS) {
+                    acc, v ->
+
+                    if (v == ExecuteStatus.OFFLINE || acc == ExecuteStatus.OFFLINE) {
+                        ExecuteStatus.OFFLINE
+                    } else if (v == ExecuteStatus.ERROR) {
+                        ExecuteStatus.ERROR
+                    } else {
+                        acc
+                    }
+                }
+            }
+        }.groupBy({ it.second }, { it.first }).map {
+            ExecuteResponseCommand(
+                it.value.map { it.toString() },
+                it.key
+            )
+        }
+    )
+
+    fun queryRequest(intent: QueryIntent) = QueryResponse(
+        intent.payload.devices.map {
+            switchRepository.getDeviceForId(Integer.parseInt(it.id))
+        }.map {
+            async(CommonPool) {
+                localClient.getSysInfo(it.hostname, timeout = 2000)
+            } to it
+        }.map {
+            val sysInfo = runBlocking {
+                it.first.await()
+            } as BulbData?
+
+            val dbInfo = it.second
+
+            dbInfo.id.toString() to when (sysInfo) {
+                null -> DeviceState(false)
+                else -> DeviceState(
+                    true,
+                    sysInfo.light_state.on_off,
+                    sysInfo.light_state.brightness,
+                    if (sysInfo.light_state.color_temp != null && sysInfo.light_state.color_temp > 0) {
+                        DeviceColor(
+                            temperature = sysInfo.light_state.color_temp
+                        )
+                    } else {
+                        val color = Color.hsb(
+                            (sysInfo.light_state.hue ?: 0).toDouble(),
+                            (sysInfo.light_state.saturation ?: 0) / 100.0,
+                            (sysInfo.light_state.brightness ?: 0) / 100.0
+                        )
+                        val colorCode = ((color.red * 255).toInt() shl 16) or
+                            ((color.green * 255).toInt() shl 8) or
+                            (color.blue * 255).toInt()
+
+                        DeviceColor(
+                            spectrumRGB = colorCode
+                        )
+                    }
+                )
+            }
+        }.toMap()
+    )
+
+    fun syncRequest(intent: SyncIntent) = SyncResponse(
+        devices = switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB).map {
+            async(CommonPool) {
+                localClient.getSysInfo(it.hostname, timeout = 2000)
+            } to it
+        }.map { mapIn ->
+
+            val sysInfo = runBlocking {
+                mapIn.first.await()
+            } as BulbData
+
+            val dbInfo = mapIn.second
+
+            AlleyDevice(
+                dbInfo.id.toString(),
+                "action.devices.types.LIGHT",
+                listOf(
+                    "action.devices.traits.OnOff",
+                    "action.devices.traits.Brightness",
+                    "action.devices.traits.ColorTemperature",
+                    "action.devices.traits.ColorSpectrum"
+                ),
+                AlleyDeviceNames(
+                    defaultNames = listOf(
+                        sysInfo.model
+                    ),
+                    name = dbInfo.name
+                ),
+                false,
+                attributes = mapOf(
+                    "temperatureMinK" to 2500,
+                    "temperatureMaxK" to 9000
+                ),
+                deviceInfo = AlleyDeviceInfo(
+                    "TP-Link",
+                    sysInfo.model,
+                    sysInfo.hw_ver,
+                    sysInfo.sw_ver
+                )
+            )
+        } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY).map {
+            AlleyDevice(
+                it.id.toString(),
+                "action.devices.types.LIGHT",
+                listOf(
+                    "action.devices.traits.OnOff"
+                ),
+                AlleyDeviceNames(
+                    name = it.name
+                ),
+                false
+            )
+        }
+    )
 
 }

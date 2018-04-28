@@ -61,7 +61,7 @@ class SwitchRepository(val db: JdbcTemplate) {
             """.trimMargin(),
             arrayOf(id),
             this::deviceMapper
-        )
+        )!!
 
     private fun switchConfigMapper(rs: ResultSet, row: Int) =
         SwitchConfig(

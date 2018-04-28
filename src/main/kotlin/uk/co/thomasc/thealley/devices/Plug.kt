@@ -37,5 +37,5 @@ class Plug(private val client: LocalClient, private val host: String, private va
         return Plug(client, host, bulb.copy(light_state = result.lightingService.transition_light_state))
     }*/
 
-    private suspend fun send(json: String) = client.send(json, host)
+    private suspend fun send(json: String) = client.send(json, host, timeout = 500)
 }
