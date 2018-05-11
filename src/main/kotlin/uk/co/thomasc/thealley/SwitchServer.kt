@@ -9,7 +9,6 @@ import kotlinx.sockets.aSocket
 import org.springframework.stereotype.Component
 import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.devices.Bulb
-import uk.co.thomasc.thealley.repo.SwitchConfig
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -53,7 +52,7 @@ class SwitchClient(
     private val buttonTimers = arrayOf<LocalDateTime?>(null, null)
     private var buttonState: Byte = 0
 
-    private var cfg: SwitchConfig? = null
+    private var cfg: SwitchRepository.SwitchConfig? = null
 
     enum class SwitchColorState(val state: Int, val flash: Boolean) {
         ON(1, false),
@@ -100,12 +99,12 @@ class SwitchClient(
     private fun getPowerStateAnd(bulbA: (Bulb) -> (Bulb), bulbB: (Bulb) -> (Bulb)) {
         cfg?.let {
             val states = arrayOf(
-                kasa.getDevice("lb130-${it.hostA}.guest.kirkstall.top-cat.me").bulb {
+                kasa.getDevice(it.hostA).bulb {
                     it?.let {
                         bulbA(it).getPowerState()
                     } ?: false
                 },
-                kasa.getDevice("lb130-${it.hostB}.guest.kirkstall.top-cat.me").bulb {
+                kasa.getDevice(it.hostB).bulb {
                     it?.let {
                         bulbB(it).getPowerState()
                     } ?: false

@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.repo
 
+import org.springframework.context.annotation.DependsOn
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 import uk.co.thomasc.thealley.client.LocalClient
@@ -10,6 +11,7 @@ import java.sql.ResultSet
 import java.time.LocalDateTime
 
 @Component
+@DependsOn("flywayInitializer")
 class SceneRepository(val db: JdbcTemplate, private val kasa: LocalClient) {
 
     fun getRules(): List<Rule> =

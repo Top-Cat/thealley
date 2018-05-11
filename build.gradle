@@ -28,6 +28,9 @@ apply plugin: JUnitPlatformPlugin
 
 repositories {
     mavenCentral()
+
+    maven { url "https://repo.spring.io/snapshot" }
+    maven { url "https://repo.spring.io/milestone" }
     maven { url "https://repo.spring.io/libs-milestone" }
     maven { url "http://dl.bintray.com/kotlin/kotlin-dev" }
 }
@@ -40,6 +43,9 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlin-sockets:0.0.10"
 
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.0"
+
+    compile("org.springframework.boot:spring-boot-starter-security")
+    compile('org.springframework.cloud:spring-cloud-starter-oauth2')
 
     // DB & Migrations
     compile("org.springframework.boot:spring-boot-starter-jdbc")
@@ -58,4 +64,10 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:Finchley.M8"
+    }
 }

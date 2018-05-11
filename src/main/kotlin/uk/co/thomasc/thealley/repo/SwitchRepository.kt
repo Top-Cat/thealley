@@ -4,27 +4,27 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 import java.sql.ResultSet
 
-data class SwitchConfig(
-    val macAddr: String,
-    val hostA: String,
-    val hostB: String
-)
-
-data class Device(
-    val id: Int,
-    val hostname: String,
-    val name: String,
-    val type: DeviceType
-)
-
-enum class DeviceType {
-    BULB,
-    PLUG,
-    RELAY
-}
-
 @Component
 class SwitchRepository(val db: JdbcTemplate) {
+
+    data class SwitchConfig(
+        val macAddr: String,
+        val hostA: String,
+        val hostB: String
+    )
+
+    data class Device(
+        val id: Int,
+        val hostname: String,
+        val name: String,
+        val type: DeviceType
+    )
+
+    enum class DeviceType {
+        BULB,
+        PLUG,
+        RELAY
+    }
 
     fun getSwitchConfig(macAddr: String) =
         db.queryForObject(
@@ -61,7 +61,7 @@ class SwitchRepository(val db: JdbcTemplate) {
             """.trimMargin(),
             arrayOf(id),
             this::deviceMapper
-        )
+        )!!
 
     private fun switchConfigMapper(rs: ResultSet, row: Int) =
         SwitchConfig(

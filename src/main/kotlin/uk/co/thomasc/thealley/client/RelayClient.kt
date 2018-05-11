@@ -25,8 +25,11 @@ class Relay(val host: String, val restTemplate: RestTemplate, val apiKey: String
     override fun setPowerState(value: Boolean) =
         setLightState(if (value) 1 else 0)
 
-    override fun setComplexState(brightness: Int, hue: Int) =
-        setPowerState(brightness > 50)
+    override fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?, transitionTime: Int?) {
+        brightness?.let {
+            setPowerState(brightness > 50)
+        }
+    }
 
     private fun setLightState(state: Int) {
         val bodyMap = LinkedMultiValueMap<String, String>()

@@ -34,9 +34,9 @@ class LocalClient {
 
     val threadPool = newFixedThreadPoolContext(10, "LocalClient")
 
-    fun getDevice(host: String): DeviceResponse {
+    fun getDevice(host: String, timeout: Long = 2000): DeviceResponse {
         val deviceInfo = async(threadPool) {
-            getSysInfo(host)
+            getSysInfo(host, timeout)
         }
 
         return object : DeviceResponse {
@@ -66,8 +66,8 @@ class LocalClient {
         }
     }
 
-    suspend fun getSysInfo(host: String): Any? =
-        this.send("{\"system\":{\"get_sysinfo\":{}}}", host)?.let { json ->
+    suspend fun getSysInfo(host: String, timeout: Long = 500): Any? =
+        this.send("{\"system\":{\"get_sysinfo\":{}}}", host, timeout = timeout)?.let { json ->
 
             val node = try {
                 mapper.readValue(json, JsonNode::class.java)
@@ -92,8 +92,8 @@ class LocalClient {
             }
         }
 
-    suspend fun send(json: String, host: String, port: Int = 9999) =
-        withTimeoutOrNull(500) {
+    suspend fun send(json: String, host: String, port: Int = 9999, timeout: Long) =
+        withTimeoutOrNull(timeout) {
             async(threadPool) {
                 try {
                     aSocket().tcp().connect(InetSocketAddress(InetAddress.getByName(host), 9999)).use {

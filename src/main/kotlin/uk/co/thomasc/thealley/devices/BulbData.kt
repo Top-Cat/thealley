@@ -22,7 +22,7 @@ data class BulbUpdate(
     override val brightness: Int?,
     override val color_temp: Int?
 ) : IBulbUpdate() {
-    constructor(on_off: Boolean) : this(null, on_off, null, null, null, null, null)
+    constructor(on_off: Boolean, transition_period: Int? = null) : this(transition_period, on_off, null, null, null, null, null)
 }
 
 abstract class IBulbUpdate : IBulbState() {

@@ -11,3 +11,10 @@ thealley:
     apiKey: ${RELAY_API_KEY}
   tado:
     refreshToken: ${TADO_KEY}
+
+clients.clients:
+  - clientId: google
+    secret: ${GOOGLE_SECRET}
+    scopes:
+      - "read"
+      - "write"
