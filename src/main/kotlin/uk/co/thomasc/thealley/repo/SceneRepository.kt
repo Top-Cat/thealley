@@ -65,6 +65,6 @@ class SceneRepository(
         )
 
     fun updateLastActive(id: Int, lastActive: LocalDateTime?) {
-        db.update("UPDATE rule SET last_active = ? WHERE id = ?", arrayOf(lastActive, id))
+        db.update("UPDATE rule SET last_active = ? WHERE rule_id = ?", lastActive, id)
     }
 }

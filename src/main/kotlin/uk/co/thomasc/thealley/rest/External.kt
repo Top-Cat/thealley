@@ -70,7 +70,7 @@ class External(
 
                 async(CommonPool) {
                     devices.first to it.first.execution.map { ex ->
-                        val dev = devices.second.await()
+                        val dev = devices.second.resolve()
 
                         dev?.let { bulbN ->
                             when (ex.command) {
