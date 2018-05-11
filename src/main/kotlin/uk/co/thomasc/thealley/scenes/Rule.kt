@@ -9,16 +9,16 @@ class Rule(
     private val sceneRepository: SceneRepository,
 
     private val id: Int,
-    val sensorId: String,
+    val sensors: List<String>,
     private val timeout: Int,
     var lastActive: LocalDateTime?,
     private val scene: Scene
 ) {
 
     fun onChange() {
-        if (timeout == 0) {
-            scene.execute()
-        } else {
+        scene.execute()
+
+        if (timeout > 0) {
             lastActive = LocalDateTime.now()
             sceneRepository.updateLastActive(id, lastActive)
         }
@@ -31,7 +31,7 @@ class Rule(
         val secondsSinceActivity = difference.seconds.absoluteValue
 
         if (secondsSinceActivity > timeout) {
-            scene.execute()
+            scene.off()
 
             lastActive = null
             sceneRepository.updateLastActive(id, lastActive)

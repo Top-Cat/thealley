@@ -13,12 +13,17 @@ import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.Relay
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.devices.BulbData
+import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.awt.Color
 
 @RestController
 @RequestMapping("/external")
-class External(val switchRepository: SwitchRepository, val relayClient: RelayClient, val localClient: LocalClient) {
+class External(
+    val switchRepository: SwitchRepository,
+    relayClient: RelayClient,
+    val localClient: LocalClient
+) : DeviceMapper(localClient, relayClient, switchRepository) {
 
     val mapper = jacksonObjectMapper()
 
@@ -57,11 +62,7 @@ class External(val switchRepository: SwitchRepository, val relayClient: RelayCli
             cmd to cmd.devices.map {
                 switchRepository.getDeviceForId(Integer.parseInt(it.id))
             }.map {
-                it.id to when (it.type) {
-                    SwitchRepository.DeviceType.BULB -> localClient.getDevice(it.hostname)
-                    SwitchRepository.DeviceType.RELAY -> relayClient.getRelay(it.hostname)
-                    else -> null
-                }
+                it.id to it.toLight()
             }
         }.map { // Execute commands
             it.second.map {
@@ -69,13 +70,9 @@ class External(val switchRepository: SwitchRepository, val relayClient: RelayCli
 
                 async(CommonPool) {
                     devices.first to it.first.execution.map { ex ->
-                        val dev = devices.second
+                        val dev = devices.second.await()
 
-                        when (dev) {
-                            is Relay -> dev
-                            is DeviceResponse -> dev.bulb { it }.await()
-                            else -> null
-                        }?.let { bulbN ->
+                        dev?.let { bulbN ->
                             when (ex.command) {
                                 "action.devices.commands.OnOff" -> {
                                         bulbN.setPowerState(ex.params["on"] as Boolean)

@@ -1,19 +1,33 @@
 package uk.co.thomasc.thealley.scenes
 
 import uk.co.thomasc.thealley.client.LocalClient
+import uk.co.thomasc.thealley.client.RelayClient
+import uk.co.thomasc.thealley.devices.DeviceMapper
+import uk.co.thomasc.thealley.repo.SwitchRepository
 
-data class ScenePart(val lightId: String, val brightness: Int, val hue: Int)
+data class ScenePart(val lightId: Int, val brightness: Int, val hue: Int)
 
-class Scene(private val kasa: LocalClient, private val lights: List<ScenePart>) {
+class Scene(
+    localClient: LocalClient,
+    relayClient: RelayClient,
+    switchRepository: SwitchRepository,
+    private val lights: List<ScenePart>
+) : DeviceMapper(localClient, relayClient, switchRepository) {
 
     fun execute() {
-        lights.map {
-            kasa.getDevice("lb130-${it.lightId}.guest.kirkstall.top-cat.me").bulb { bulb ->
-                when (it.brightness) {
-                    0 -> bulb?.setPowerState(false)
-                    else -> bulb?.setComplexState(it.brightness, it.hue)
-                }
+        lights.each {
+            bulb, it ->
+
+            when (it.brightness) {
+                0 -> bulb.setPowerState(false)
+                else -> bulb.setComplexState(it.brightness, it.hue)
             }
+        }
+    }
+
+    fun off() {
+        lights.each {
+            it, _ -> it.setPowerState(false)
         }
     }
 

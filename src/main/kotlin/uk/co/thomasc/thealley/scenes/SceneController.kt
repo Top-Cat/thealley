@@ -17,6 +17,6 @@ class SceneController(sceneRepository: SceneRepository) {
     }
 
     fun onChange(sensorId: String) {
-        rules.filter { it.sensorId == sensorId }.forEach { it.onChange() }
+        rules.filter { it.sensors.contains(sensorId) }.forEach { it.onChange() }
     }
 }
