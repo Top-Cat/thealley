@@ -22,7 +22,7 @@ class Rule(
     companion object {
         private val sunCalculator = SunriseSunsetCalculator(
             Location("53.8076891", "-1.5979767"),
-            "Europe/London"
+            "UTC"
         )
 
         lateinit var sunsetCache: Pair<Calendar, Calendar>
