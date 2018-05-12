@@ -21,7 +21,7 @@ class SceneRepository(
 
     fun getRules(): List<Rule> =
         db.query(
-            "SELECT rule_id, timeout, last_active, scene_id FROM rule",
+            "SELECT rule_id, timeout, last_active, last_updated, daytime, scene_id FROM rule",
             this::rulesMapper
         )
 
@@ -61,10 +61,12 @@ class SceneRepository(
             getSensors(rs.getInt("rule_id")),
             rs.getInt("timeout"),
             rs.getTimestamp("last_active")?.toLocalDateTime(),
+            rs.getTimestamp("last_updated").toLocalDateTime(),
+            rs.getBoolean("daytime"),
             getScene(rs.getInt("scene_id"))
         )
 
-    fun updateLastActive(id: Int, lastActive: LocalDateTime?) {
-        db.update("UPDATE rule SET last_active = ? WHERE rule_id = ?", lastActive, id)
+    fun updateLastActive(id: Int, lastActive: LocalDateTime?, lastUpdated: LocalDateTime) {
+        db.update("UPDATE rule SET last_active = ?, last_updated = ? WHERE rule_id = ?", lastActive, lastUpdated, id)
     }
 }

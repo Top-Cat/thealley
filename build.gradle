@@ -44,9 +44,10 @@ dependencies {
 
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.0"
 
-    compile("org.springframework.boot:spring-boot-starter-security")
-    compile('org.springframework.cloud:spring-cloud-starter-oauth2')
+    compile "org.springframework.boot:spring-boot-starter-security"
+    compile "org.springframework.cloud:spring-cloud-starter-oauth2"
     compile "org.springframework.integration:spring-integration-mqtt"
+    compile "com.luckycatlabs:SunriseSunsetCalculator:1.2"
 
     // DB & Migrations
     compile("org.springframework.boot:spring-boot-starter-jdbc")
