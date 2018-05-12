@@ -22,7 +22,7 @@ function valueEvent(ctx, prop, v) {
 	console.log(ctx.id, prop, "changed to:", v);
 
 	request.post({uri: process.env.BASE_URL + "/prop", json: {property: prop, value: v.value, sensor: ctx.id}, timeout: 2000}, function (error, response, body) {
-		console.log(JSON.stringify([String(error), String(response), String(body)]));
+		//console.log(JSON.stringify([String(error), String(response), String(body)]));
 	});
 }
 
@@ -30,6 +30,6 @@ function motionEvent(ctx) {
 	console.log(ctx.id, "movement!");
 
 	request.post({uri: process.env.BASE_URL + "/motion", json: {sensor: ctx.id}, timeout: 2000}, function (error, response, body) {
-		console.log(JSON.stringify([String(error), String(response), String(body)]));
+		//console.log(JSON.stringify([String(error), String(response), String(body)]));
 	});
 }
