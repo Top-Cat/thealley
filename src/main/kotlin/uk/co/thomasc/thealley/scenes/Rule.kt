@@ -59,7 +59,7 @@ class Rule(
         // At night, turn on light and set off at time
         // Update last updated as state changes
         if (!(daytime && isDaytime())) {
-            on(now)
+            on(now, now.plusSeconds(timeout.toLong()))
         }
 
         // Always update last active time
@@ -81,17 +81,25 @@ class Rule(
         } else if (!(daytime && isDaytime()) && lastUpdated.isBefore(lastActive) && lastActive.isBefore(now)) {
             // Not daytime, has been active since last updated, activity isn't in the future
             // -> Night has begun, recent movement triggers light
-            on(now)
+
+            val off = lastUpdated.plusSeconds(timeout.toLong())
+            if (off.isBefore(now)) {
+                offAt = null
+                lastUpdated = now
+            } else {
+                on(now, off)
+            }
+
             sceneRepository.updateLastActive(this)
         }
     }
 
-    private fun on(now: LocalDateTime) {
+    private fun on(now: LocalDateTime, off: LocalDateTime) {
         scene.execute()
         lastUpdated = now
 
         if (timeout > 0) {
-            offAt = now.plusSeconds(timeout.toLong())
+            offAt = off
         }
     }
 
