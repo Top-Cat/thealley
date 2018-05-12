@@ -3,25 +3,24 @@ package uk.co.thomasc.thealley.scenes
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator
 import com.luckycatlabs.sunrisesunset.dto.Location
 import uk.co.thomasc.thealley.repo.SceneRepository
-import java.time.Duration
 import java.time.LocalDateTime
 import java.util.Calendar
-import kotlin.math.absoluteValue
 
 class Rule(
     private val sceneRepository: SceneRepository,
 
-    private val id: Int,
+    val id: Int,
     val sensors: List<String>,
     private val timeout: Int,
-    private var lastActive: LocalDateTime?,
-    private var lastUpdated: LocalDateTime,
+    var lastActive: LocalDateTime,
+    var offAt: LocalDateTime?,
+    var lastUpdated: LocalDateTime,
     private val daytime: Boolean,
     private val scene: Scene
 ) {
 
     companion object {
-        val sunCalculator = SunriseSunsetCalculator(
+        private val sunCalculator = SunriseSunsetCalculator(
             Location("53.8076891", "-1.5979767"),
             "Europe/London"
         )
@@ -57,32 +56,39 @@ class Rule(
     fun onChange() {
         val now = LocalDateTime.now()
 
+        // At night, turn on light and set off at time
+        // Update last updated as state changes
         if (!(daytime && isDaytime())) {
             scene.execute()
             lastUpdated = now
+
+            if (timeout > 0) {
+                offAt = now.plusSeconds(timeout.toLong())
+            }
         }
 
-        if (timeout > 0) {
-            lastActive = now
-            sceneRepository.updateLastActive(id, lastActive, lastUpdated)
-        }
+        // Always update last active time
+        lastActive = now
+
+        sceneRepository.updateLastActive(this)
     }
 
     fun tick() {
-        if (lastActive == null) return
+        val now = LocalDateTime.now()
 
-        val difference = Duration.between(LocalDateTime.now(), lastActive)
-        val secondsSinceActivity = difference.seconds.absoluteValue
-
-        if (secondsSinceActivity > timeout) {
+        if (offAt?.let { it.isBefore(now) } == true) {
+            // Turn off when offAt is reached, ignore null value
             scene.off()
+            offAt = null
+            lastUpdated = now
 
-            lastActive = null
-            sceneRepository.updateLastActive(id, lastActive, lastUpdated)
-        } else if (!(daytime && isDaytime()) && lastUpdated.isBefore(lastActive)) {
+            sceneRepository.updateLastActive(this)
+        } else if (!(daytime && isDaytime()) && lastUpdated.isBefore(lastActive) && lastActive.isBefore(now)) {
+            // Not daytime, has been active since last updated, activity isn't in the future
+            // -> Night has begun, recent movement triggers light
             scene.execute()
-            lastUpdated = LocalDateTime.now()
-            sceneRepository.updateLastActive(id, lastActive, lastUpdated)
+            lastUpdated = now
+            sceneRepository.updateLastActive(this)
         }
     }
 
