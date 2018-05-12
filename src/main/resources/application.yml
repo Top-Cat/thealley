@@ -7,6 +7,10 @@ spring:
     password: ${MYSQL_PASSWORD}
 
 thealley:
+  mqtt:
+    host: ${MQTT_HOST}
+    user: ${MQTT_USER}
+    pass: ${MQTT_PASS}
   relay:
     apiKey: ${RELAY_API_KEY}
   tado:

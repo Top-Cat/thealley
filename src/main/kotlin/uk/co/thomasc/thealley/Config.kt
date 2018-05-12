@@ -8,6 +8,13 @@ import org.springframework.stereotype.Component
 class Config {
     val relay = RelayConfig()
     val tado = TadoConfig()
+    val mqtt = MqttConfig()
+
+    class MqttConfig {
+        lateinit var host: String
+        lateinit var user: String
+        lateinit var pass: String
+    }
 
     class RelayConfig {
         lateinit var apiKey: String
