@@ -82,7 +82,7 @@ class Rule(
             // Not daytime, has been active since last updated, activity isn't in the future
             // -> Night has begun, recent movement triggers light
 
-            val off = lastUpdated.plusSeconds(timeout.toLong())
+            val off = lastActive.plusSeconds(timeout.toLong())
             if (off.isBefore(now)) {
                 offAt = null
                 lastUpdated = now
