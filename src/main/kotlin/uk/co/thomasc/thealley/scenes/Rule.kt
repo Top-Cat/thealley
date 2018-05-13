@@ -40,8 +40,8 @@ class Rule(
                     null
                 }
             } ?: run {
-                val sunrise = sunCalculator.getCivilSunriseCalendarForDate(now)
-                val sunset = sunCalculator.getCivilSunsetCalendarForDate(now)
+                val sunrise = sunCalculator.getOfficialSunriseCalendarForDate(now)
+                val sunset = sunCalculator.getOfficialSunsetCalendarForDate(now)
 
                 sunsetCache = sunrise to sunset
                 cacheTime = now
