@@ -26,7 +26,7 @@ class SwitchRepository(val db: JdbcTemplate) {
         RELAY
     }
 
-    fun getSwitchConfig(macAddr: String) =
+    fun getSwitchConfig(macAddr: String): SwitchConfig? =
         db.queryForObject(
             """
                 |SELECT switch.macAddr, deviceA.hostname hostA, deviceB.hostname hostB

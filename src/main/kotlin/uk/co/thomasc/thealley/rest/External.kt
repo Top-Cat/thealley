@@ -87,10 +87,6 @@ class External(
                                 "action.devices.commands.ColorAbsolute" -> {
                                     val colorObj = ex.params["color"]
 
-                                    // Turns light on with transition in last state,
-                                    // otherwise the call below will only go to the last state
-                                    bulbN.setComplexState(transitionTime = 30000)
-
                                     if (colorObj is Map<*, *>) {
                                         if (colorObj.containsKey("temperature")) {
                                             bulbN.setComplexState(

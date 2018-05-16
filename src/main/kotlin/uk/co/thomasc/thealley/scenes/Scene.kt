@@ -5,7 +5,7 @@ import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
-data class ScenePart(val lightId: Int, val brightness: Int, val hue: Int)
+data class ScenePart(val lightId: Int, val brightness: Int, val hue: Int?, val saturation: Int?, val colorTemp: Int?)
 
 class Scene(
     localClient: LocalClient,
@@ -20,7 +20,7 @@ class Scene(
 
             when (it.brightness) {
                 0 -> bulb.setPowerState(false)
-                else -> bulb.setComplexState(it.brightness, it.hue)
+                else -> bulb.setComplexState(it.brightness, it.hue, it.saturation, it.colorTemp)
             }
         }
     }

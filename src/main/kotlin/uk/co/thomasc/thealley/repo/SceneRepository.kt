@@ -9,7 +9,6 @@ import uk.co.thomasc.thealley.scenes.Rule
 import uk.co.thomasc.thealley.scenes.Scene
 import uk.co.thomasc.thealley.scenes.ScenePart
 import java.sql.ResultSet
-import java.time.LocalDateTime
 
 @Component
 @DependsOn("flywayInitializer")
@@ -38,7 +37,7 @@ class SceneRepository(
             relayClient,
             switchRepository,
             db.query(
-                "SELECT light_id, brightness, hue FROM scene WHERE scene_id = ?",
+                "SELECT light_id, brightness, hue, color_temp, saturation FROM scene WHERE scene_id = ?",
                 arrayOf(sceneId),
                 this::sceneMapper
             )
@@ -48,7 +47,9 @@ class SceneRepository(
         ScenePart(
             rs.getInt("light_id"),
             rs.getInt("brightness"),
-            rs.getInt("hue")
+            rs.getInt("hue").let { if (rs.wasNull()) null else it },
+            rs.getInt("saturation").let { if (rs.wasNull()) null else it },
+            rs.getInt("color_temp").let { if (rs.wasNull()) null else it }
         )
 
     private fun sensorMapper(rs: ResultSet, row: Int) =

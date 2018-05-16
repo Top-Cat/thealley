@@ -20,13 +20,18 @@ data class BulbUpdate(
     override val hue: Int?,
     override val saturation: Int?,
     override val brightness: Int?,
-    override val color_temp: Int?
+    override val color_temp: Int?,
+    override val ignore_default: Boolean = true
 ) : IBulbUpdate() {
     constructor(on_off: Boolean, transition_period: Int? = null) : this(transition_period, on_off, null, null, null, null, null)
 }
 
 abstract class IBulbUpdate : IBulbState() {
     abstract val transition_period: Int?
+    abstract val ignore_default: Boolean
+
+    @JsonGetter("ignore_default")
+    private fun getIgnoreDefault() = if (ignore_default) 1 else 0
 }
 
 abstract class IBulbState : IBulbOnOff() {
