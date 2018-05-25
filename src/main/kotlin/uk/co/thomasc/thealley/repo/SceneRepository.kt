@@ -18,11 +18,28 @@ class SceneRepository(
     private val relayClient: RelayClient,
     private val switchRepository: SwitchRepository) {
 
-    fun getRules(): List<Rule> =
-        db.query(
+    fun getRules(scene: Map<Int, Scene>): List<Rule> {
+
+        fun rulesMapper(rs: ResultSet, row: Int) =
+            scene[rs.getInt("scene_id")]?.let {
+                Rule(
+                    this,
+                    rs.getInt("rule_id"),
+                    getSensors(rs.getInt("rule_id")),
+                    rs.getInt("timeout"),
+                    rs.getTimestamp("last_active").toLocalDateTime(),
+                    rs.getTimestamp("off_at")?.toLocalDateTime(),
+                    rs.getTimestamp("last_updated").toLocalDateTime(),
+                    rs.getBoolean("daytime"),
+                    it
+                )
+            }
+
+        return db.query(
             "SELECT rule_id, timeout, last_active, last_updated, daytime, off_at, scene_id FROM rule",
-            this::rulesMapper
-        )
+            ::rulesMapper
+        ).filterNotNull()
+    }
 
     fun getSensors(ruleId: Int): List<String> =
         db.query(
@@ -31,20 +48,26 @@ class SceneRepository(
             this::sensorMapper
         )
 
-    fun getScene(sceneId: Int) =
-        Scene(
-            localClient,
-            relayClient,
-            switchRepository,
-            db.query(
-                "SELECT light_id, brightness, hue, color_temp, saturation FROM scene WHERE scene_id = ?",
-                arrayOf(sceneId),
-                this::sceneMapper
-            )
+    fun getScenes() =
+        db.query(
+            "SELECT scene_id, light_id, brightness, hue, color_temp, saturation FROM scene",
+            this::sceneMapper
         )
+            .groupBy { it.sceneId }
+            .map {
+                it.key to Scene(
+                    it.key,
+                    localClient,
+                    relayClient,
+                    switchRepository,
+                    it.value
+                )
+            }
+            .toMap()
 
     private fun sceneMapper(rs: ResultSet, row: Int) =
         ScenePart(
+            rs.getInt("scene_id"),
             rs.getInt("light_id"),
             rs.getInt("brightness"),
             rs.getInt("hue").let { if (rs.wasNull()) null else it },
@@ -54,19 +77,6 @@ class SceneRepository(
 
     private fun sensorMapper(rs: ResultSet, row: Int) =
         rs.getString("sensor_id")
-
-    private fun rulesMapper(rs: ResultSet, row: Int) =
-        Rule(
-            this,
-            rs.getInt("rule_id"),
-            getSensors(rs.getInt("rule_id")),
-            rs.getInt("timeout"),
-            rs.getTimestamp("last_active").toLocalDateTime(),
-            rs.getTimestamp("off_at")?.toLocalDateTime(),
-            rs.getTimestamp("last_updated").toLocalDateTime(),
-            rs.getBoolean("daytime"),
-            getScene(rs.getInt("scene_id"))
-        )
 
     fun updateLastActive(obj: Rule) {
         db.update(

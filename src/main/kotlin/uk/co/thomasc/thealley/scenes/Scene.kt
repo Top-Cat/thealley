@@ -5,9 +5,10 @@ import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
-data class ScenePart(val lightId: Int, val brightness: Int, val hue: Int?, val saturation: Int?, val colorTemp: Int?)
+data class ScenePart(val sceneId: Int, val lightId: Int, val brightness: Int, val hue: Int?, val saturation: Int?, val colorTemp: Int?)
 
 class Scene(
+    val sceneId: Int,
     localClient: LocalClient,
     relayClient: RelayClient,
     switchRepository: SwitchRepository,

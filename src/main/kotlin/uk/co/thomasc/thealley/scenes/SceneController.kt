@@ -3,11 +3,14 @@ package uk.co.thomasc.thealley.scenes
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import uk.co.thomasc.thealley.repo.SceneRepository
+import uk.co.thomasc.thealley.repo.SwitchRepository
 
 @Component
-class SceneController(sceneRepository: SceneRepository) {
+class SceneController(sceneRepository: SceneRepository, switchRepository: SwitchRepository) {
 
-    val rules: List<Rule> = sceneRepository.getRules()
+    val scenes = sceneRepository.getScenes()
+    val rules = sceneRepository.getRules(scenes)
+    val switches = switchRepository.getSwitches(scenes)
 
     @Scheduled(fixedDelay = 1000)
     fun tick() {

@@ -2,16 +2,31 @@ package uk.co.thomasc.thealley.repo
 
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
+import uk.co.thomasc.thealley.scenes.Scene
 import java.sql.ResultSet
 
 @Component
 class SwitchRepository(val db: JdbcTemplate) {
 
-    data class SwitchConfig(
-        val macAddr: String,
-        val hostA: String,
-        val hostB: String
-    )
+    data class Switch(
+        val switchId: Int,
+        val buttonId: Int,
+        var state: Int,
+        private val scene: Scene,
+        private val switchRepository: SwitchRepository
+    ) {
+        fun toggle() {
+            if (state > 0) {
+                state = 0
+                scene.off()
+            } else {
+                state = 100
+                scene.execute()
+            }
+
+            switchRepository.updateSwitchState(this)
+        }
+    }
 
     data class Device(
         val id: Int,
@@ -26,20 +41,33 @@ class SwitchRepository(val db: JdbcTemplate) {
         RELAY
     }
 
-    fun getSwitchConfig(macAddr: String): SwitchConfig? =
-        db.queryForObject(
-            """
-                |SELECT switch.macAddr, deviceA.hostname hostA, deviceB.hostname hostB
-                |   FROM switch
-                |   JOIN device deviceA
-                |       ON switch.hostA = deviceA.id
-                |   JOIN device deviceB
-                |       ON switch.hostB = deviceB.id
-                |   WHERE macAddr = ?
-            """.trimMargin(),
-            arrayOf(macAddr),
-            this::switchConfigMapper
+    fun getSwitches(scene: Map<Int, Scene>): Map<Pair<Int, Int>, Switch> {
+
+        fun switchConfigMapper(rs: ResultSet, row: Int) =
+            scene[rs.getInt("scene")]?.let {
+                Switch(
+                    rs.getInt("id"),
+                    rs.getInt("button"),
+                    rs.getInt("state"),
+                    it,
+                    this
+                )
+            }
+
+        return db.query(
+            "SELECT switch.id, switch.button, switch.scene, switch.state FROM switch",
+            ::switchConfigMapper
+        ).filterNotNull().associateBy { it.switchId to it.buttonId }
+    }
+
+    fun updateSwitchState(switch: Switch) {
+        db.update(
+            "UPDATE switch SET state = ? WHERE button = ? AND id = ?",
+            switch.state,
+            switch.buttonId,
+            switch.switchId
         )
+    }
 
     fun getDevicesForType(type: DeviceType): List<Device> =
         db.query(
@@ -62,13 +90,6 @@ class SwitchRepository(val db: JdbcTemplate) {
             arrayOf(id),
             this::deviceMapper
         )!!
-
-    private fun switchConfigMapper(rs: ResultSet, row: Int) =
-        SwitchConfig(
-            rs.getString("macAddr"),
-            rs.getString("hostA"),
-            rs.getString("hostB")
-        )
 
     private fun deviceMapper(rs: ResultSet, row: Int) =
         Device(
