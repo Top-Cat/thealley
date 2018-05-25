@@ -10,8 +10,12 @@ import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.repo.SwitchRepository
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
+import java.util.Queue
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.BlockingQueue
 
 @Component
 class SwitchServer(
@@ -56,28 +60,35 @@ class SwitchClient(
     suspend fun run() {
         println("Client connected: ${client.remoteAddress}")
         val bb = ByteBuffer.allocate(32)
+        val q = ArrayBlockingQueue<Byte>(128)
 
-        while (true) {
-            bb.clear()
+        try {
+            while (true) {
+                bb.clear()
 
-            if (client.read(bb) == -1) {
-                println("Client disconnected: ${client.remoteAddress}")
-                return
-            }
+                if (client.read(bb) == -1) {
+                    throw IOException()
+                }
 
-            bb.flip()
+                bb.flip()
+                while (bb.hasRemaining()) {
+                    q.add(bb.get())
+                }
 
-            while (bb.hasRemaining()) {
-                when (bb.get().toInt()) {
-                    52 -> {
-                        val switchId = bb.get()
-                        val buttonId = bb.get()
-                        val buttonState = bb.get()
+                while (q.size > 3) {
+                    when (q.poll().toInt()) {
+                        52 -> {
+                            val switchId = q.poll()
+                            val buttonId = q.poll()
+                            val buttonState = q.poll()
 
-                        println("Button pressed - $switchId - $buttonId - $buttonState")
+                            println("Button pressed - $switchId - $buttonId - $buttonState")
+                        }
                     }
                 }
             }
+        } catch (e: IOException) {
+            println("Client disconnected: ${client.remoteAddress}")
         }
     }
 
