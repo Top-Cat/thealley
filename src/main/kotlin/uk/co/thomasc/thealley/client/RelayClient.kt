@@ -47,6 +47,7 @@ class RelayMqtt(val config: Config) {
         val messageHandler = MqttPahoMessageHandler("thealley", mqttClientFactory())
         messageHandler.setAsync(true)
         messageHandler.setDefaultTopic("default")
+        messageHandler.setDefaultQos(1)
         return messageHandler
     }
 

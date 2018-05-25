@@ -8,9 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import uk.co.thomasc.thealley.client.DeviceResponse
 import uk.co.thomasc.thealley.client.LocalClient
-import uk.co.thomasc.thealley.client.Relay
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.devices.BulbData
 import uk.co.thomasc.thealley.devices.DeviceMapper
