@@ -69,7 +69,7 @@ class SwitchClient(
 
             while (bb.hasRemaining()) {
                 when (bb.get().toInt()) {
-                    34 -> {
+                    52 -> {
                         val switchId = bb.get()
                         val buttonId = bb.get()
                         val buttonState = bb.get()
