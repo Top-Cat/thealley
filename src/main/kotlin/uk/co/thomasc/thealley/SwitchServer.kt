@@ -14,9 +14,7 @@ import uk.co.thomasc.thealley.scenes.SceneController
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import java.util.Queue
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.BlockingQueue
 
 @Component
 class SwitchServer(
@@ -63,7 +61,7 @@ class SwitchClient(
     suspend fun run() {
         println("Client connected: ${client.remoteAddress}")
         val bb = ByteBuffer.allocate(32)
-        val q = ArrayBlockingQueue<Byte>(128)
+        val q = ArrayBlockingQueue<Int>(128)
 
         try {
             while (true) {
@@ -75,19 +73,23 @@ class SwitchClient(
 
                 bb.flip()
                 while (bb.hasRemaining()) {
-                    q.add(bb.get())
+                    q.add(bb.get().toInt())
                 }
 
                 while (q.size > 3) {
-                    when (q.poll().toInt()) {
+                    when (q.poll()) {
                         52 -> {
-                            val switchId = q.poll().toInt()
-                            val buttonId = q.poll().toInt()
-                            val buttonState = q.poll().toInt()
+                            val switchId = q.poll()
+                            val buttonId = q.poll()
+                            val buttonState = q.poll()
 
-                            when (buttonState) {
-                                1 -> sceneController.switches[switchId to buttonId]?.toggle()
-                                else -> println("Unknown state $buttonState")
+                            sceneController.switches[switchId to buttonId]?.let {
+                                when (buttonState) {
+                                    1 -> it.toggle()
+                                    3 -> it.startFade()
+                                    4 -> it.endFade()
+                                    else -> println("Unknown state $buttonState")
+                                }
                             }
                         }
                     }

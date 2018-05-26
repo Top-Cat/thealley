@@ -4,6 +4,8 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 import uk.co.thomasc.thealley.scenes.Scene
 import java.sql.ResultSet
+import kotlin.math.max
+import kotlin.math.min
 
 @Component
 class SwitchRepository(val db: JdbcTemplate) {
@@ -15,6 +17,8 @@ class SwitchRepository(val db: JdbcTemplate) {
         private val scene: Scene,
         private val switchRepository: SwitchRepository
     ) {
+        private var fadeStarted: Long = 0
+
         fun toggle() {
             if (state > 0) {
                 state = 0
@@ -24,6 +28,28 @@ class SwitchRepository(val db: JdbcTemplate) {
                 scene.execute()
             }
 
+            switchRepository.updateSwitchState(this)
+        }
+
+        fun startFade() {
+            fadeStarted = System.currentTimeMillis()
+            if (state > 0) {
+                scene.execute(0, state * 100)
+            } else {
+                scene.execute(100, 10000)
+            }
+        }
+
+        fun endFade() {
+            val fadeTime = System.currentTimeMillis() - fadeStarted
+
+            state = if (state > 0) {
+                max(((state * 100) - fadeTime) / 100, 1)
+            } else {
+                min(fadeTime / 100, 100)
+            }.toInt()
+
+            scene.execute(state, 0)
             switchRepository.updateSwitchState(this)
         }
     }

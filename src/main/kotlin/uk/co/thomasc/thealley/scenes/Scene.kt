@@ -15,13 +15,13 @@ class Scene(
     private val lights: List<ScenePart>
 ) : DeviceMapper(localClient, relayClient, switchRepository) {
 
-    fun execute() {
+    fun execute(percent: Int = 100, transitionTime: Int = 1000) {
         lights.each {
             bulb, it ->
 
             when (it.brightness) {
                 0 -> bulb.setPowerState(false)
-                else -> bulb.setComplexState(it.brightness, it.hue, it.saturation, it.colorTemp)
+                else -> bulb.setComplexState((it.brightness * percent) / 100, it.hue, it.saturation, it.colorTemp, transitionTime)
             }
         }
     }
