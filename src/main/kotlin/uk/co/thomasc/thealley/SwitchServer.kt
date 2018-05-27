@@ -86,6 +86,7 @@ class SwitchClient(
                             sceneController.switches[switchId to buttonId]?.let {
                                 when (buttonState) {
                                     1 -> it.toggle()
+                                    2 -> it.revoke()
                                     3 -> it.startFade()
                                     4 -> it.endFade()
                                     else -> println("Unknown state $buttonState")

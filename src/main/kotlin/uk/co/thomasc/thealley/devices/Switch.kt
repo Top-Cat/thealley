@@ -28,8 +28,13 @@ data class Switch(
         switchRepository.updateSwitchState(this)
     }
 
+    fun revoke() {
+        //TODO: revoke override so rules can change light state
+    }
+
     fun startFade() {
         fadeStarted = System.currentTimeMillis()
+
         if (state > 0) {
             scene.execute(0, state * FADE_TIME)
         } else {
