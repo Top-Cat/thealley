@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.client
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import uk.co.thomasc.thealley.devices.Light
@@ -23,7 +24,7 @@ import org.springframework.messaging.MessageHandler
 import org.springframework.messaging.support.MessageBuilder
 
 
-data class RelayState(val relay0: Boolean)
+data class RelayState(@JsonAlias("relay/0") val relay0: Boolean)
 
 @Component
 class RelayMqtt(val config: Config) {
