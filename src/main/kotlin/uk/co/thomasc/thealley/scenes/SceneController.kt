@@ -8,7 +8,7 @@ import uk.co.thomasc.thealley.repo.SwitchRepository
 @Component
 class SceneController(sceneRepository: SceneRepository, switchRepository: SwitchRepository) {
 
-    val scenes = sceneRepository.getScenes()
+    final val scenes = sceneRepository.getScenes()
     val rules = sceneRepository.getRules(scenes)
     val switches = switchRepository.getSwitches(scenes)
 

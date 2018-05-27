@@ -2,9 +2,12 @@ package uk.co.thomasc.thealley.rest
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.JsonNode
+import uk.co.thomasc.thealley.devices.DeviceMapper
 
 data class GoogleHomeReq(val requestId: String, val inputs: List<JsonNode>)
-data class GoogleHomeDevice(val id: String, val customData: JsonNode?)
+data class GoogleHomeDevice(private val id: String, val customData: JsonNode?) : DeviceMapper.HasDeviceId {
+    override val deviceId = Integer.parseInt(id)
+}
 data class GoogleHomeRes(val requestId: String, val payload: GoogleHomePayload)
 abstract class GoogleHomeMayFail(open val errorCode: String?, open val debugString: String?)
 sealed class GoogleHomePayload(errorCode: String?, debugString: String?) : GoogleHomeMayFail(errorCode, debugString)

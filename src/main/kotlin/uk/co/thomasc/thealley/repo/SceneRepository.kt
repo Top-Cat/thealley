@@ -3,8 +3,7 @@ package uk.co.thomasc.thealley.repo
 import org.springframework.context.annotation.DependsOn
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
-import uk.co.thomasc.thealley.client.LocalClient
-import uk.co.thomasc.thealley.client.RelayClient
+import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.scenes.Rule
 import uk.co.thomasc.thealley.scenes.Scene
 import uk.co.thomasc.thealley.scenes.ScenePart
@@ -14,9 +13,7 @@ import java.sql.ResultSet
 @DependsOn("flywayInitializer")
 class SceneRepository(
     val db: JdbcTemplate,
-    private val localClient: LocalClient,
-    private val relayClient: RelayClient,
-    private val switchRepository: SwitchRepository) {
+    private val deviceMapper: DeviceMapper) {
 
     fun getRules(scene: Map<Int, Scene>): List<Rule> {
 
@@ -57,9 +54,7 @@ class SceneRepository(
             .map {
                 it.key to Scene(
                     it.key,
-                    localClient,
-                    relayClient,
-                    switchRepository,
+                    deviceMapper,
                     it.value
                 )
             }

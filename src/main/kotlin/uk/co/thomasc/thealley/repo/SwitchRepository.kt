@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.repo
 
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
+import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Switch
 import uk.co.thomasc.thealley.scenes.Scene
 import java.sql.ResultSet
@@ -10,11 +11,11 @@ import java.sql.ResultSet
 class SwitchRepository(val db: JdbcTemplate) {
 
     data class Device(
-        val id: Int,
+        override val deviceId: Int,
         val hostname: String,
         val name: String,
         val type: DeviceType
-    )
+    ) : DeviceMapper.HasDeviceId
 
     enum class DeviceType {
         BULB,

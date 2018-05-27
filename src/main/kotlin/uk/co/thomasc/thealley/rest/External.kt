@@ -20,8 +20,9 @@ import java.awt.Color
 class External(
     val switchRepository: SwitchRepository,
     relayClient: RelayClient,
+    val deviceMapper: DeviceMapper,
     val localClient: LocalClient
-) : DeviceMapper(localClient, relayClient, switchRepository) {
+) {
 
     val mapper = jacksonObjectMapper()
 
@@ -58,9 +59,9 @@ class External(
     fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices.map {
-                switchRepository.getDeviceForId(Integer.parseInt(it.id))
+                switchRepository.getDeviceForId(it.deviceId)
             }.map {
-                it.id to it.toLight()
+                it.deviceId to deviceMapper.toLight(it)
             }
         }.map { // Execute commands
             it.second.map {
@@ -149,7 +150,7 @@ class External(
 
     fun queryRequest(intent: QueryIntent) = QueryResponse(
         intent.payload.devices.map {
-            switchRepository.getDeviceForId(Integer.parseInt(it.id))
+            switchRepository.getDeviceForId(it.deviceId)
         }.map {
             async(CommonPool) {
                 localClient.getSysInfo(it.hostname, timeout = 2000)
@@ -161,7 +162,7 @@ class External(
 
             val dbInfo = it.second
 
-            dbInfo.id.toString() to when (sysInfo) {
+            dbInfo.deviceId.toString() to when (sysInfo) {
                 null -> DeviceState(false)
                 else -> DeviceState(
                     true,
@@ -199,7 +200,7 @@ class External(
             val dbInfo = mapIn.second
 
             AlleyDevice(
-                dbInfo.id.toString(),
+                dbInfo.deviceId.toString(),
                 "action.devices.types.LIGHT",
                 listOf(
                     "action.devices.traits.OnOff",
@@ -227,7 +228,7 @@ class External(
             )
         } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY).map {
             AlleyDevice(
-                it.id.toString(),
+                it.deviceId.toString(),
                 "action.devices.types.LIGHT",
                 listOf(
                     "action.devices.traits.OnOff"

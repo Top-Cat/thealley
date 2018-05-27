@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.devices
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.runBlocking
+import org.springframework.stereotype.Component
 import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.repo.SwitchRepository
@@ -25,14 +26,15 @@ class DeferredLight(var obj: Any?) {
     }
 }
 
-open class DeviceMapper(
+@Component
+class DeviceMapper(
     private val localClient: LocalClient,
     private val relayClient: RelayClient,
     private val switchRepository: SwitchRepository) {
 
     private fun getLight(id: Int) = switchRepository.getDeviceForId(id)
 
-    protected fun SwitchRepository.Device.toLight(): DeferredLight {
+    private fun SwitchRepository.Device.innerToLight(): DeferredLight {
         return DeferredLight(when (type) {
             SwitchRepository.DeviceType.BULB -> localClient.getDevice(hostname).bulb { it }
             SwitchRepository.DeviceType.RELAY -> relayClient.getRelay(hostname)
@@ -40,12 +42,22 @@ open class DeviceMapper(
         })
     }
 
-    fun List<ScenePart>.each(block: (Light<*>, ScenePart) -> Unit) {
+    fun toLight(device: SwitchRepository.Device) = device.innerToLight()
+
+    fun <T: HasDeviceId> each(sceneParts: List<T>, block: (Light<*>, T) -> Unit) {
+        sceneParts.innerEach(block)
+    }
+
+    interface HasDeviceId {
+        val deviceId: Int
+    }
+
+    private fun <T: HasDeviceId> List<T>.innerEach(block: (Light<*>, T) -> Unit) {
         runBlocking {
             map {
-                getLight(it.lightId) to it
+                getLight(it.deviceId) to it
             }.map {
-                it.first.toLight() to it.second
+                it.first.innerToLight() to it.second
             }.map {
                 it.first.resolve()?.let {
                     light -> block(light, it.second)

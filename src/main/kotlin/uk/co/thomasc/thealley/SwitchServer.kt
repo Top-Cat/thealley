@@ -6,10 +6,6 @@ import kotlinx.sockets.ServerSocket
 import kotlinx.sockets.Socket
 import kotlinx.sockets.aSocket
 import org.springframework.stereotype.Component
-import uk.co.thomasc.thealley.client.LocalClient
-import uk.co.thomasc.thealley.client.RelayClient
-import uk.co.thomasc.thealley.devices.DeviceMapper
-import uk.co.thomasc.thealley.repo.SwitchRepository
 import uk.co.thomasc.thealley.scenes.SceneController
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -18,9 +14,6 @@ import java.util.concurrent.ArrayBlockingQueue
 
 @Component
 class SwitchServer(
-    val kasa: LocalClient,
-    val relayClient: RelayClient,
-    val switchRepo: SwitchRepository,
     val sceneController: SceneController
 ) {
 
@@ -42,7 +35,7 @@ class SwitchServer(
             val client = server.accept()
             launch(CommonPool) {
                 client.use {
-                    SwitchClient(kasa, relayClient, switchRepo, sceneController, it).run()
+                    SwitchClient(sceneController, it).run()
                 }
             }
         }
@@ -51,12 +44,9 @@ class SwitchServer(
 }
 
 class SwitchClient(
-    kasa: LocalClient,
-    relayClient: RelayClient,
-    switchRepo: SwitchRepository,
     private val sceneController: SceneController,
     private val client: Socket
-) : DeviceMapper(kasa, relayClient, switchRepo) {
+) {
 
     suspend fun run() {
         println("Client connected: ${client.remoteAddress}")
