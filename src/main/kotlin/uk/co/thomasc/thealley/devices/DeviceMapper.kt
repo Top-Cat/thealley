@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component
 import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.repo.SwitchRepository
-import uk.co.thomasc.thealley.scenes.ScenePart
 
 class DeferredLight(var obj: Any?) {
     fun resolve(): Light<*>? {

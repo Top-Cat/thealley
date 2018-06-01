@@ -8,7 +8,7 @@ import uk.co.thomasc.thealley.client.mapper
 class Bulb(private val client: LocalClient, private val host: String, private val bulb: BulbData) : Light<Bulb> {
 
     fun getName() = bulb.alias
-    fun getPowerState() = bulb.light_state.on_off
+    override fun getPowerState() = bulb.light_state.on_off
     fun getSignalStrength() = bulb.rssi
     fun getPowerUsage() = realtimePower.power_mw
 
@@ -45,7 +45,7 @@ class Bulb(private val client: LocalClient, private val host: String, private va
         return Bulb(client, host, newBulb)
     }
 
-    fun togglePowerState() =
+    override fun togglePowerState() =
         setPowerState(!getPowerState())
 
     private suspend fun send(json: String) = client.send(json, host, timeout = 500)
@@ -56,5 +56,9 @@ interface Light<out T> {
     fun setPowerState(value: Boolean): T
 
     fun setComplexState(brightness: Int? = null, hue: Int? = null, saturation: Int? = null, temperature: Int? = null, transitionTime: Int? = 1000): T
+
+    fun getPowerState(): Boolean
+
+    fun togglePowerState(): T
 
 }

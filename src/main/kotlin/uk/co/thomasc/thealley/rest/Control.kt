@@ -55,7 +55,7 @@ class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepositor
                 } ?: ret.setResult(BulbState(false))
             }
             SwitchRepository.DeviceType.RELAY -> {
-                ret.setResult(BulbState(relay.getRelay(res.hostname).getState()))
+                ret.setResult(BulbState(relay.getRelay(res.hostname).getPowerState()))
             }
             SwitchRepository.DeviceType.PLUG -> ret.setResult(BulbState(false))
         }
