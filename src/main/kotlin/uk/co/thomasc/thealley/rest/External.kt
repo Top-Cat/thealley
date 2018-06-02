@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.RelayClient
-import uk.co.thomasc.thealley.devices.BulbData
+import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
+import uk.co.thomasc.thealley.devices.Relay
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.awt.Color
 
@@ -20,8 +20,7 @@ import java.awt.Color
 class External(
     val switchRepository: SwitchRepository,
     relayClient: RelayClient,
-    val deviceMapper: DeviceMapper,
-    val localClient: LocalClient
+    val deviceMapper: DeviceMapper
 ) {
 
     val mapper = jacksonObjectMapper()
@@ -69,7 +68,7 @@ class External(
 
                 async(CommonPool) {
                     devices.first to it.first.execution.map { ex ->
-                        val dev = devices.second.resolve()
+                        val dev = devices.second
 
                         dev?.let { bulbN ->
                             when (ex.command) {
@@ -152,51 +151,43 @@ class External(
         intent.payload.devices.map {
             switchRepository.getDeviceForId(it.deviceId)
         }.map {
-            async(CommonPool) {
-                localClient.getSysInfo(it.hostname, timeout = 2000)
-            } to it
+            deviceMapper.toLight(it) to it
         }.map {
-            val sysInfo = runBlocking {
-                it.first.await()
-            } as BulbData?
-
+            val light = it.first
             val dbInfo = it.second
 
-            dbInfo.deviceId.toString() to when (sysInfo) {
-                null -> DeviceState(false)
-                else -> DeviceState(
-                    true,
-                    sysInfo.light_state.on_off,
-                    sysInfo.light_state.brightness,
-                    if (sysInfo.light_state.color_temp != null && sysInfo.light_state.color_temp > 0) {
-                        DeviceColor(
-                            temperature = sysInfo.light_state.color_temp
-                        )
-                    } else {
-                        DeviceColor(
-                            spectrumRGB = Color.HSBtoRGB(
-                                (sysInfo.light_state.hue ?: 0) / 360f,
-                                (sysInfo.light_state.saturation ?: 0) / 100f,
-                                (sysInfo.light_state.brightness ?: 0) / 100f
+            dbInfo.deviceId.toString() to (when (light) {
+                is Bulb -> light.getLightState()?.let { lightState ->
+                    DeviceState(
+                        true,
+                        light.getPowerState(),
+                        lightState.brightness,
+                        if (lightState.color_temp != null && lightState.color_temp > 0) {
+                            DeviceColor(
+                                temperature = lightState.color_temp
                             )
-                        )
-                    }
-                )
-            }
+                        } else {
+                            DeviceColor(
+                                spectrumRGB = Color.HSBtoRGB(
+                                    (lightState.hue ?: 0) / 360f,
+                                    (lightState.saturation ?: 0) / 100f,
+                                    (lightState.brightness ?: 0) / 100f
+                                )
+                            )
+                        }
+                    )
+                }
+                is Relay -> DeviceState(true, light.getPowerState())
+                else -> null
+            } ?: DeviceState(false))
         }.toMap()
     )
 
     fun syncRequest(intent: SyncIntent) = SyncResponse(
         devices = switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB).map {
-            async(CommonPool) {
-                localClient.getSysInfo(it.hostname, timeout = 2000)
-            } to it
+            deviceMapper.toLight(it) to it
         }.map { mapIn ->
-
-            val sysInfo = runBlocking {
-                mapIn.first.await()
-            } as BulbData
-
+            val light = mapIn.first as Bulb
             val dbInfo = mapIn.second
 
             AlleyDevice(
@@ -210,7 +201,7 @@ class External(
                 ),
                 AlleyDeviceNames(
                     defaultNames = listOf(
-                        sysInfo.model
+                        light.getModel()
                     ),
                     name = dbInfo.name
                 ),
@@ -221,9 +212,9 @@ class External(
                 ),
                 deviceInfo = AlleyDeviceInfo(
                     "TP-Link",
-                    sysInfo.model,
-                    sysInfo.hw_ver,
-                    sysInfo.sw_ver
+                    light.getModel(),
+                    light.getHwVer(),
+                    light.getSwVer()
                 )
             )
         } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY).map {

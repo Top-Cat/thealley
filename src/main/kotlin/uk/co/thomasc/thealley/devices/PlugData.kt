@@ -1,5 +1,7 @@
 package uk.co.thomasc.thealley.devices
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
 data class PlugData(
     val sw_ver: String,
     val hw_ver: String,
@@ -25,6 +27,7 @@ data class PlugData(
     val err_code: Int
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class EmeterResponse(val emeter: Emeter)
 
 data class Emeter(val get_realtime: RealtimePower)

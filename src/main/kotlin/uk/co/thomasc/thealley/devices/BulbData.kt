@@ -101,6 +101,7 @@ data class CtrlProtocol(
     val version: String
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BulbEmeterResponse(
     @JsonProperty("smartlife.iot.common.emeter")
     val emeter: BulbEmeter

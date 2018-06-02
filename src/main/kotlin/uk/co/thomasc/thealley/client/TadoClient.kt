@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.http.HttpEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -91,6 +92,8 @@ interface TadoTemperature {
     val celsius: Float
     val fahrenheit: Float
 }
+
+val mapper = jacksonObjectMapper()
 
 @Component
 class TadoClient(val rest: RestTemplate, val config: Config) {

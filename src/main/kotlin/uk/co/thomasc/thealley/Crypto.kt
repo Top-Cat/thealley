@@ -17,7 +17,7 @@ fun encrypt(input: String, firstKey: Int = 0xAB): ByteArray =
     encrypt(input.toByteArray(), firstKey)
 
 fun encryptWithHeader(input: ByteArray, firstKey: Int = 0xAB): ByteArray {
-    var buf = encrypt(input, firstKey)
+    val buf = encrypt(input, firstKey)
     val bufLen = ByteBuffer.allocate(4).putInt(buf.size).array()
 
     return bufLen + buf

@@ -59,6 +59,8 @@ dependencies {
     testCompile "org.junit.jupiter:junit-jupiter-api:5.0.0"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.0"
     testCompile "org.jetbrains.kotlin:kotlin-test:1.1.50"
+
+    compile 'io.github.microutils:kotlin-logging:1.5.4'
 }
 
 compileKotlin {

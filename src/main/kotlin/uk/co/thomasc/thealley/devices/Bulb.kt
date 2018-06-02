@@ -2,23 +2,45 @@ package uk.co.thomasc.thealley.devices
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.experimental.runBlocking
-import uk.co.thomasc.thealley.client.LocalClient
-import uk.co.thomasc.thealley.client.mapper
+import mu.KLogging
 
-class Bulb(private val client: LocalClient, private val host: String, private val bulb: BulbData) : Light<Bulb> {
+class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
 
-    fun getName() = bulb.alias
-    override fun getPowerState() = bulb.light_state.on_off
-    fun getSignalStrength() = bulb.rssi
-    fun getPowerUsage() = realtimePower.power_mw
+    companion object : KLogging()
 
-    private val realtimePower by lazy {
+    private var bulbData: BulbData? = null
+
+    @Synchronized
+    override fun getData() = (bulbData ?: updateData())!!
+
+    @Synchronized
+    fun updateData() =
+        runBlocking { getSysInfo(host, 5000) as? BulbData }?.apply {
+            bulbData = this
+        }
+
+    fun getName() = getData().alias
+    override fun getPowerState() = getData().light_state.on_off
+    fun getLightState() = getData().light_state
+    fun getSignalStrength() = getData().rssi
+    fun getPowerUsage() = getPower().power_mw
+
+    fun getHwVer() = getData().hw_ver
+    fun getSwVer() = getData().sw_ver
+    fun getModel() = getData().model
+
+    @Synchronized
+    private fun getPower() =
         runBlocking {
-            send("{\"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}")?.let {
+            // May as well get sysinfo while we're at it
+            send("{\"system\":{\"get_sysinfo\":{}},\"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}")?.let {
+                (parseSysInfo(it) as? BulbData)?.apply {
+                    bulbData = this
+                }
+
                 mapper.readValue<BulbEmeterResponse>(it).emeter.get_realtime
             } ?: BulbRealtimePower(0, -1)
         }
-    }
 
     override fun setPowerState(value: Boolean): Bulb =
         runBlocking {
@@ -37,28 +59,16 @@ class Bulb(private val client: LocalClient, private val host: String, private va
     private suspend fun setLightState(state: BulbUpdate): Bulb {
         val obj = LightingServiceUpdate(LightingService(state))
 
-        val newBulb = send(mapper.writeValueAsString(obj))?.let {
+        send(mapper.writeValueAsString(obj))?.let {
             val result = mapper.readValue<LightingServiceUpdate>(it)
-            bulb.copy(light_state = result.lightingService.transition_light_state)
-        } ?: bulb
+            bulbData = getData()?.copy(light_state = result.lightingService.transition_light_state)
+        }
 
-        return Bulb(client, host, newBulb)
+        return this
     }
 
     override fun togglePowerState() =
         setPowerState(!getPowerState())
 
-    private suspend fun send(json: String) = client.send(json, host, timeout = 500)
-}
-
-interface Light<out T> {
-
-    fun setPowerState(value: Boolean): T
-
-    fun setComplexState(brightness: Int? = null, hue: Int? = null, saturation: Int? = null, temperature: Int? = null, transitionTime: Int? = 1000): T
-
-    fun getPowerState(): Boolean
-
-    fun togglePowerState(): T
-
+    private suspend fun send(json: String) = send(json, host, timeout = 500)
 }

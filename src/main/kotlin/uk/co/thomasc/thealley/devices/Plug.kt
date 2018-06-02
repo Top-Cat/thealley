@@ -2,26 +2,37 @@ package uk.co.thomasc.thealley.devices
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.experimental.runBlocking
-import uk.co.thomasc.thealley.client.LocalClient
-import uk.co.thomasc.thealley.client.mapper
 
-class Plug(private val client: LocalClient, private val host: String, private val plug: PlugData) {
+class Plug(host: String) : KasaDevice<PlugData>(host) {
 
-    fun getName() = plug.alias
-    fun getPowerState() = plug.relay_state
-    fun getVoltage() = realtimePower.voltage
-    fun getCurrent() = realtimePower.current
-    fun getPowerUsage() = realtimePower.power
-    fun getUptime() = plug.on_time
-    fun getSignalStrength() = plug.rssi
+    private var plugData: PlugData? = null
 
-    val realtimePower by lazy {
+    @Synchronized
+    override fun getData() = (plugData ?: updateData())!!
+
+    @Synchronized
+    fun updateData() =
+        runBlocking { getSysInfo(host, 5000) as? PlugData }?.apply {
+            plugData = this
+        }
+
+    fun getName() = getData().alias
+    fun getPowerState() = getData().relay_state
+    fun getUptime() = getData().on_time
+    fun getSignalStrength() = getData().rssi
+
+    @Synchronized
+    fun getPower() =
         runBlocking {
-            send("{\"emeter\":{\"get_realtime\":{}}}")?.let {
+            // May as well get sysinfo while we're at it
+            send("{\"system\":{\"get_sysinfo\":{}},\"emeter\":{\"get_realtime\":{}}}")?.let {
+                (parseSysInfo(it) as? PlugData)?.apply {
+                    plugData = this
+                }
+
                 mapper.readValue<EmeterResponse>(it).emeter.get_realtime
             } ?: RealtimePower(0F, 0F, 0F, 0F, -1)
         }
-    }
 
     /*fun setPowerState(value: Boolean): Plug =
         runBlocking {
@@ -37,5 +48,5 @@ class Plug(private val client: LocalClient, private val host: String, private va
         return Plug(client, host, bulb.copy(light_state = result.lightingService.transition_light_state))
     }*/
 
-    private suspend fun send(json: String) = client.send(json, host, timeout = 500)
+    private suspend fun send(json: String) = send(json, host, timeout = 500)
 }

@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.request.async.DeferredResult
-import uk.co.thomasc.thealley.client.LocalClient
 import uk.co.thomasc.thealley.client.RelayClient
+import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.util.concurrent.TimeUnit
 
@@ -15,7 +15,7 @@ data class BulbState(val state: Boolean)
 
 @RestController
 @RequestMapping("/control")
-class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepository: SwitchRepository) {
+class Control(val relay: RelayClient, val switchRepository: SwitchRepository, val deviceMapper: DeviceMapper) {
     @GetMapping("/{id}/on")
     fun turnOn(@PathVariable id: Int) = setState(id, true)
 
@@ -27,16 +27,11 @@ class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepositor
         val ret = DeferredResult<ControlResult>(TimeUnit.SECONDS.toMillis(10), ControlResult(false))
 
         when (res.type) {
-            SwitchRepository.DeviceType.BULB -> kasa.getDevice(res.hostname).bulb {
-                it?.let {
-                    it.setPowerState(state)
-                    ret.setResult(ControlResult(true))
+            SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY ->
+                deviceMapper.toLight(res)?.let {
+                        it.setPowerState(state)
+                        ret.setResult(ControlResult(true))
                 } ?: ret.setResult(ControlResult(false))
-            }
-            SwitchRepository.DeviceType.RELAY -> {
-                relay.getRelay(res.hostname).setPowerState(state)
-                ret.setResult(ControlResult(true))
-            }
             SwitchRepository.DeviceType.PLUG -> ret.setResult(ControlResult(false))
         }
 
@@ -49,14 +44,10 @@ class Control(val kasa: LocalClient, val relay: RelayClient, val switchRepositor
         val ret = DeferredResult<BulbState>(TimeUnit.SECONDS.toMillis(10), ControlResult(false))
 
         when (res.type) {
-            SwitchRepository.DeviceType.BULB -> kasa.getDevice(res.hostname).bulb {
-                it?.let {
+            SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY ->
+                deviceMapper.toLight(res)?.let {
                     ret.setResult(BulbState(it.getPowerState()))
                 } ?: ret.setResult(BulbState(false))
-            }
-            SwitchRepository.DeviceType.RELAY -> {
-                ret.setResult(BulbState(relay.getRelay(res.hostname).getPowerState()))
-            }
             SwitchRepository.DeviceType.PLUG -> ret.setResult(BulbState(false))
         }
 
