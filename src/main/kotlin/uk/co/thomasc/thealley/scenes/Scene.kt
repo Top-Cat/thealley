@@ -20,8 +20,8 @@ class Scene(
         }.any { it }
 
     private fun coerceToBrightness(avg: Double) =
-        when (avg) {
-            Double.NaN -> 0
+        when {
+            avg.isNaN() -> 0
             else -> min(100, max(0, avg.roundToInt()))
         }
 

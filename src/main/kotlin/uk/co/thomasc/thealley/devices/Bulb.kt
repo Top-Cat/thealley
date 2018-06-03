@@ -14,7 +14,7 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     override fun getData() = (bulbData ?: updateData())!!
 
     @Synchronized
-    fun updateData() =
+    private fun updateData() =
         runBlocking { getSysInfo(host, 5000) as? BulbData }?.apply {
             bulbData = this
         }
