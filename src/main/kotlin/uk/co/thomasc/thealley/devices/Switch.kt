@@ -15,9 +15,10 @@ data class Switch(
     private val switchRepository: SwitchRepository
 ) {
     private var fadeStarted: Long = 0
+    private var startBrightness = 0
 
     fun toggle() {
-        if (state > 0) {
+        if (scene.anyOn()) {
             state = 0
             scene.off()
         } else {
@@ -35,8 +36,10 @@ data class Switch(
     fun startFade() {
         fadeStarted = System.currentTimeMillis()
 
-        if (state > 0) {
-            scene.execute(0, state * FADE_TIME)
+        startBrightness = scene.averageBrightness()
+        if (startBrightness > 0) {
+            scene.execute(startBrightness, 0)
+            scene.execute(0, startBrightness * FADE_TIME)
         } else {
             scene.execute(100, 100 * FADE_TIME)
         }
@@ -45,13 +48,12 @@ data class Switch(
     fun endFade() {
         val fadeTime = System.currentTimeMillis() - fadeStarted
 
-        state = if (state > 0) {
-            max(((state * FADE_TIME) - fadeTime) / FADE_TIME, 1)
+        val newBrightness = if (startBrightness > 0) {
+            max(((startBrightness * FADE_TIME) - fadeTime) / FADE_TIME, 1)
         } else {
             min(fadeTime / FADE_TIME, 100)
         }.toInt()
 
-        scene.execute(state, 0)
-        switchRepository.updateSwitchState(this)
+        scene.execute(newBrightness, 0)
     }
 }
