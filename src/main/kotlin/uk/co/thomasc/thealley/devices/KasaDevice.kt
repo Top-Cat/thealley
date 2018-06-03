@@ -57,11 +57,17 @@ abstract class KasaDevice<out T>(val host: String) {
                         it.write(buff)
 
                         val bb = ByteBuffer.allocate(8192)
+                        val start = System.currentTimeMillis()
                         it.read(bb)
 
                         // Packet says how long it should be
                         val len = ByteBuffer.wrap(bb.array().sliceArray(0..3)).int
-                        while(bb.position() < len + 4) { it.read(bb) }
+                        while(bb.position() < len + 4) {
+                            if (System.currentTimeMillis() - start > timeout) {
+                                return@use null
+                            }
+                            it.read(bb)
+                        }
 
                         bb.flip()
 
