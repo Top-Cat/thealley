@@ -1,6 +1,8 @@
 package uk.co.thomasc.thealley.scenes
 
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator
+import com.luckycatlabs.sunrisesunset.Zenith
+import com.luckycatlabs.sunrisesunset.calculator.SolarEventCalculator
 import com.luckycatlabs.sunrisesunset.dto.Location
 import uk.co.thomasc.thealley.repo.SceneRepository
 import java.time.LocalDateTime
@@ -20,7 +22,7 @@ class Rule(
 ) {
 
     companion object {
-        private val sunCalculator = SunriseSunsetCalculator(
+        private val sunCalculator = SolarEventCalculator(
             Location("53.8076891", "-1.5979767"),
             "UTC"
         )
@@ -40,8 +42,8 @@ class Rule(
                     null
                 }
             } ?: run {
-                val sunrise = sunCalculator.getOfficialSunriseCalendarForDate(now)
-                val sunset = sunCalculator.getOfficialSunsetCalendarForDate(now)
+                val sunrise = sunCalculator.computeSunriseCalendar(Zenith(89.0), Calendar.getInstance())
+                val sunset = sunCalculator.computeSunsetCalendar(Zenith(89.0), Calendar.getInstance())
 
                 sunsetCache = sunrise to sunset
                 cacheTime = now

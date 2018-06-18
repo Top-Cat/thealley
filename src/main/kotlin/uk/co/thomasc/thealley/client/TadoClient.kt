@@ -94,15 +94,12 @@ interface TadoTemperature {
 }
 
 val mapper = jacksonObjectMapper()
+const val tadoApi = "https://my.tado.com"
 
 @Component
 class TadoClient(val rest: RestTemplate, val config: Config) {
 
-    companion object {
-        val tadoApi = "https://my.tado.com"
-    }
-
-    fun getToken(): String = rest.postForObject(
+    fun getToken() = rest.postForObject(
             "$tadoApi/oauth/token",
                 HttpEntity(LinkedMultiValueMap(mapOf(
                     Pair("client_id", listOf("public-api-preview")),

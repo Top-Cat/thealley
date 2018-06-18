@@ -9,7 +9,7 @@ buildscript {
         maven { url "https://repo.spring.io/milestone" }
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:2.0.1.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:2.0.3.RELEASE"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.junit.platform:junit-platform-gradle-plugin:1.0.0"
     }
@@ -60,6 +60,8 @@ dependencies {
     testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.0"
     testCompile "org.jetbrains.kotlin:kotlin-test:1.1.50"
 
+    compile "org.apache.httpcomponents:httpclient"
+
     compile 'io.github.microutils:kotlin-logging:1.5.4'
 }
 
@@ -72,6 +74,6 @@ compileTestKotlin {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:Finchley.M8"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:Finchley.RC2"
     }
 }

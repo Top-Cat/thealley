@@ -19,7 +19,7 @@ function onConnected(dev) {
 }
 
 function valueEvent(ctx, prop, v) {
-	console.log(ctx.id, prop, "changed to:", v);
+	console.log({event: prop, id: ctx.id, value: v});
 
 	request.post({uri: process.env.BASE_URL + "/prop", json: {property: prop, value: v.value, sensor: ctx.id}, timeout: 2000}, function (error, response, body) {
 		//console.log(JSON.stringify([String(error), String(response), String(body)]));
@@ -27,7 +27,7 @@ function valueEvent(ctx, prop, v) {
 }
 
 function motionEvent(ctx) {
-	console.log(ctx.id, "movement!");
+	console.log({event: "movement", id: ctx.id});
 
 	request.post({uri: process.env.BASE_URL + "/motion", json: {sensor: ctx.id}, timeout: 2000}, function (error, response, body) {
 		//console.log(JSON.stringify([String(error), String(response), String(body)]));
