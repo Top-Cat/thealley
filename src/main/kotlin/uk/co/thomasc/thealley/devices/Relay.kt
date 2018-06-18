@@ -66,7 +66,11 @@ class Relay(
                 "button" -> {
                     togglePowerState()
                 }
-                else -> props.put(prop, message.payload)
+                else -> props[prop] = try {
+                    (message.payload as String).toDouble()
+                } catch (e: NumberFormatException) {
+                    message.payload
+                }
             }
         } ?: run {
             println("Couldn't parse MQTT message")
