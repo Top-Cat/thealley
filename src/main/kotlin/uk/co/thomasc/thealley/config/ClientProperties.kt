@@ -5,12 +5,12 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConfigurationProperties("clients")
-class ClientProperties {
+data class ClientProperties(
     var clients: List<ClientProperty> = emptyList()
-}
+)
 
-class ClientProperty {
-    var clientId: String? = null
-    var secret: String? = null
-    var scopes: Array<String> = emptyArray()
-}
+data class ClientProperty(
+    var clientId: String? = null,
+    var secret: String? = null,
+    var scopes: List<String> = emptyList()
+)

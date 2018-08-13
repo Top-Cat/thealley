@@ -5,22 +5,23 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConfigurationProperties(prefix = "thealley")
-class Config {
-    val relay = RelayConfig()
-    val tado = TadoConfig()
-    val mqtt = MqttConfig()
+data class Config(
+    val relay: RelayConfig = RelayConfig(),
+    val tado: TadoConfig = TadoConfig(),
+    val mqtt: MqttConfig = MqttConfig()
+) {
 
-    class MqttConfig {
-        lateinit var host: String
-        lateinit var user: String
-        lateinit var pass: String
-    }
+    data class MqttConfig(
+        var host: String = "",
+        var user: String = "",
+        var pass: String = ""
+    )
 
-    class RelayConfig {
-        lateinit var apiKey: String
-    }
+    data class RelayConfig(
+        var apiKey: String = ""
+    )
 
-    class TadoConfig {
-        lateinit var refreshToken: String
-    }
+    data class TadoConfig(
+        var refreshToken: String = ""
+    )
 }
