@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.rest
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -24,6 +25,7 @@ class External(
 ) {
 
     val mapper = jacksonObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     @PostMapping("/googlehome")
     fun googleHomeReq(@RequestBody obj: GoogleHomeReq): Any? {
