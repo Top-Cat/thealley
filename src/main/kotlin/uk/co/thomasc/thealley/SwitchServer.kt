@@ -5,7 +5,10 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.sockets.ServerSocket
 import kotlinx.sockets.Socket
 import kotlinx.sockets.aSocket
+import org.springframework.integration.mqtt.support.MqttHeaders
+import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Component
+import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.scenes.SceneController
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -14,7 +17,8 @@ import java.util.concurrent.ArrayBlockingQueue
 
 @Component
 class SwitchServer(
-    val sceneController: SceneController
+    val sceneController: SceneController,
+    val mqtt: RelayMqtt.DeviceGateway
 ) {
 
     var server: ServerSocket =
@@ -35,7 +39,7 @@ class SwitchServer(
             val client = server.accept()
             launch(CommonPool) {
                 client.use {
-                    SwitchClient(sceneController, it).run()
+                    SwitchClient(sceneController, it, mqtt).run()
                 }
             }
         }
@@ -45,7 +49,8 @@ class SwitchServer(
 
 class SwitchClient(
     private val sceneController: SceneController,
-    private val client: Socket
+    private val client: Socket,
+    val mqtt: RelayMqtt.DeviceGateway
 ) {
 
     suspend fun run() {
@@ -82,6 +87,13 @@ class SwitchClient(
                                     else -> println("Unknown state $buttonState")
                                 }
                             }
+                        }
+                        53 -> {
+                            val dataType = q.poll()
+                            // Read signed short
+                            val value = q.poll().toUByte().toInt() or (q.poll().toInt() shl 8)
+
+                            mqtt.sendToMqtt(MessageBuilder.withPayload("$value").setHeader(MqttHeaders.TOPIC, "sensor/multi/$dataType").build())
                         }
                     }
                 }
