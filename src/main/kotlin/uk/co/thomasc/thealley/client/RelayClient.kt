@@ -34,6 +34,7 @@ class RelayMqtt(val config: Config, val relayClient: RelayClient) {
                 serverURIs = arrayOf("tcp://${config.mqtt.host}:1883")
                 userName = config.mqtt.user
                 password = config.mqtt.pass.toCharArray()
+                maxInflight = 50
             }
         }
     }
