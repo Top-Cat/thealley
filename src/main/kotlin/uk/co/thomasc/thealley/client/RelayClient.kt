@@ -28,7 +28,7 @@ import uk.co.thomasc.thealley.rest.PropertyData
 import uk.co.thomasc.thealley.scenes.SceneController
 
 data class RelayState(@JsonAlias("relay/0") val relay0: Boolean)
-data class ZigbeeUpdate(val illuminance: Int, val linkquality: Int, val occupancy: Boolean?)
+data class ZigbeeUpdate(val illuminance: Int, val linkquality: Int, val occupancy: Boolean?, val battery: Int?, val voltage: Int?)
 
 @Configuration
 @EnableIntegration
@@ -97,6 +97,12 @@ class RelayMqtt(val config: Config, val relayClient: RelayClient, val sceneContr
                     sceneController.onChange(deviceId)
                 }
                 api.onPropertyChange(PropertyData(deviceId, "illuminance", update.illuminance.toDouble()))
+                update.battery?.let {
+                    api.onPropertyChange(PropertyData(deviceId, "battery", it.toDouble()))
+                }
+                update.voltage?.let {
+                    api.onPropertyChange(PropertyData(deviceId, "voltage", it.toDouble()))
+                }
             } else {
                 relayClient.getRelay(host).handleMessage(message)
             }
