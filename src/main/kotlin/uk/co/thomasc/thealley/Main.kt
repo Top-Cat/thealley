@@ -17,9 +17,9 @@ import org.springframework.web.client.RestTemplate
 class TheBinApplication {
     @Bean
     fun restTemplate(builder: RestTemplateBuilder): RestTemplate =
-        builder.requestFactory({
+        builder.requestFactory {
             HttpComponentsClientHttpRequestFactory(httpClient())
-        }).build()
+        }.build()
 
     fun httpClient(): HttpClient = HttpClients.custom()
         .setDefaultRequestConfig(

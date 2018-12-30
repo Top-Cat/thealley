@@ -1,6 +1,8 @@
 package uk.co.thomasc.thealley.client
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,14 +22,17 @@ import org.springframework.messaging.MessageHandler
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import uk.co.thomasc.thealley.Config
-import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Relay
+import uk.co.thomasc.thealley.rest.Api
+import uk.co.thomasc.thealley.rest.PropertyData
+import uk.co.thomasc.thealley.scenes.SceneController
 
 data class RelayState(@JsonAlias("relay/0") val relay0: Boolean)
+data class ZigbeeUpdate(val illuminance: Int, val linkquality: Int, val occupancy: Boolean?)
 
 @Configuration
 @EnableIntegration
-class RelayMqtt(val config: Config, val relayClient: RelayClient) {
+class RelayMqtt(val config: Config, val relayClient: RelayClient, val sceneController: SceneController, val api: Api) {
     val mqttClientFactory by lazy {
         DefaultMqttPahoClientFactory().apply {
             connectionOptions = MqttConnectOptions().apply {
@@ -38,6 +43,8 @@ class RelayMqtt(val config: Config, val relayClient: RelayClient) {
             }
         }
     }
+
+    val mapper = jacksonObjectMapper()
 
     @Bean
     fun mqttOutboundChannel(): MessageChannel = DirectChannel()
@@ -77,7 +84,22 @@ class RelayMqtt(val config: Config, val relayClient: RelayClient) {
             val topic = message.headers.getValue(MqttHeaders.RECEIVED_TOPIC) as String
             val host = topic.substring(0, topic.indexOf("/"))
 
-            relayClient.getRelay(host).handleMessage(message)
+            if (host == "zigbee") {
+                val deviceId = topic.substring(host.length + 1)
+
+                // Check this is a message isn't from the bridge
+                if (!deviceId.startsWith("0x")) return@MessageHandler
+
+                val update = mapper.readValue<ZigbeeUpdate>(message.payload as String)
+                println("Received zigbee message, device: $deviceId, data: $update")
+
+                if (update.occupancy == true) {
+                    sceneController.onChange(deviceId)
+                }
+                api.onPropertyChange(PropertyData(deviceId, "illuminance", update.illuminance.toDouble()))
+            } else {
+                relayClient.getRelay(host).handleMessage(message)
+            }
         }
 }
 
