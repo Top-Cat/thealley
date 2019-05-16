@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
+import org.springframework.web.client.HttpClientErrorException
 import uk.co.thomasc.thealley.Config
 
 enum class TadoMode(@JsonValue val mode: Int) {
@@ -100,21 +101,49 @@ const val tadoAuth = "https://auth.tado.com"
 @Component
 class TadoClient(val rest: RestTemplate, val config: Config) {
 
-    fun getToken() = rest.postForObject(
-            "$tadoAuth/oauth/token",
+    var refreshToken = ""
+
+    fun getToken() = if (refreshToken.isNotEmpty()) {
+        refreshToken()
+    } else {
+        rest.postForObject(
+                "$tadoAuth/oauth/token",
                 HttpEntity(LinkedMultiValueMap(mapOf(
-                    Pair("client_id", listOf("public-api-preview")),
-                    Pair("client_secret", listOf("4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw")),
-                    Pair("grant_type", listOf("refresh_token")),
-                    Pair("scope", listOf("home.user")),
-                    Pair("refresh_token", listOf(config.tado.refreshToken))
+                        Pair("client_id", listOf("public-api-preview")),
+                        Pair("client_secret", listOf("4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw")),
+                        Pair("grant_type", listOf("password")),
+                        Pair("scope", listOf("home.user")),
+                        Pair("username", listOf("tado@thomasc.co.uk")),
+                        Pair("password", listOf(config.tado.refreshToken))
                 )),
-                HttpHeaders().apply {
-                    contentType = MediaType.APPLICATION_FORM_URLENCODED
-                }
-            ),
-            TokenResponse::class.java
-        ).access_token
+                        HttpHeaders().apply {
+                            contentType = MediaType.APPLICATION_FORM_URLENCODED
+                        }
+                ),
+                TokenResponse::class.java
+        )?.also { refreshToken = it.refresh_token }?.access_token ?: ""
+    }
+
+    fun refreshToken() = try {
+        rest.postForObject(
+                "$tadoAuth/oauth/token",
+                HttpEntity(LinkedMultiValueMap(mapOf(
+                        Pair("client_id", listOf("public-api-preview")),
+                        Pair("client_secret", listOf("4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw")),
+                        Pair("grant_type", listOf("refresh_token")),
+                        Pair("scope", listOf("home.user")),
+                        Pair("refresh_token", listOf(refreshToken))
+                )),
+                        HttpHeaders().apply {
+                            contentType = MediaType.APPLICATION_FORM_URLENCODED
+                        }
+                ),
+                TokenResponse::class.java
+        )?.also { refreshToken = it.refresh_token }?.access_token ?: ""
+    } catch (e: HttpClientErrorException) {
+        // Force password refresh next time
+        refreshToken = ""
+    }
 
     fun getRawState(zone: Int): ZoneState? = rest.exchange(
             "$tadoApi/api/v2/homes/149676/zones/$zone/state",
