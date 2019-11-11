@@ -30,7 +30,6 @@ class ResourceServerConfig(
     fun tokenServices() = DefaultTokenServices().apply {
         setTokenStore(tokenStore())
         setSupportRefreshToken(true)
-        setRefreshTokenValiditySeconds(Integer.MAX_VALUE)
     }
 
     @Bean

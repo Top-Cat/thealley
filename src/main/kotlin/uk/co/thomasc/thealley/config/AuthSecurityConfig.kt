@@ -31,6 +31,7 @@ class AuthSecurityConfig(
                 .secret(it.secret)
                 .scopes(*it.scopes.toTypedArray())
                 .authorizedGrantTypes("authorization_code", "refresh_token")
+                .refreshTokenValiditySeconds(0)
         }
     }
 
