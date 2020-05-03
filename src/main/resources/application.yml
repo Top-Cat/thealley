@@ -2,7 +2,7 @@ spring:
   main:
     banner-mode: "off"
   datasource:
-    url: jdbc:mysql://${MYSQL_HOSTNAME}/thealley?autoReconnect=true&useSSL=false
+    url: jdbc:mysql://${MYSQL_HOSTNAME}/thealley?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
     username: ${MYSQL_USER}
     password: ${MYSQL_PASSWORD}
 
