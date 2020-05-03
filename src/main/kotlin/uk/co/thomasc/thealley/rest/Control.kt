@@ -60,12 +60,7 @@ class Control(val relay: RelayClient, val switchRepository: SwitchRepository, va
                             500
                     )
 
-                    if (it is Bulb) {
-                        val state = it.getLightState()
-                        ret.setResult(BulbState(state.brightness ?: 0, state.hue ?: 0, state.color_temp ?: 0))
-                    } else {
-                        ret.setResult(BulbState(it.getPowerState()))
-                    }
+                    ret.setResult(stateRequest)
                 } ?: ret.setResult(BulbState(false))
             SwitchRepository.DeviceType.PLUG -> ret.setResult(BulbState(false))
         }
