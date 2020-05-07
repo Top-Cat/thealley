@@ -11,6 +11,7 @@ import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.repo.SwitchRepository
+import uk.co.thomasc.thealley.scenes.SceneController
 import java.util.concurrent.TimeUnit
 
 data class ControlResult(val success: Boolean)
@@ -18,10 +19,11 @@ data class BulbState(val state: Int, val dimmable: Boolean, val hue: Int?, val t
     constructor(on: Boolean): this(if (on) 100 else 0, false, 0, 0, false)
     constructor(state: Int, hue: Int?, temp: Int?): this(state, true, hue, temp, true)
 }
+data class SwitchData(val buttons: Map<Int, Int>)
 
 @RestController
 @RequestMapping("/control")
-class Control(val relay: RelayClient, val switchRepository: SwitchRepository, val deviceMapper: DeviceMapper) {
+class Control(val relay: RelayClient, val switchRepository: SwitchRepository, val sceneController: SceneController, val deviceMapper: DeviceMapper) {
     @GetMapping("/{id}/on")
     fun turnOn(@PathVariable id: Int) = setState(id, true)
 
@@ -42,6 +44,14 @@ class Control(val relay: RelayClient, val switchRepository: SwitchRepository, va
         }
 
         return ret
+    }
+
+    @PutMapping("/switch/{id}")
+    fun setSwitchScenes(@PathVariable switchId: Int, @RequestBody switchData: SwitchData) {
+        switchData.buttons.forEach { (buttonId, sceneId) ->
+            switchRepository.updateSwitch(switchId, buttonId, sceneId)
+        }
+        sceneController.resetSwitchDelegate()
     }
 
     @PutMapping("/{id}")

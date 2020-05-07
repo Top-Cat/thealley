@@ -80,4 +80,13 @@ class SwitchRepository(val db: JdbcTemplate) {
             rs.getString("name"),
             DeviceType.valueOf(rs.getString("type").toUpperCase())
         )
+
+    fun updateSwitch(switchId: Int, buttonId: Int, sceneId: Int) =
+        db.update(
+            """
+                |INSERT INTO switch (id, button, scene, state) VALUES (?, ?, ?, 0)
+                | ON DUPLICATE KEY UPDATE id scene = VALUES(scene)
+            """.trimMargin(),
+            arrayOf(switchId, buttonId, sceneId)
+        )
 }

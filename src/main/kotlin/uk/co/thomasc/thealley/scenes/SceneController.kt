@@ -10,7 +10,10 @@ class SceneController(sceneRepository: SceneRepository, switchRepository: Switch
 
     final val scenes = sceneRepository.getScenes()
     val rules = sceneRepository.getRules(scenes)
-    val switches = switchRepository.getSwitches(scenes)
+    private val switchDelegate = resetableLazy {
+        switchRepository.getSwitches(scenes)
+    }
+    val switches by switchDelegate
 
     @Scheduled(fixedDelay = 1000)
     fun tick() {
@@ -21,5 +24,9 @@ class SceneController(sceneRepository: SceneRepository, switchRepository: Switch
 
     fun onChange(sensorId: String) {
         rules.filter { it.sensors.contains(sensorId) }.forEach { it.onChange() }
+    }
+
+    fun resetSwitchDelegate() {
+        switchDelegate.reset()
     }
 }
