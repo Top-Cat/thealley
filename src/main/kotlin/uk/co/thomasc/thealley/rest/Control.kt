@@ -46,7 +46,7 @@ class Control(val relay: RelayClient, val switchRepository: SwitchRepository, va
         return ret
     }
 
-    @PutMapping("/switch/{id}")
+    @PutMapping("/switch/{switchId}")
     fun setSwitchScenes(@PathVariable switchId: Int, @RequestBody switchData: SwitchData) {
         switchData.buttons.forEach { (buttonId, sceneId) ->
             switchRepository.updateSwitch(switchId, buttonId, sceneId)

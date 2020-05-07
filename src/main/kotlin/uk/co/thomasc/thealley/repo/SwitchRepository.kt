@@ -85,8 +85,8 @@ class SwitchRepository(val db: JdbcTemplate) {
         db.update(
             """
                 |INSERT INTO switch (id, button, scene, state) VALUES (?, ?, ?, 0)
-                | ON DUPLICATE KEY UPDATE id scene = VALUES(scene)
+                | ON DUPLICATE KEY UPDATE scene = VALUES(scene)
             """.trimMargin(),
-            arrayOf(switchId, buttonId, sceneId)
+            switchId, buttonId, sceneId
         )
 }
