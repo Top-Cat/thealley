@@ -28,7 +28,7 @@ import uk.co.thomasc.thealley.rest.PropertyData
 import uk.co.thomasc.thealley.scenes.SceneController
 
 data class RelayState(@JsonAlias("relay/0") val relay0: Boolean)
-data class ZigbeeUpdate(val illuminance: Int, val linkquality: Int, val occupancy: Boolean?, val battery: Int?, val voltage: Int?)
+data class ZigbeeUpdate(val illuminance: Int, val linkquality: Int, val occupancy: Boolean?, val battery: Int?, val voltage: Int?, val illuminance_lux: Int?)
 
 @Configuration
 @EnableIntegration
