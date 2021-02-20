@@ -110,6 +110,7 @@ data class BulbEmeterResponse(
 
 data class BulbEmeter(val get_realtime: BulbRealtimePower)
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BulbRealtimePower(
     val power_mw: Int,
     val err_code: Int
