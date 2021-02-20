@@ -62,6 +62,7 @@ abstract class IBulbOnOff {
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BulbOnOff(override val on_off: Boolean) : IBulbOnOff()*/
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BulbData(
     val sw_ver: String,
     val hw_ver: String,
