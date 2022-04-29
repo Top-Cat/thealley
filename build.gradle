@@ -28,12 +28,10 @@ apply plugin: JUnitPlatformPlugin
 
 repositories {
     mavenCentral()
-    jcenter()
 
     maven { url "https://repo.spring.io/snapshot" }
     maven { url "https://repo.spring.io/milestone" }
     maven { url "https://repo.spring.io/libs-milestone" }
-    maven { url "http://dl.bintray.com/kotlin/kotlin-dev" }
 }
 
 dependencies {
@@ -41,7 +39,7 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-mustache"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "org.jetbrains.kotlinx:kotlin-sockets:0.0.10"
+    compile files("kotlin-sockets-0.0.10.jar", "kotlinx-coroutines-core-0.15.jar", "kotlinx-coroutines-jdk8-0.15", "kotlinx-coroutines-nio-0.15.jar")
 
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4.1"
 

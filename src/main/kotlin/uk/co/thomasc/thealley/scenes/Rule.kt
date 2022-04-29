@@ -1,12 +1,12 @@
 package uk.co.thomasc.thealley.scenes
 
-import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator
 import com.luckycatlabs.sunrisesunset.Zenith
 import com.luckycatlabs.sunrisesunset.calculator.SolarEventCalculator
 import com.luckycatlabs.sunrisesunset.dto.Location
 import uk.co.thomasc.thealley.repo.SceneRepository
 import java.time.LocalDateTime
 import java.util.Calendar
+import kotlin.math.min
 
 class Rule(
     private val sceneRepository: SceneRepository,
@@ -53,6 +53,9 @@ class Rule(
                 it.first.before(now) && it.second.after(now)
             }
         }
+
+        const val overTime = 120
+        const val minPercent = 20
     }
 
     fun onChange() {
@@ -97,7 +100,14 @@ class Rule(
     }
 
     private fun on(now: LocalDateTime, off: LocalDateTime) {
-        scene.execute()
+        val hoursUntilTwoAM = if (now.hour > 7) 25 - now.hour else if (now.hour < 2) 1 - now.hour else 0
+        val minutes = if (now.hour > 7 || now.hour < 2) now.minute else 0
+        val totalMinutes = (hoursUntilTwoAM * 60) + minutes
+
+        val scaled = (min(totalMinutes, overTime) * (100 - minPercent)) / overTime
+        val percent = minPercent + scaled
+
+        scene.execute(percent)
         lastUpdated = now
 
         if (timeout > 0) {
