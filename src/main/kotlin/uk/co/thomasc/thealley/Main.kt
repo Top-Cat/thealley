@@ -254,8 +254,6 @@ fun Application.setup() {
         tokenStore = alleyTokenStore
     }
 
-    alleyTokenStore.upgrade()
-
     routing {
         apiRoute(api, sceneController)
         statsRoute(switchRepository, tado, deviceMapper)
@@ -282,7 +280,12 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: A
     val authHeader = call.request.parseAuthorizationHeader()
     if (authHeader is HttpAuthHeader.Single) {
         val token = alleyTokenStore.accessToken(authHeader.blob)
-        if (token?.expired() != false) null else block().let { true }
+
+        when (token?.expired()) {
+            true -> alleyTokenStore.revokeAccessToken(token.accessToken).let { null }
+            false -> block().let { true }
+            null -> null
+        }
     } else {
         null
     } ?: call.respond(HttpStatusCode.Unauthorized, "Unauthorized")

@@ -2,9 +2,11 @@ package uk.co.thomasc.thealley.rest
 
 import io.ktor.application.call
 import io.ktor.locations.Location
+import io.ktor.locations.get
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
+import io.ktor.routing.get
 import io.ktor.routing.post
 import kotlinx.coroutines.async
 import kotlinx.coroutines.newFixedThreadPoolContext
@@ -22,6 +24,8 @@ import java.awt.Color
 class ExternalRoute {
     @Location("/googlehome")
     data class GoogleHome(val api: ExternalRoute)
+    @Location("/test")
+    data class Test(val api: ExternalRoute)
 }
 
 val threadPool = newFixedThreadPoolContext(10, "ExternalRoute")
@@ -203,6 +207,12 @@ fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: All
             )
         }
     )
+
+    get<ExternalRoute.Test> {
+        checkOauth(alleyTokenStore) {
+            call.respond("Hi")
+        }
+    }
 
     post<ExternalRoute.GoogleHome> {
         checkOauth(alleyTokenStore) {
