@@ -10,7 +10,6 @@ plugins {
 }
 
 group = "uk.co.thomasc"
-version = "1.0-SNAPSHOT"
 
 kotlin {
     jvmToolchain {
