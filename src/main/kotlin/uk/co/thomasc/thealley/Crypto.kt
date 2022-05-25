@@ -40,4 +40,3 @@ fun decryptWithHeader(input: ByteArray, firstKey: Int = 0xAB): ByteArray {
     val newSize = ByteBuffer.wrap(input.copyOfRange(0, 4)).int
     return decrypt(input.copyOfRange(4, newSize + 4), firstKey)
 }
-

@@ -12,10 +12,8 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.Authentication
-import io.ktor.auth.OAuthAccessTokenResponse
 import io.ktor.auth.UserIdPrincipal
 import io.ktor.auth.authenticate
-import io.ktor.auth.authentication
 import io.ktor.auth.form
 import io.ktor.auth.parseAuthorizationHeader
 import io.ktor.auth.principal
@@ -36,9 +34,9 @@ import io.ktor.request.header
 import io.ktor.response.respond
 import io.ktor.response.respondRedirect
 import io.ktor.response.respondText
-import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
+import io.ktor.server.netty.EngineMain
 import io.ktor.sessions.SessionStorageMemory
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
@@ -78,6 +76,12 @@ import uk.co.thomasc.thealley.rest.statsRoute
 import uk.co.thomasc.thealley.scenes.SceneController
 import uk.co.thomasc.thealley.web.mainRoute
 import javax.sql.DataSource
+import kotlin.collections.Set
+import kotlin.collections.emptyMap
+import kotlin.collections.forEach
+import kotlin.collections.set
+import kotlin.collections.setOf
+import kotlin.collections.toSet
 
 fun setupDB(): DataSource {
     val dbHost = System.getenv("MYSQL_HOSTNAME") ?: "localhost"
@@ -146,7 +150,7 @@ fun Application.setup() {
     val alleyTokenStore = AlleyTokenStore()
 
     install(ContentNegotiation) {
-        formData {  }
+        formData { }
         jackson {
             enable(SerializationFeature.INDENT_OUTPUT)
             registerModule(JavaTimeModule())
@@ -263,8 +267,9 @@ fun Application.setup() {
         authenticate("oauth-login") {
             post("/external/login") {
                 call.sessions.set(call.principal<UserIdPrincipal>())
-                call.request.header(HttpHeaders.Referrer)?.let { call.respondRedirect(it) } ?:
+                call.request.header(HttpHeaders.Referrer)?.let { call.respondRedirect(it) } ?: run {
                     call.respondText("Hello, ${call.principal<UserIdPrincipal>()?.name}!")
+                }
             }
         }
 
@@ -292,6 +297,5 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: A
 }
 
 fun main(args: Array<String>) {
-    io.ktor.server.netty.EngineMain.main(args)
-    //embeddedServer(Netty, port = port, host = host, module = Application::setup).start(wait = true)
+    EngineMain.main(args)
 }

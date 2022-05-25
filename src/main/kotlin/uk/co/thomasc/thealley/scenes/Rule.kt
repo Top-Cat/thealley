@@ -39,10 +39,10 @@ data class Rule(private val sceneRepository: SceneRepository, val sensors: List<
         private fun isDaytime(): Boolean {
             val now = Calendar.getInstance()
 
-            return (cacheTime?.let {
-
+            val times = cacheTime?.let {
                 if (now.get(Calendar.YEAR) == it.get(Calendar.YEAR) &&
-                    now.get(Calendar.DAY_OF_YEAR) == it.get(Calendar.DAY_OF_YEAR)) {
+                    now.get(Calendar.DAY_OF_YEAR) == it.get(Calendar.DAY_OF_YEAR)
+                ) {
                     sunsetCache
                 } else {
                     null
@@ -55,9 +55,9 @@ data class Rule(private val sceneRepository: SceneRepository, val sensors: List<
                 cacheTime = now
 
                 sunsetCache
-            }).let {
-                it.first.before(now) && it.second.after(now)
             }
+
+            return times.first.before(now) && times.second.after(now)
         }
 
         const val overTime = 120
@@ -133,5 +133,4 @@ data class Rule(private val sceneRepository: SceneRepository, val sensors: List<
             offAt = off
         }
     }
-
 }

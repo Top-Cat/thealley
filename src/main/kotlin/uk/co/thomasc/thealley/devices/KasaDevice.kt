@@ -2,7 +2,6 @@ package uk.co.thomasc.thealley.devices
 
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
@@ -69,7 +68,7 @@ abstract class KasaDevice<out T>(val host: String) {
 
                         // Packet says how long it should be
                         val len = ByteBuffer.wrap(bb.array().sliceArray(0..3)).int
-                        while(bb.position() < len + 4) {
+                        while (bb.position() < len + 4) {
                             if (System.currentTimeMillis() - start > timeout) {
                                 return@use null
                             }

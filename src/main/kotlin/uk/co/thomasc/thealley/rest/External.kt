@@ -128,11 +128,11 @@ fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: All
             switchRepository.getDeviceForId(it.deviceId)
         }.map {
             deviceMapper.toLight(it) to it
-        }.map {
+        }.associate {
             val light = it.first
             val dbInfo = it.second
 
-            dbInfo.deviceId.toString() to (when (light) {
+            fun getState() = when (light) {
                 is Bulb -> light.getLightState()?.let { lightState ->
                     DeviceState(
                         true,
@@ -155,8 +155,10 @@ fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: All
                 }
                 is Relay -> DeviceState(true, light.getPowerState())
                 else -> null
-            } ?: DeviceState(false))
-        }.toMap()
+            } ?: DeviceState(false)
+
+            dbInfo.deviceId.toString() to getState()
+        }
     )
 
     fun syncRequest(intent: SyncIntent) = SyncResponse(

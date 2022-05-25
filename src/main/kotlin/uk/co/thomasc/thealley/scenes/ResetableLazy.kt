@@ -7,9 +7,9 @@ fun <T> resetableLazy(initializer: () -> T) = ResetableDelegate(initializer)
 
 class ResetableDelegate<T>(private val initializer: () -> T) {
     private val lazyRef: AtomicReference<Lazy<T>> = AtomicReference(
-            lazy(
-                    initializer
-            )
+        lazy(
+            initializer
+        )
     )
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T {

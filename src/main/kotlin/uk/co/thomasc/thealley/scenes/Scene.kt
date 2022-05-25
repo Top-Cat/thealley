@@ -14,8 +14,8 @@ class Scene(
 ) {
 
     fun anyOn() =
-        deviceMapper.each(lights) {
-            bulb, _ -> bulb.getPowerState()
+        deviceMapper.each(lights) { bulb, _ ->
+            bulb.getPowerState()
         }.any { it }
 
     private fun coerceToBrightness(avg: Double) =
@@ -31,7 +31,8 @@ class Scene(
                 is Bulb -> if (bulb.getPowerState()) bulb.getLightState().brightness else 0
                 else -> null
             }
-        }.average())
+        }.average()
+    )
 
     fun execute(percent: Int = 100, transitionTime: Int = 1000) {
         deviceMapper.each(lights) {
@@ -45,9 +46,8 @@ class Scene(
     }
 
     fun off() {
-        deviceMapper.each(lights) {
-            it, _ -> it.setPowerState(false)
+        deviceMapper.each(lights) { it, _ ->
+            it.setPowerState(false)
         }
     }
-
 }

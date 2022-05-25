@@ -53,9 +53,7 @@ class StatsRoute {
 
 fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient, deviceMapper: DeviceMapper) {
     get<StatsRoute.Plug> {
-        switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).mapNotNull {
-                plug ->
-
+        switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).mapNotNull { plug ->
             try {
                 Plug(plug.hostname).let {
                     it.updateData()
@@ -81,9 +79,7 @@ fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient,
     }
 
     get<StatsRoute.Bulb> {
-        deviceMapper.each(switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB)) {
-                bulb, dev ->
-
+        deviceMapper.each(switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB)) { bulb, dev ->
             (bulb as? Bulb)?.let {
                 // Power update will cause sysinfo update
                 val power = bulb.getPowerUsage()
@@ -102,9 +98,7 @@ fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient,
     }
 
     get<StatsRoute.Relay> {
-        deviceMapper.each(switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY)) {
-                relay, dev ->
-
+        deviceMapper.each(switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY)) { relay, dev ->
             (relay as? Relay)?.let {
                 RelayResponse(
                     dev.hostname,

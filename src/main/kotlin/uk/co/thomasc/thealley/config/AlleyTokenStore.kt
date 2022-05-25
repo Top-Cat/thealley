@@ -13,8 +13,6 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.math.BigInteger
-import java.security.MessageDigest
 import java.time.Instant
 
 object NewAccessTokenTable : IdTable<String>("oa_access_token") {

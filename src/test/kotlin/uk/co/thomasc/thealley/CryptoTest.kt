@@ -65,7 +65,8 @@ class CryptoTest {
 
             val encoded = String(buf)
 
-            assertEquals(it.value.json, encoded)        }
+            assertEquals(it.value.json, encoded)
+        }
     }
 
     @TestFactory
@@ -106,5 +107,4 @@ class CryptoTest {
             assertEquals(it.value.withHeader, encoded)
         }
     }
-
 }

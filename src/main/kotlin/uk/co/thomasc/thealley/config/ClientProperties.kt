@@ -3,13 +3,15 @@ package uk.co.thomasc.thealley.config
 import io.ktor.application.Application
 
 fun Application.clients() = environment.config.configList("clients").let { cl ->
-    ClientProperties(cl.map {
-        ClientProperty(
-            it.propertyOrNull("clientId")?.getString(),
-            it.propertyOrNull("secret")?.getString(),
-            it.propertyOrNull("scopes")?.getList() ?: emptyList()
-        )
-    })
+    ClientProperties(
+        cl.map {
+            ClientProperty(
+                it.propertyOrNull("clientId")?.getString(),
+                it.propertyOrNull("secret")?.getString(),
+                it.propertyOrNull("scopes")?.getList() ?: emptyList()
+            )
+        }
+    )
 }
 
 data class ClientProperties(

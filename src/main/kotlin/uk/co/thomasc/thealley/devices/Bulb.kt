@@ -50,11 +50,13 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
 
     override fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?, transitionTime: Int?) =
         runBlocking {
-            setLightState(temperature?.let {
-                BulbUpdate(transitionTime, true, null, null, null, brightness, temperature)
-            } ?: hue?.let {
-                BulbUpdate(transitionTime, true, null, hue, saturation, brightness, 0)
-            } ?: BulbUpdate(transitionTime, (brightness ?: 1) > 0, null, null, null, brightness, null))
+            setLightState(
+                temperature?.let {
+                    BulbUpdate(transitionTime, true, null, null, null, brightness, temperature)
+                } ?: hue?.let {
+                    BulbUpdate(transitionTime, true, null, hue, saturation, brightness, 0)
+                } ?: BulbUpdate(transitionTime, (brightness ?: 1) > 0, null, null, null, brightness, null)
+            )
         }
 
     private suspend fun setLightState(state: BulbUpdate): Bulb {

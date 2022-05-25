@@ -68,13 +68,13 @@ sealed class TadoSetting
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PercentageData(
     val percentage: Float
-): TadoData()
+) : TadoData()
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TemperatureData(
     override val celsius: Float,
     override val fahrenheit: Float
-): TadoTemperature, TadoData()
+) : TadoTemperature, TadoData()
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
@@ -86,7 +86,7 @@ data class HeatingSetting(
 data class TemperatureSetting(
     override val celsius: Float,
     override val fahrenheit: Float
-): TadoTemperature
+) : TadoTemperature
 
 interface TadoTemperature {
     val celsius: Float
@@ -106,14 +106,16 @@ class TadoClient(val config: Config) {
         client.post<TokenResponse>("$tadoAuth/oauth/token") {
             contentType(ContentType.Application.FormUrlEncoded)
 
-            body = FormDataContent(Parameters.build {
-                append("client_id", "public-api-preview")
-                append("client_secret", "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw")
-                append("grant_type", "password")
-                append("scope", "home.user")
-                append("username", "tado@thomasc.co.uk")
-                append("password", config.tado.refreshToken)
-            })
+            body = FormDataContent(
+                Parameters.build {
+                    append("client_id", "public-api-preview")
+                    append("client_secret", "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw")
+                    append("grant_type", "password")
+                    append("scope", "home.user")
+                    append("username", "tado@thomasc.co.uk")
+                    append("password", config.tado.refreshToken)
+                }
+            )
         }.also { refreshToken = it.refresh_token }.access_token
     }
 
@@ -121,13 +123,15 @@ class TadoClient(val config: Config) {
         client.post<TokenResponse>("$tadoAuth/oauth/token") {
             contentType(ContentType.Application.FormUrlEncoded)
 
-            body = FormDataContent(Parameters.build {
-                append("client_id", "public-api-preview")
-                append("client_secret", "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw")
-                append("grant_type", "refresh_token")
-                append("scope", "home.user")
-                append("refresh_token", refreshToken)
-            })
+            body = FormDataContent(
+                Parameters.build {
+                    append("client_id", "public-api-preview")
+                    append("client_secret", "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw")
+                    append("grant_type", "refresh_token")
+                    append("scope", "home.user")
+                    append("refresh_token", refreshToken)
+                }
+            )
         }.also { refreshToken = it.refresh_token }.access_token
     } catch (e: Exception) {
         // Force password refresh next time
@@ -140,8 +144,8 @@ class TadoClient(val config: Config) {
         }
     } catch (e: Exception) { null }
 
-    suspend fun getState() = (1..3).mapNotNull {
-        zone -> getRawState(zone)?.let {
+    suspend fun getState() = (1..3).mapNotNull { zone ->
+        getRawState(zone)?.let {
             TransformedZoneState(
                 zone,
                 it.tadoMode,
@@ -160,5 +164,4 @@ class TadoClient(val config: Config) {
         "TEMPERATURE" -> jackson.treeToValue(node.value, TemperatureData::class.java)
         else -> null
     }
-
 }

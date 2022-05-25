@@ -53,7 +53,6 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
             override fun deliveryComplete(token: IMqttDeliveryToken) {
                 println("deliveryComplete")
             }
-
         })
         client.subscribe("#")
     }
@@ -70,5 +69,4 @@ class RelayClient(val config: Config, val mqtt: RelayMqtt.DeviceGateway) {
     fun getRelay(host: String) = relayMap.getOrPut(host.uppercase()) {
         Relay(host, client, config.relay.apiKey, mqtt)
     }
-
 }

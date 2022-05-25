@@ -14,8 +14,8 @@ import uk.co.thomasc.thealley.scenes.SceneController
 
 data class ControlResult(val success: Boolean)
 data class BulbState(val state: Int, val dimmable: Boolean, val hue: Int?, val temp: Int?, val color: Boolean) {
-    constructor(on: Boolean): this(if (on) 100 else 0, false, 0, 0, false)
-    constructor(state: Int, hue: Int?, temp: Int?): this(state, true, hue, temp, true)
+    constructor(on: Boolean) : this(if (on) 100 else 0, false, 0, 0, false)
+    constructor(state: Int, hue: Int?, temp: Int?) : this(state, true, hue, temp, true)
 }
 data class SwitchData(val buttons: Map<Int, Int>)
 

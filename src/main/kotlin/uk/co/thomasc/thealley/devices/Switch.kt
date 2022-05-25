@@ -7,7 +7,7 @@ import kotlin.math.min
 
 const val FADE_TIME = 5 * 10
 
-class Switch(private val switchRepository: SwitchRepository, val scene: Scene, val obj: SwitchRepository.SwitchObj)  {
+class Switch(private val switchRepository: SwitchRepository, val scene: Scene, val obj: SwitchRepository.SwitchObj) {
     var state = obj.state
 
     private var fadeStarted: Long = 0
@@ -26,7 +26,7 @@ class Switch(private val switchRepository: SwitchRepository, val scene: Scene, v
     }
 
     fun revoke() {
-        //TODO: revoke override so rules can change light state
+        // TODO: revoke override so rules can change light state
     }
 
     fun startFade() {

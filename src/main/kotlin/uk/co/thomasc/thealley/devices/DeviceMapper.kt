@@ -28,14 +28,14 @@ class DeviceMapper(
 
     fun toLight(device: SwitchRepository.Device) = device.innerToLight()
 
-    fun <T: HasDeviceId, S: Any> each(sceneParts: List<T>, block: (Light<*>, T) -> S?) =
+    fun <T : HasDeviceId, S : Any> each(sceneParts: List<T>, block: (Light<*>, T) -> S?) =
         sceneParts.innerEach(block)
 
     interface HasDeviceId {
         val deviceId: Int
     }
 
-    private fun <T: HasDeviceId, S: Any> List<T>.innerEach(block: (Light<*>, T) -> S?) =
+    private fun <T : HasDeviceId, S : Any> List<T>.innerEach(block: (Light<*>, T) -> S?) =
         runBlocking {
             map {
                 getLight(it.deviceId) to it
@@ -43,13 +43,12 @@ class DeviceMapper(
                 it.first.innerToLight() to it.second
             }.mapNotNull {
                 try {
-                    it.first?.let {
-                        light -> block(light, it.second)
+                    it.first?.let { light ->
+                        block(light, it.second)
                     }
                 } catch (e: KotlinNullPointerException) {
                     null
                 }
             }
         }
-
 }

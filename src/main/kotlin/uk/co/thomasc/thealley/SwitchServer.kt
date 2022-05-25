@@ -30,7 +30,7 @@ class SwitchServer(
         aSocket(selector).tcp().bind(InetSocketAddress(5558))
 
     init {
-        GlobalScope.launch (threadPool) {
+        GlobalScope.launch(threadPool) {
             listenForClients()
         }.apply {
             invokeOnCompletion {
@@ -49,7 +49,6 @@ class SwitchServer(
             }
         }
     }
-
 }
 
 class SwitchClient(
@@ -108,5 +107,4 @@ class SwitchClient(
             println("Client disconnected: ${client.remoteAddress}")
         }
     }
-
 }
