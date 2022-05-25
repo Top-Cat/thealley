@@ -12,23 +12,23 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     private var bulbData: BulbData? = null
 
     @Synchronized
-    override fun getData() = (bulbData ?: updateData())!!
+    override suspend fun getData() = (bulbData ?: updateData())!!
 
     @Synchronized
-    private fun updateData() =
-        runBlocking { getSysInfo(host, 5000) as? BulbData }?.apply {
+    private suspend fun updateData() =
+        (getSysInfo(host, 5000) as? BulbData)?.apply {
             bulbData = this
         }
 
-    fun getName() = getData().alias
-    override fun getPowerState() = getData().light_state.on_off
-    fun getLightState() = getData().light_state
-    fun getSignalStrength() = getData().rssi
-    fun getPowerUsage() = getPower().power_mw
+    suspend fun getName() = getData().alias
+    override suspend fun getPowerState() = getData().light_state.on_off
+    suspend fun getLightState() = getData().light_state
+    suspend fun getSignalStrength() = getData().rssi
+    suspend fun getPowerUsage() = getPower().power_mw
 
-    fun getHwVer() = getData().hw_ver
-    fun getSwVer() = getData().sw_ver
-    fun getModel() = getData().model
+    suspend fun getHwVer() = getData().hw_ver
+    suspend fun getSwVer() = getData().sw_ver
+    suspend fun getModel() = getData().model
 
     @Synchronized
     private fun getPower() =
@@ -70,7 +70,7 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
         return this
     }
 
-    override fun togglePowerState() =
+    override suspend fun togglePowerState() =
         setPowerState(!getPowerState())
 
     private suspend fun send(json: String) = send(json, host, timeout = 500)

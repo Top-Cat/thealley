@@ -19,9 +19,9 @@ object SceneTable : IntIdTable("scene") {
     val sceneId = integer("scene_id")
     val lightId = integer("light_id")
     val brightness = integer("brightness")
-    val hue = integer("hue")
-    val saturation = integer("saturation")
-    val colorTemp = integer("color_temp")
+    val hue = integer("hue").nullable()
+    val saturation = integer("saturation").nullable()
+    val colorTemp = integer("color_temp").nullable()
 }
 
 object RuleTable : IntIdTable("rule", "rule_id") {

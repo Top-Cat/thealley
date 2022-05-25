@@ -5,7 +5,7 @@ interface Light<out T> {
 
     fun setComplexState(brightness: Int? = null, hue: Int? = null, saturation: Int? = null, temperature: Int? = null, transitionTime: Int? = 1000): T
 
-    fun getPowerState(): Boolean
+    suspend fun getPowerState(): Boolean
 
-    fun togglePowerState(): T
+    suspend fun togglePowerState(): T
 }

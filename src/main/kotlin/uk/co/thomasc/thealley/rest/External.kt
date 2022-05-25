@@ -123,7 +123,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: All
         }
     )
 
-    fun queryRequest(intent: QueryIntent) = QueryResponse(
+    suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
         intent.payload.devices.map {
             switchRepository.getDeviceForId(it.deviceId)
         }.map {
@@ -132,7 +132,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: All
             val light = it.first
             val dbInfo = it.second
 
-            fun getState() = when (light) {
+            suspend fun getState() = when (light) {
                 is Bulb -> light.getLightState()?.let { lightState ->
                     DeviceState(
                         true,
@@ -161,7 +161,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: All
         }
     )
 
-    fun syncRequest(intent: SyncIntent) = SyncResponse(
+    suspend fun syncRequest(intent: SyncIntent) = SyncResponse(
         devices = switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB).map {
             deviceMapper.toLight(it) to it
         }.map { mapIn ->

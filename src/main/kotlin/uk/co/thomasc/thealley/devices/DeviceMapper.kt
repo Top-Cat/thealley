@@ -28,27 +28,25 @@ class DeviceMapper(
 
     fun toLight(device: SwitchRepository.Device) = device.innerToLight()
 
-    fun <T : HasDeviceId, S : Any> each(sceneParts: List<T>, block: (Light<*>, T) -> S?) =
+    suspend fun <T : HasDeviceId, S : Any> each(sceneParts: List<T>, block: suspend (Light<*>, T) -> S?) =
         sceneParts.innerEach(block)
 
     interface HasDeviceId {
         val deviceId: Int
     }
 
-    private fun <T : HasDeviceId, S : Any> List<T>.innerEach(block: (Light<*>, T) -> S?) =
-        runBlocking {
-            map {
-                getLight(it.deviceId) to it
-            }.map {
-                it.first.innerToLight() to it.second
-            }.mapNotNull {
-                try {
-                    it.first?.let { light ->
-                        block(light, it.second)
-                    }
-                } catch (e: KotlinNullPointerException) {
-                    null
+    private suspend fun <T : HasDeviceId, S : Any> List<T>.innerEach(block: suspend (Light<*>, T) -> S?) =
+        map {
+            getLight(it.deviceId) to it
+        }.map {
+            it.first.innerToLight() to it.second
+        }.mapNotNull {
+            try {
+                it.first?.let { light ->
+                    block(light, it.second)
                 }
+            } catch (e: KotlinNullPointerException) {
+                null
             }
         }
 }

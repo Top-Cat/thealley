@@ -25,7 +25,7 @@ abstract class KasaDevice<out T>(val host: String) {
         val selector = ActorSelectorManager(Dispatchers.IO)
     }
 
-    protected abstract fun getData(): T?
+    protected abstract suspend fun getData(): T?
 
     suspend fun getSysInfo(host: String, timeout: Long = 500): Any? =
         this.send("{\"system\":{\"get_sysinfo\":{}}}", host, timeout = timeout)?.let(::parseSysInfo)

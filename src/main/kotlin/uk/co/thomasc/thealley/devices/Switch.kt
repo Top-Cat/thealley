@@ -13,7 +13,7 @@ class Switch(private val switchRepository: SwitchRepository, val scene: Scene, v
     private var fadeStarted: Long = 0
     private var startBrightness = 0
 
-    fun toggle() {
+    suspend fun toggle() {
         if (scene.anyOn()) {
             state = 0
             scene.off()
@@ -29,7 +29,7 @@ class Switch(private val switchRepository: SwitchRepository, val scene: Scene, v
         // TODO: revoke override so rules can change light state
     }
 
-    fun startFade() {
+    suspend fun startFade() {
         fadeStarted = System.currentTimeMillis()
 
         startBrightness = scene.averageBrightness()
@@ -43,7 +43,7 @@ class Switch(private val switchRepository: SwitchRepository, val scene: Scene, v
         }
     }
 
-    fun endFade() {
+    suspend fun endFade() {
         val fadeTime = System.currentTimeMillis() - fadeStarted
 
         val newBrightness = if (state > 0) {

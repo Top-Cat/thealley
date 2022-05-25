@@ -13,7 +13,7 @@ class Scene(
     private val lights: List<SceneRepository.ScenePart>
 ) {
 
-    fun anyOn() =
+    suspend fun anyOn() =
         deviceMapper.each(lights) { bulb, _ ->
             bulb.getPowerState()
         }.any { it }
@@ -24,7 +24,7 @@ class Scene(
             else -> min(100, max(0, avg.roundToInt()))
         }
 
-    fun averageBrightness() = coerceToBrightness(
+    suspend fun averageBrightness() = coerceToBrightness(
         deviceMapper.each(lights) {
             bulb, _ ->
             when (bulb) {
@@ -34,7 +34,7 @@ class Scene(
         }.average()
     )
 
-    fun execute(percent: Int = 100, transitionTime: Int = 1000) {
+    suspend fun execute(percent: Int = 100, transitionTime: Int = 1000) {
         deviceMapper.each(lights) {
             bulb, it ->
 
@@ -45,7 +45,7 @@ class Scene(
         }
     }
 
-    fun off() {
+    suspend fun off() {
         deviceMapper.each(lights) { it, _ ->
             it.setPowerState(false)
         }

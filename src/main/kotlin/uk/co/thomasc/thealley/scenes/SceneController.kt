@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.scenes
 
+import kotlinx.coroutines.runBlocking
 import uk.co.thomasc.thealley.repo.SceneRepository
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.util.concurrent.Executors
@@ -20,12 +21,14 @@ class SceneController(sceneRepository: SceneRepository, switchRepository: Switch
     val switches by switchDelegate
 
     private fun tick() {
-        for (rule in rules) {
-            rule.tick()
+        runBlocking {
+            for (rule in rules) {
+                rule.tick()
+            }
         }
     }
 
-    fun onChange(sensorId: String) {
+    suspend fun onChange(sensorId: String) {
         rules.filter { it.sensors.contains(sensorId) }.forEach { it.onChange() }
     }
 

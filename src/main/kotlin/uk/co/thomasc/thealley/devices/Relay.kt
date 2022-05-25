@@ -31,7 +31,7 @@ class Relay(
         mqtt.sendToMqtt("$host/relay/0/set", MqttMessage("$state".toByteArray()))
     }
 
-    override fun getPowerState() = state ?: runBlocking {
+    override suspend fun getPowerState() = state ?: runBlocking {
         val newState = try {
             restTemplate.get<RelayState>("http://$host.light.kirkstall.top-cat.me/api/relay/0?apikey=$apiKey") {
                 accept(ContentType.Application.Json)
@@ -46,9 +46,9 @@ class Relay(
         newState
     }
 
-    override fun togglePowerState() = setLightState(2)
+    override suspend fun togglePowerState() = setLightState(2)
 
-    fun handleMessage(topic: String, message: MqttMessage) {
+    suspend fun handleMessage(topic: String, message: MqttMessage) {
         Regex("([^/,]+)\\/([^/,]+)(?:\\/([^/,]+))?").find(topic)?.also {
             val (str, host, prop, idx) = it.groupValues
 

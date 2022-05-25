@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.client
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.runBlocking
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -36,7 +37,9 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
                     println("Received zigbee message, device: $deviceId, data: $update")
 
                     if (update.occupancy == true) {
-                        sceneController.onChange(deviceId)
+                        runBlocking {
+                            sceneController.onChange(deviceId)
+                        }
                     }
                     api.onPropertyChange(PropertyData(deviceId, "illuminance", update.illuminance.toDouble()))
                     update.battery?.let {
@@ -46,7 +49,11 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
                         api.onPropertyChange(PropertyData(deviceId, "voltage", it.toDouble()))
                     }
                 } else {
-                    relayClient.getRelay(host).handleMessage(topic, message)
+                    relayClient.getRelay(host).let {
+                        runBlocking {
+                            it.handleMessage(topic, message)
+                        }
+                    }
                 }
             }
 

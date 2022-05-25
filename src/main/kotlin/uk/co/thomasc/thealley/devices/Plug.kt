@@ -9,18 +9,18 @@ class Plug(host: String) : KasaDevice<PlugData>(host) {
     private var plugData: PlugData? = null
 
     @Synchronized
-    override fun getData() = (plugData ?: updateData())!!
+    override suspend fun getData() = (plugData ?: updateData())!!
 
     @Synchronized
-    fun updateData() =
-        runBlocking { getSysInfo(host, 5000) as? PlugData }?.apply {
+    suspend fun updateData() =
+        (getSysInfo(host, 5000) as? PlugData)?.apply {
             plugData = this
         }
 
-    fun getName() = getData().alias
-    fun getPowerState() = getData().relay_state
-    fun getUptime() = getData().on_time
-    fun getSignalStrength() = getData().rssi
+    suspend fun getName() = getData().alias
+    suspend fun getPowerState() = getData().relay_state
+    suspend fun getUptime() = getData().on_time
+    suspend fun getSignalStrength() = getData().rssi
 
     @Synchronized
     fun getPower() =

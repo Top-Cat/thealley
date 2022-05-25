@@ -64,7 +64,7 @@ data class Rule(private val sceneRepository: SceneRepository, val sensors: List<
         const val minPercent = 20
     }
 
-    fun onChange() {
+    suspend fun onChange() {
         val now = LocalDateTime.now()
 
         // At night, turn on light and set off at time
@@ -79,7 +79,7 @@ data class Rule(private val sceneRepository: SceneRepository, val sensors: List<
         sceneRepository.updateLastActive(obj.id.value, this)
     }
 
-    fun tick() {
+    suspend fun tick() {
         val now = LocalDateTime.now()
 
         if (offAt?.isBefore(now) == true) {
@@ -123,7 +123,7 @@ data class Rule(private val sceneRepository: SceneRepository, val sensors: List<
         return minPercent + scaled
     }
 
-    private fun on(now: LocalDateTime, off: LocalDateTime) {
+    private suspend fun on(now: LocalDateTime, off: LocalDateTime) {
         val percent = getBrightnessFor(now)
 
         scene.execute(percent)
