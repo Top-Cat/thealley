@@ -57,12 +57,10 @@ dependencies {
     implementation("org.flywaydb:flyway-core:7.14.0")
     implementation("com.zaxxer:HikariCP:3.4.2")
 
-    /*testCompile "org.junit.platform:junit-platform-launcher:1.0.0"
-    testCompile "org.junit.jupiter:junit-jupiter-api:5.0.0"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.0.0"
-    testCompile "org.jetbrains.kotlin:kotlin-test:1.1.50"
-
-    compile "org.apache.httpcomponents:httpclient"*/
+    testImplementation("org.junit.platform:junit-platform-launcher:1.0.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.0.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.1.50")
 
     implementation("com.ToxicBakery.library.bcrypt:bcrypt:+")
 
