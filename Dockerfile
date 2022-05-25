@@ -1,13 +1,14 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:16-jdk-slim
 
 ARG BUILDVER=dev-SNAPSHOT
 
 RUN mkdir -p /app
 WORKDIR /app
-COPY build/libs/thealley-${BUILDVER}.jar .
+COPY build/install/thealley .
 
 ENV BUILDVER=$BUILDVER
 
-CMD ["sh", "-c", "java -jar thealley-${BUILDVER}.jar"]
+WORKDIR /app/bin
+ENTRYPOINT ["./thealley"]
 
 EXPOSE 8080
