@@ -1,23 +1,24 @@
 package uk.co.thomasc.thealley.web
 
-import org.springframework.stereotype.Controller
-import org.springframework.ui.Model
-import org.springframework.web.bind.annotation.RequestMapping
+import io.ktor.application.call
+import io.ktor.mustache.MustacheContent
+import io.ktor.response.respond
+import io.ktor.routing.Route
+import io.ktor.routing.get
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
-@Controller
-class UIController(val switchRepository: SwitchRepository) {
-
-    @RequestMapping("/")
-    fun home(model: Model): String {
-        model.addAttribute("lights", switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB) +
-            switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY))
-        return "home"
+fun Route.mainRoute(switchRepository: SwitchRepository) {
+    get("/") {
+        call.respond(
+            MustacheContent(
+                "home.mustache",
+                mapOf("lights" to switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB) +
+                switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY))
+            )
+        )
     }
 
-    @RequestMapping("/external/login")
-    fun login(): String {
-        return "login"
+    get("/external/login") {
+        call.respond(MustacheContent("login.mustache", null))
     }
-
 }

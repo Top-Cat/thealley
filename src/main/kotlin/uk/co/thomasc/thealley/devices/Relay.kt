@@ -1,20 +1,17 @@
 package uk.co.thomasc.thealley.devices
 
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
-import org.springframework.integration.mqtt.support.MqttHeaders
-import org.springframework.messaging.Message
-import org.springframework.messaging.support.MessageBuilder
-import org.springframework.util.MultiValueMap
-import org.springframework.web.client.RestTemplate
+import io.ktor.client.HttpClient
+import io.ktor.client.request.accept
+import io.ktor.client.request.get
+import io.ktor.http.ContentType
+import kotlinx.coroutines.runBlocking
+import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.client.RelayState
 
 class Relay(
     private val host: String,
-    private val restTemplate: RestTemplate,
+    private val restTemplate: HttpClient,
     private val apiKey: String,
     private val mqtt: RelayMqtt.DeviceGateway,
     val props: MutableMap<String, Any> = mutableMapOf(),
@@ -31,20 +28,18 @@ class Relay(
     }
 
     private fun setLightState(state: Int) {
-        mqtt.sendToMqtt(MessageBuilder.withPayload("$state").setHeader(MqttHeaders.TOPIC, "$host/relay/0/set").build())
+        mqtt.sendToMqtt("$host/relay/0/set", MqttMessage("$state".toByteArray()))
     }
 
-    override fun getPowerState() = state ?: run {
-        val headers = HttpHeaders()
-        headers.accept = listOf(MediaType.APPLICATION_JSON)
+    override fun getPowerState() = state ?: runBlocking {
+        val newState = try {
+            restTemplate.get<RelayState>("http://$host.light.kirkstall.top-cat.me/api/relay/0?apikey=$apiKey") {
+                accept(ContentType.Application.Json)
+            }.relay0
+        } catch (e: Exception) {
+            null
+        } ?: false
 
-        val request = HttpEntity<MultiValueMap<String, String>>(headers)
-        val newState = restTemplate.exchange(
-            "http://$host.light.kirkstall.top-cat.me/api/relay/0?apikey=$apiKey",
-            HttpMethod.GET,
-            request,
-            RelayState::class.java
-        ).body?.relay0 ?: false
         // Temporary variable prevents null return type
         state = newState
 
@@ -53,28 +48,26 @@ class Relay(
 
     override fun togglePowerState() = setLightState(2)
 
-    fun handleMessage(message: Message<*>) {
-        Regex("([^/,]+)\\/([^/,]+)(?:\\/([^/,]+))?").find(
-            message.headers.getValue(MqttHeaders.RECEIVED_TOPIC) as String
-        )?.also {
+    fun handleMessage(topic: String, message: MqttMessage) {
+        Regex("([^/,]+)\\/([^/,]+)(?:\\/([^/,]+))?").find(topic)?.also {
             val (str, host, prop, idx) = it.groupValues
 
             when (prop) {
                 "relay" -> {
-                    state = message.payload == "1"
+                    state = message.toString() == "1"
                 }
                 "button" -> {
                     togglePowerState()
                 }
                 else -> props[prop] = try {
-                    (message.payload as String).toDouble()
+                    message.toString().toDouble()
                 } catch (e: NumberFormatException) {
-                    message.payload
+                    message.toString()
                 }
             }
         } ?: run {
             println("Couldn't parse MQTT message")
-            println(message.headers)
+            println(topic)
             println(message.payload)
         }
     }

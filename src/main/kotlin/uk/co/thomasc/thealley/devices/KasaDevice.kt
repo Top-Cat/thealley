@@ -3,10 +3,15 @@ package uk.co.thomasc.thealley.devices
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.newFixedThreadPoolContext
-import kotlinx.coroutines.experimental.withTimeoutOrNull
-import kotlinx.sockets.aSocket
+import io.ktor.network.selector.ActorSelectorManager
+import io.ktor.network.sockets.aSocket
+import io.ktor.network.sockets.openReadChannel
+import io.ktor.network.sockets.openWriteChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.withTimeoutOrNull
+import uk.co.thomasc.thealley.client.jackson
 import uk.co.thomasc.thealley.decryptWithHeader
 import uk.co.thomasc.thealley.encryptWithHeader
 import java.net.InetAddress
@@ -17,8 +22,8 @@ import java.nio.ByteBuffer
 
 abstract class KasaDevice<out T>(val host: String) {
     companion object {
-        val mapper = jacksonObjectMapper()
-        val threadPool = newFixedThreadPoolContext(10, "LocalClient")
+        val threadPool = newFixedThreadPoolContext(10, "KasaDevice")
+        val selector = ActorSelectorManager(Dispatchers.IO)
     }
 
     protected abstract fun getData(): T?
@@ -28,7 +33,7 @@ abstract class KasaDevice<out T>(val host: String) {
 
     protected fun parseSysInfo(json: String): Any? {
         val node = try {
-            mapper.readValue(json, JsonNode::class.java)
+            jackson.readValue(json, JsonNode::class.java)
         } catch (e: JsonParseException) {
             println("Failed to parse json from $host")
             return null
@@ -42,8 +47,8 @@ abstract class KasaDevice<out T>(val host: String) {
         }
 
         return when (type) {
-            "IOT.SMARTBULB" -> mapper.treeToValue(deviceNode, BulbData::class.java)
-            "IOT.SMARTPLUGSWITCH" -> mapper.treeToValue(deviceNode, PlugData::class.java)
+            "IOT.SMARTBULB" -> jackson.treeToValue(deviceNode, BulbData::class.java)
+            "IOT.SMARTPLUGSWITCH" -> jackson.treeToValue(deviceNode, PlugData::class.java)
             else -> null
         }
     }
@@ -52,13 +57,15 @@ abstract class KasaDevice<out T>(val host: String) {
         withTimeoutOrNull(timeout) {
             async(threadPool) {
                 try {
-                    aSocket().tcp().connect(InetSocketAddress(InetAddress.getByName(host), port)).use {
+                    aSocket(selector).tcp().connect(InetSocketAddress(InetAddress.getByName(host), port)).use {
                         val buff = ByteBuffer.wrap(encryptWithHeader(json))
-                        it.write(buff)
+                        val inputChannel = it.openReadChannel()
+                        val outputChannel = it.openWriteChannel(true)
+                        outputChannel.writeFully(buff)
 
                         val bb = ByteBuffer.allocate(8192)
                         val start = System.currentTimeMillis()
-                        it.read(bb)
+                        inputChannel.readAvailable(bb)
 
                         // Packet says how long it should be
                         val len = ByteBuffer.wrap(bb.array().sliceArray(0..3)).int
@@ -66,7 +73,7 @@ abstract class KasaDevice<out T>(val host: String) {
                             if (System.currentTimeMillis() - start > timeout) {
                                 return@use null
                             }
-                            it.read(bb)
+                            inputChannel.readAvailable(bb)
                         }
 
                         bb.flip()
@@ -76,6 +83,7 @@ abstract class KasaDevice<out T>(val host: String) {
                 } catch (e: UnknownHostException) {
                     null
                 } catch (e: SocketException) {
+                    e.printStackTrace()
                     null
                 }
             }.await()

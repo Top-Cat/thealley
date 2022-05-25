@@ -1,8 +1,9 @@
 package uk.co.thomasc.thealley.devices
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
+import uk.co.thomasc.thealley.client.jackson
 
 class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
 
@@ -38,7 +39,7 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
                     bulbData = this
                 }
 
-                mapper.readValue<BulbEmeterResponse>(it).emeter.get_realtime
+                jackson.readValue<BulbEmeterResponse>(it).emeter.get_realtime
             } ?: BulbRealtimePower(0, -1)
         }
 
@@ -59,8 +60,8 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     private suspend fun setLightState(state: BulbUpdate): Bulb {
         val obj = LightingServiceUpdate(LightingService(state))
 
-        send(mapper.writeValueAsString(obj))?.let {
-            val result = mapper.readValue<LightingServiceUpdate>(it)
+        send(jackson.writeValueAsString(obj))?.let {
+            val result = jackson.readValue<LightingServiceUpdate>(it)
             bulbData = getData()?.copy(light_state = result.lightingService.transition_light_state)
         }
 

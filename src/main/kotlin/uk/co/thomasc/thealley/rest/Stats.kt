@@ -1,9 +1,11 @@
 package uk.co.thomasc.thealley.rest
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import io.ktor.application.call
+import io.ktor.locations.Location
+import io.ktor.locations.get
+import io.ktor.response.respond
+import io.ktor.routing.Route
 import uk.co.thomasc.thealley.client.TadoClient
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
@@ -37,20 +39,29 @@ data class PlugResponse(
     val rssi: Int
 )
 
-@RestController
-@RequestMapping("/stats")
-class Stats(val switchRepository: SwitchRepository, val tadoClient: TadoClient, val deviceMapper: DeviceMapper) {
-    @GetMapping("/plug")
-    fun getPowerStats() =
+@Location("/stats")
+class StatsRoute {
+    @Location("/plug")
+    data class Plug(val api: StatsRoute)
+    @Location("/bulb")
+    data class Bulb(val api: StatsRoute)
+    @Location("/relay")
+    data class Relay(val api: StatsRoute)
+    @Location("/tado")
+    data class Tado(val api: StatsRoute)
+}
+
+fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient, deviceMapper: DeviceMapper) {
+    get<StatsRoute.Plug> {
         switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).mapNotNull {
-            plug ->
+                plug ->
 
             try {
                 Plug(plug.hostname).let {
                     it.updateData()
                     val power = it.getPower()
 
-                     PlugResponse(
+                    PlugResponse(
                         plug.hostname,
                         it.getName(),
                         if (it.getPowerState()) 1 else 0,
@@ -64,12 +75,14 @@ class Stats(val switchRepository: SwitchRepository, val tadoClient: TadoClient, 
             } catch (e: KotlinNullPointerException) {
                 null
             }
+        }.let {
+            call.respond(it)
         }
+    }
 
-    @GetMapping("/bulb")
-    fun getBulbStats() =
+    get<StatsRoute.Bulb> {
         deviceMapper.each(switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB)) {
-            bulb, dev ->
+                bulb, dev ->
 
             (bulb as? Bulb)?.let {
                 // Power update will cause sysinfo update
@@ -83,12 +96,14 @@ class Stats(val switchRepository: SwitchRepository, val tadoClient: TadoClient, 
                     bulb.getSignalStrength()
                 )
             }
+        }.let {
+            call.respond(it)
         }
+    }
 
-    @GetMapping("/relay")
-    fun getRelayStats() =
+    get<StatsRoute.Relay> {
         deviceMapper.each(switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY)) {
-            relay, dev ->
+                relay, dev ->
 
             (relay as? Relay)?.let {
                 RelayResponse(
@@ -97,8 +112,12 @@ class Stats(val switchRepository: SwitchRepository, val tadoClient: TadoClient, 
                     relay.props
                 )
             }
+        }.let {
+            call.respond(it)
         }
+    }
 
-    @GetMapping("/tado")
-    fun getTadoStats() = tadoClient.getState()
+    get<StatsRoute.Tado> {
+        call.respond(tadoClient.getState())
+    }
 }

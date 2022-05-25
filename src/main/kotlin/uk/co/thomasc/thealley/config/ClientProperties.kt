@@ -1,10 +1,17 @@
 package uk.co.thomasc.thealley.config
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.stereotype.Component
+import io.ktor.application.Application
 
-@Component
-@ConfigurationProperties("clients")
+fun Application.clients() = environment.config.configList("clients").let { cl ->
+    ClientProperties(cl.map {
+        ClientProperty(
+            it.propertyOrNull("clientId")?.getString(),
+            it.propertyOrNull("secret")?.getString(),
+            it.propertyOrNull("scopes")?.getList() ?: emptyList()
+        )
+    })
+}
+
 data class ClientProperties(
     var clients: List<ClientProperty> = emptyList()
 )

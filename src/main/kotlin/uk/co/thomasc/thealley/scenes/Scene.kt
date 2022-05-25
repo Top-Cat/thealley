@@ -2,16 +2,15 @@ package uk.co.thomasc.thealley.scenes
 
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
+import uk.co.thomasc.thealley.repo.SceneRepository
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-data class ScenePart(val sceneId: Int, override val deviceId: Int, val brightness: Int, val hue: Int?, val saturation: Int?, val colorTemp: Int?) : DeviceMapper.HasDeviceId
-
 class Scene(
     val sceneId: Int,
     private val deviceMapper: DeviceMapper,
-    private val lights: List<ScenePart>
+    private val lights: List<SceneRepository.ScenePart>
 ) {
 
     fun anyOn() =

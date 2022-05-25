@@ -1,16 +1,13 @@
 package uk.co.thomasc.thealley.devices
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
-import org.springframework.stereotype.Component
+import kotlinx.coroutines.runBlocking
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
-@Component
 class DeviceMapper(
     private val relayClient: RelayClient,
-    private val switchRepository: SwitchRepository) {
+    private val switchRepository: SwitchRepository
+) {
 
     private fun getLight(id: Int) = switchRepository.getDeviceForId(id)
     private val bulbMap = mutableMapOf<String, Bulb>()
@@ -19,7 +16,7 @@ class DeviceMapper(
         return when (type) {
             SwitchRepository.DeviceType.BULB -> bulbMap.getOrPut(hostname) {
                 Bulb(hostname).apply {
-                    async(CommonPool) {
+                    runBlocking {
                         getName()
                     }
                 }

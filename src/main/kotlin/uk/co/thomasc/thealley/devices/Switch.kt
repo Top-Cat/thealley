@@ -7,13 +7,9 @@ import kotlin.math.min
 
 const val FADE_TIME = 5 * 10
 
-data class Switch(
-    val switchId: Int,
-    val buttonId: Int,
-    var state: Int,
-    private val scene: Scene,
-    private val switchRepository: SwitchRepository
-) {
+class Switch(private val switchRepository: SwitchRepository, val scene: Scene, val obj: SwitchRepository.SwitchObj)  {
+    var state = obj.state
+
     private var fadeStarted: Long = 0
     private var startBrightness = 0
 

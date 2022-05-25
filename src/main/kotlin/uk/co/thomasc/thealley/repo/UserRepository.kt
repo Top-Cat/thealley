@@ -1,27 +1,27 @@
 package uk.co.thomasc.thealley.repo
 
-import org.springframework.context.annotation.DependsOn
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.stereotype.Component
-import java.sql.ResultSet
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 
-@Component
-@DependsOn("flywayInitializer")
-class UserRepository(val db: JdbcTemplate) {
+object UserTable : IntIdTable("user", "user_id") {
+    val username = varchar("username", 64)
+    val password = varchar("password", 255)
+}
 
-    data class User(val id: Int, val username: String, val password: String)
+data class User(val key: EntityID<Int>) : IntEntity(key) {
+    companion object : IntEntityClass<User>(UserTable)
+    val username by UserTable.username
+    val password by UserTable.password
+}
 
-    fun getUserByName(username: String) =
-        db.queryForObject(
-            "SELECT user_id, username, password FROM user WHERE username = ?",
-            arrayOf(username),
-            this::userMapper
-        )
-
-    private fun userMapper(rs: ResultSet, row: Int) =
-        User(
-            rs.getInt("user_id"),
-            rs.getString("username"),
-            rs.getString("password")
-        )
+class UserRepository {
+    fun getUserByName(username: String) = transaction {
+        UserTable.select {
+            UserTable.username eq username
+        }.singleOrNull()?.let { User.wrapRow(it) }
+    }
 }

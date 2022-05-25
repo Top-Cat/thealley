@@ -1,62 +1,32 @@
 package uk.co.thomasc.thealley.rest
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import uk.co.thomasc.thealley.client.RelayClient
+import io.ktor.application.call
+import io.ktor.locations.Location
+import io.ktor.request.receive
+import io.ktor.response.respond
+import io.ktor.routing.Route
+import io.ktor.routing.post
+import kotlinx.coroutines.async
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.runBlocking
+import uk.co.thomasc.thealley.checkOauth
+import uk.co.thomasc.thealley.client.jackson
+import uk.co.thomasc.thealley.config.AlleyTokenStore
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Relay
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import java.awt.Color
 
-@RestController
-@RequestMapping("/external")
-class External(
-    val switchRepository: SwitchRepository,
-    relayClient: RelayClient,
-    val deviceMapper: DeviceMapper
-) {
+@Location("/external")
+class ExternalRoute {
+    @Location("/googlehome")
+    data class GoogleHome(val api: ExternalRoute)
+}
 
-    val mapper = jacksonObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+val threadPool = newFixedThreadPoolContext(10, "ExternalRoute")
 
-    @PostMapping("/googlehome")
-    fun googleHomeReq(@RequestBody obj: GoogleHomeReq): Any? {
-        // Works if you want to populate response user id
-        //val auth = SecurityContextHolder.getContext().authentication.principal as AlleyUser
-
-        val input = obj.inputs.first()
-
-        val intent = mapper.treeToValue(input,
-            when (input.get("intent").textValue()) {
-                "action.devices.QUERY" -> QueryIntent::class
-                "action.devices.EXECUTE" -> ExecuteIntent::class
-                else -> SyncIntent::class
-            }.java
-        )
-
-        return when (intent) {
-            is SyncIntent -> syncRequest(intent)
-            is QueryIntent -> queryRequest(intent)
-            is ExecuteIntent -> executeRequest(intent)
-            else -> null
-        }?.let {
-            GoogleHomeRes(
-                obj.requestId,
-                it
-            )
-        }
-        //[{"intent":"action.devices.SYNC"}]
-        //println(obj.inputs)
-    }
-
+fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: AlleyTokenStore, deviceMapper: DeviceMapper) {
     fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices.map {
@@ -65,57 +35,57 @@ class External(
                 it.deviceId to deviceMapper.toLight(it)
             }
         }.map { // Execute commands
-            it.second.map {
-                devices ->
+            runBlocking {
+                it.second.map { devices ->
+                    async(threadPool) {
+                        devices.first to it.first.execution.map { ex ->
+                            val dev = devices.second
 
-                async(CommonPool) {
-                    devices.first to it.first.execution.map { ex ->
-                        val dev = devices.second
-
-                        dev?.let { bulbN ->
-                            when (ex.command) {
-                                "action.devices.commands.OnOff" -> {
+                            dev?.let { bulbN ->
+                                when (ex.command) {
+                                    "action.devices.commands.OnOff" -> {
                                         bulbN.setPowerState(ex.params["on"] as Boolean)
 
                                         ExecuteStatus.SUCCESS
-                                }
-                                "action.devices.commands.BrightnessAbsolute" -> {
+                                    }
+                                    "action.devices.commands.BrightnessAbsolute" -> {
                                         bulbN.setComplexState(ex.params["brightness"] as Int)
 
                                         ExecuteStatus.SUCCESS
-                                }
-                                "action.devices.commands.ColorAbsolute" -> {
-                                    val colorObj = ex.params["color"]
-
-                                    if (colorObj is Map<*, *>) {
-                                        if (colorObj.containsKey("temperature")) {
-                                            bulbN.setComplexState(
-                                                temperature = colorObj["temperature"] as Int
-                                            )
-                                        } else {
-                                            val colorHex = colorObj["spectrumRGB"] as Int
-                                            val color = Color.RGBtoHSB(
-                                                (colorHex shr 16) and 255,
-                                                (colorHex shr 8) and 255,
-                                                colorHex and 255,
-                                                null
-                                            )
-
-                                            bulbN.setComplexState(
-                                                (color[2] * 100).toInt(),
-                                                (color[0] * 360).toInt(),
-                                                (color[1] * 100).toInt()
-                                            )
-                                        }
-
-                                        // TODO: Check values were set?
-
-                                        ExecuteStatus.SUCCESS
-                                    } else {
-                                        ExecuteStatus.ERROR
                                     }
+                                    "action.devices.commands.ColorAbsolute" -> {
+                                        val colorObj = ex.params["color"]
+
+                                        if (colorObj is Map<*, *>) {
+                                            if (colorObj.containsKey("temperature")) {
+                                                bulbN.setComplexState(
+                                                    temperature = colorObj["temperature"] as Int
+                                                )
+                                            } else {
+                                                val colorHex = colorObj["spectrumRGB"] as Int
+                                                val color = Color.RGBtoHSB(
+                                                    (colorHex shr 16) and 255,
+                                                    (colorHex shr 8) and 255,
+                                                    colorHex and 255,
+                                                    null
+                                                )
+
+                                                bulbN.setComplexState(
+                                                    (color[2] * 100).toInt(),
+                                                    (color[0] * 360).toInt(),
+                                                    (color[1] * 100).toInt()
+                                                )
+                                            }
+
+                                            // TODO: Check values were set?
+
+                                            ExecuteStatus.SUCCESS
+                                        } else {
+                                            ExecuteStatus.ERROR
+                                        }
+                                    }
+                                    else -> ExecuteStatus.ERROR
                                 }
-                                else -> ExecuteStatus.ERROR
                             }
                         }
                     }
@@ -234,4 +204,33 @@ class External(
         }
     )
 
+    post<ExternalRoute.GoogleHome> {
+        checkOauth(alleyTokenStore) {
+            val obj = call.receive<GoogleHomeReq>()
+            val input = obj.inputs.first()
+
+            val intent = jackson.treeToValue(
+                input,
+                when (input.get("intent").textValue()) {
+                    "action.devices.QUERY" -> QueryIntent::class
+                    "action.devices.EXECUTE" -> ExecuteIntent::class
+                    else -> SyncIntent::class
+                }.java
+            )
+
+            when (intent) {
+                is SyncIntent -> syncRequest(intent)
+                is QueryIntent -> queryRequest(intent)
+                is ExecuteIntent -> executeRequest(intent)
+                else -> null
+            }?.let {
+                call.respond(
+                    GoogleHomeRes(
+                        obj.requestId,
+                        it
+                    )
+                )
+            }
+        }
+    }
 }

@@ -1,13 +1,15 @@
 package uk.co.thomasc.thealley
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
-import kotlinx.sockets.ServerSocket
-import kotlinx.sockets.Socket
-import kotlinx.sockets.aSocket
-import org.springframework.integration.mqtt.support.MqttHeaders
-import org.springframework.messaging.support.MessageBuilder
-import org.springframework.stereotype.Component
+import io.ktor.network.selector.ActorSelectorManager
+import io.ktor.network.sockets.ServerSocket
+import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.aSocket
+import io.ktor.network.sockets.openReadChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
+import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.scenes.SceneController
 import java.io.IOException
@@ -15,17 +17,20 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 
-@Component
 class SwitchServer(
     val sceneController: SceneController,
     val mqtt: RelayMqtt.DeviceGateway
 ) {
+    companion object {
+        val threadPool = newFixedThreadPoolContext(10, "SwitchServer")
+        val selector = ActorSelectorManager(Dispatchers.IO)
+    }
 
     var server: ServerSocket =
-        aSocket().tcp().bind(InetSocketAddress(5558))
+        aSocket(selector).tcp().bind(InetSocketAddress(5558))
 
     init {
-        launch (CommonPool) {
+        GlobalScope.launch (threadPool) {
             listenForClients()
         }.apply {
             invokeOnCompletion {
@@ -37,7 +42,7 @@ class SwitchServer(
     suspend fun listenForClients() {
         while (true) {
             val client = server.accept()
-            launch(CommonPool) {
+            GlobalScope.launch(threadPool) {
                 client.use {
                     SwitchClient(sceneController, it, mqtt).run()
                 }
@@ -57,12 +62,13 @@ class SwitchClient(
         println("Client connected: ${client.remoteAddress}")
         val bb = ByteBuffer.allocate(32)
         val q = ArrayBlockingQueue<Int>(128)
+        val reader = client.openReadChannel()
 
         try {
             while (true) {
                 bb.clear()
 
-                if (client.read(bb) == -1) {
+                if (reader.readAvailable(bb) == -1) {
                     throw IOException()
                 }
 
@@ -93,7 +99,7 @@ class SwitchClient(
                             // Read signed short
                             val value = q.poll().toUByte().toInt() or (q.poll().toInt() shl 8)
 
-                            mqtt.sendToMqtt(MessageBuilder.withPayload("$value").setHeader(MqttHeaders.TOPIC, "sensor/multi/$dataType").build())
+                            mqtt.sendToMqtt("sensor/multi/$dataType", MqttMessage("$value".toByteArray()))
                         }
                     }
                 }

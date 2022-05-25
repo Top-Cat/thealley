@@ -1,55 +1,58 @@
 package uk.co.thomasc.thealley.repo
 
-import org.springframework.context.annotation.DependsOn
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.stereotype.Component
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.`java-time`.datetime
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.scenes.Rule
+import uk.co.thomasc.thealley.scenes.RuleObj
 import uk.co.thomasc.thealley.scenes.Scene
-import uk.co.thomasc.thealley.scenes.ScenePart
-import java.sql.ResultSet
 
-@Component
-@DependsOn("flywayInitializer")
-class SceneRepository(
-    val db: JdbcTemplate,
-    private val deviceMapper: DeviceMapper) {
+object SceneTable : IntIdTable("scene") {
+    val sceneId = integer("scene_id")
+    val lightId = integer("light_id")
+    val brightness = integer("brightness")
+    val hue = integer("hue")
+    val saturation = integer("saturation")
+    val colorTemp = integer("color_temp")
+}
 
-    fun getRules(scene: Map<Int, Scene>): List<Rule> {
+object RuleTable : IntIdTable("rule", "rule_id") {
+    val lastActive = datetime("last_active")
+    val scene = reference("scene_id", SceneTable)
+    val timeout = integer("timeout")
+    val lastUpdated = datetime("last_updated")
+    val daytime = bool("daytime")
+    val offAt = datetime("off_at").nullable()
+}
 
-        fun rulesMapper(rs: ResultSet, row: Int) =
-            scene[rs.getInt("scene_id")]?.let {
-                Rule(
-                    this,
-                    rs.getInt("rule_id"),
-                    getSensors(rs.getInt("rule_id")),
-                    rs.getInt("timeout"),
-                    rs.getTimestamp("last_active").toLocalDateTime(),
-                    rs.getTimestamp("off_at")?.toLocalDateTime(),
-                    rs.getTimestamp("last_updated").toLocalDateTime(),
-                    rs.getBoolean("daytime"),
-                    it
-                )
-            }
+object RuleSensorTable : Table("rule_sensor") {
+    val rule = reference("rule_id", RuleTable)
+    val sensor = varchar("sensor_id", 32)
+}
 
-        return db.query(
-            "SELECT rule_id, timeout, last_active, last_updated, daytime, off_at, scene_id FROM rule",
-            ::rulesMapper
-        ).filterNotNull()
+class SceneRepository(private val deviceMapper: DeviceMapper) {
+    data class ScenePart(val key: EntityID<Int>) : IntEntity(key), DeviceMapper.HasDeviceId {
+        companion object : IntEntityClass<ScenePart>(SceneTable)
+        val sceneId by SceneTable.sceneId
+        val lightId by SceneTable.lightId
+        override val deviceId by lazy { lightId }
+
+        val brightness by SceneTable.brightness
+        val hue by SceneTable.hue
+        val saturation by SceneTable.saturation
+        val colorTemp by SceneTable.colorTemp
     }
 
-    fun getSensors(ruleId: Int): List<String> =
-        db.query(
-            "SELECT sensor_id FROM rule_sensor WHERE rule_id = ?",
-            arrayOf(ruleId),
-            this::sensorMapper
-        )
-
-    fun getScenes() =
-        db.query(
-            "SELECT scene_id, light_id, brightness, hue, color_temp, saturation FROM scene",
-            this::sceneMapper
-        )
+    fun getScenes() = transaction {
+        ScenePart.wrapRows(SceneTable.selectAll())
             .groupBy { it.sceneId }
             .map {
                 it.key to Scene(
@@ -59,24 +62,38 @@ class SceneRepository(
                 )
             }
             .toMap()
+    }
 
-    private fun sceneMapper(rs: ResultSet, row: Int) =
-        ScenePart(
-            rs.getInt("scene_id"),
-            rs.getInt("light_id"),
-            rs.getInt("brightness"),
-            rs.getInt("hue").let { if (rs.wasNull()) null else it },
-            rs.getInt("saturation").let { if (rs.wasNull()) null else it },
-            rs.getInt("color_temp").let { if (rs.wasNull()) null else it }
-        )
+    fun getRules(scene: Map<Int, Scene>) = transaction {
+        RuleObj.wrapRows(
+            RuleTable.selectAll()
+        ).mapNotNull { ro ->
+            scene[ro.scene.value]?.let {
+                Rule(
+                    this@SceneRepository,
+                    getSensors(ro.id.value),
+                    it,
+                    ro
+                )
+            }
+        }
+    }
 
-    private fun sensorMapper(rs: ResultSet, row: Int) =
-        rs.getString("sensor_id")
+    fun getSensors(ruleId: Int) = transaction {
+        RuleSensorTable.select {
+            RuleSensorTable.rule eq ruleId
+        }.map {
+            it[RuleSensorTable.sensor]
+        }
+    }
 
-    fun updateLastActive(obj: Rule) {
-        db.update(
-            "UPDATE rule SET last_active = ?, last_updated = ?, off_at = ? WHERE rule_id = ?",
-            obj.lastActive, obj.lastUpdated, obj.offAt, obj.id
-        )
+    fun updateLastActive(id: Int, obj: Rule) = transaction {
+        RuleTable.update({
+            RuleTable.id eq id
+        }) {
+            it[lastActive] = obj.lastActive
+            it[lastUpdated] = obj.lastUpdated
+            it[offAt] = obj.offAt
+        }
     }
 }
