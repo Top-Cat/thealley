@@ -75,7 +75,7 @@ dependencies {
     implementation("nl.myndocs:oauth2-server-identity-inmemory:$myndocsOauthVersion")
     implementation("nl.myndocs:oauth2-server-token-store-inmemory:$myndocsOauthVersion")
 
-    implementation("io.github.microutils:kotlin-logging:1.5.4")
+    implementation("io.github.microutils:kotlin-logging:2.1.14")
 }
 
 application {
