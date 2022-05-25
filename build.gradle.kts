@@ -76,6 +76,10 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:2.1.14")
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
+
 application {
     mainClass.set("uk.co.thomasc.thealley.MainKt")
 }
