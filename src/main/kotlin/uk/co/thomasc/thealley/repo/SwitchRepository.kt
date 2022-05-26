@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.repo
 
+import org.jetbrains.exposed.dao.Entity
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -18,7 +19,8 @@ import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Switch
 import uk.co.thomasc.thealley.scenes.Scene
 
-object SwitchTable : IntIdTable("switch") {
+object SwitchTable : Table("switch") {
+    val switch = integer("id")
     val button = integer("button")
     val scene = reference("scene", SceneTable)
     val state = short("state")
@@ -31,12 +33,7 @@ object DeviceTable : IntIdTable("device") {
 }
 
 class SwitchRepository {
-    data class SwitchObj(val key: EntityID<Int>) : IntEntity(key) {
-        companion object : IntEntityClass<SwitchObj>(SwitchTable)
-        val button by SwitchTable.button
-        val scene by SwitchTable.scene
-        val state by SwitchTable.state
-    }
+    data class SwitchObj(val switch: Int, val button: Int, val scene: Int, val state: Short)
 
     data class Device(val key: EntityID<Int>) : IntEntity(key), DeviceMapper.HasDeviceId {
         companion object : IntEntityClass<Device>(DeviceTable)
@@ -64,20 +61,21 @@ class SwitchRepository {
 
     fun updateSwitchState(switch: Switch) = transaction {
         SwitchTable.update({
-            (SwitchTable.id eq switch.obj.id) and (SwitchTable.button eq switch.obj.button)
+            (SwitchTable.switch eq switch.obj.switch) and (SwitchTable.button eq switch.obj.button)
         }) {
             it[state] = switch.state
         }
     }
 
     fun getSwitches(scene: Map<Int, Scene>) = transaction {
-        SwitchObj.wrapRows(
-            SwitchTable.selectAll()
-        ).mapNotNull {
-            scene[it.scene.value]?.let { so ->
-                Switch(this@SwitchRepository, so, it)
+        SwitchTable.selectAll().mapNotNull {
+            val sObj = SwitchObj(
+                it[SwitchTable.switch], it[SwitchTable.button], it[SwitchTable.scene].value, it[SwitchTable.state]
+            )
+            scene[sObj.scene]?.let { so ->
+                Switch(this@SwitchRepository, so, sObj)
             }
-        }.associateBy { it.obj.id.value to it.obj.button }
+        }.associateBy { it.obj.switch to it.obj.button }
     }
 
     fun getDevicesForType(type: DeviceType): List<Device> = transaction {
@@ -89,8 +87,8 @@ class SwitchRepository {
     }
 
     fun updateSwitch(switchId: Int, buttonId: Int, sceneId: Int) = transaction {
-        SwitchTable.insertOrUpdate(SwitchTable.scene) {
-            it[id] = switchId
+        SwitchTable.insertOrUpdate(SwitchTable.scene, SwitchTable.button) {
+            it[switch] = switchId
             it[button] = buttonId
             it[scene] = sceneId
             it[state] = 0
