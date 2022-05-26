@@ -4,6 +4,7 @@ import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
+import io.ktor.network.sockets.connection
 import io.ktor.network.sockets.openReadChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -59,15 +60,15 @@ class SwitchClient(
 
     suspend fun run() {
         println("Client connected: ${client.remoteAddress}")
+        val conn = client.connection()
         val bb = ByteBuffer.allocate(32)
         val q = ArrayBlockingQueue<Int>(128)
-        val reader = client.openReadChannel()
 
         try {
             while (true) {
                 bb.clear()
 
-                if (reader.readAvailable(bb) == -1) {
+                if (conn.input.readAvailable(bb) == -1) {
                     throw IOException()
                 }
                 println("Data received!")
