@@ -70,7 +70,6 @@ class SwitchClient(
                 if (conn.input.readAvailable(bb) == -1) {
                     throw IOException()
                 }
-                println("Data received!")
 
                 bb.flip()
                 while (bb.hasRemaining()) {
@@ -78,7 +77,6 @@ class SwitchClient(
                 }
 
                 while (q.size > 3) {
-                    println("Enough data read ${q.peek()}")
                     when (q.poll()) {
                         52 -> {
                             val switchId = q.poll()
@@ -107,9 +105,6 @@ class SwitchClient(
             }
         } catch (e: IOException) {
             println("Client disconnected: ${client.remoteAddress}")
-        } catch (e: Exception) {
-            println("Unknown error: ${client.remoteAddress}")
-            e.printStackTrace()
         }
     }
 }
