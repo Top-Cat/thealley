@@ -104,8 +104,6 @@ class TadoClient(val config: Config) {
         refreshToken()
     } else {
         client.post<TokenResponse>("$tadoAuth/oauth/token") {
-            contentType(ContentType.Application.FormUrlEncoded)
-
             body = FormDataContent(
                 Parameters.build {
                     append("client_id", "public-api-preview")
@@ -121,8 +119,6 @@ class TadoClient(val config: Config) {
 
     suspend fun refreshToken() = try {
         client.post<TokenResponse>("$tadoAuth/oauth/token") {
-            contentType(ContentType.Application.FormUrlEncoded)
-
             body = FormDataContent(
                 Parameters.build {
                     append("client_id", "public-api-preview")

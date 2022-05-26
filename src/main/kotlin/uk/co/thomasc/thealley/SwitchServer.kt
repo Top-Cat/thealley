@@ -91,7 +91,7 @@ class SwitchClient(
                                     4 -> it.endFade()
                                     else -> println("Unknown state $buttonState")
                                 }
-                            }
+                            } ?: println("Unknown switch $switchId/$buttonId")
                         }
                         53 -> {
                             val dataType = q.poll()

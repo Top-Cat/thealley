@@ -244,7 +244,7 @@ fun Application.setup() {
             clients.clients.forEach {
                 imc.client {
                     clientId = it.clientId
-                    clientSecret = it.secret // tsJt3bLX72ROxbb3oWO8y7jK3DwKDQNPMLN1vVgEHo4=
+                    clientSecret = it.secret
                     scopes = it.scopes.toSet()
                     authorizedGrantTypes = setOf(
                         AuthorizedGrantType.AUTHORIZATION_CODE,
