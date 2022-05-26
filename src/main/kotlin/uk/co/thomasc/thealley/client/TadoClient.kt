@@ -10,10 +10,8 @@ import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
-import io.ktor.http.contentType
 import uk.co.thomasc.thealley.Config
 
 enum class TadoMode(@JsonValue val mode: Int) {
