@@ -124,6 +124,7 @@ fun Application.setup() {
         userName = config.mqtt.user
         password = config.mqtt.pass.toCharArray()
         maxInflight = 50
+        isAutomaticReconnect = true
     }
 
     val client = MqttClient("tcp://${config.mqtt.host}:1883", "thealley")
