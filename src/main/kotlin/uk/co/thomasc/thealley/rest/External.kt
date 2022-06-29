@@ -34,9 +34,9 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
     fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices.map {
-                switchRepository.getDeviceForId(it.deviceId)
+                it to switchRepository.getDeviceForId(it.deviceId)
             }.map {
-                it.deviceId to deviceMapper.toLight(it)
+                it.first to deviceMapper.toLight(it.second)
             }
         }.map { // Execute commands
             runBlocking {
@@ -48,7 +48,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                             dev?.let { bulbN ->
                                 when (ex.command) {
                                     "action.devices.commands.ActivateScene" -> {
-                                        sceneController.scenes[devices.first]?.let {
+                                        sceneController.scenes[devices.first.deviceId]?.let {
                                             if (ex.params["deactivate"] as Boolean) {
                                                 it.off()
                                             } else {
@@ -128,7 +128,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
             }
         }.groupBy({ it.second }, { it.first }).map {
             ExecuteResponseCommand(
-                it.value.map { it.toString() },
+                it.value.map { device -> device.id },
                 it.key
             )
         }
