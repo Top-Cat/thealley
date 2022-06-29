@@ -6,7 +6,7 @@ import uk.co.thomasc.thealley.devices.DeviceMapper
 
 data class GoogleHomeReq(val requestId: String, val inputs: List<JsonNode>)
 data class GoogleHomeDevice(private val id: String, val customData: JsonNode?) : DeviceMapper.HasDeviceId {
-    override val deviceId = Integer.parseInt(id)
+    override val deviceId = Integer.parseInt(id.removePrefix("scene-"))
 }
 data class GoogleHomeRes(val requestId: String, val payload: GoogleHomePayload)
 abstract class GoogleHomeMayFail(open val errorCode: String?, open val debugString: String?)

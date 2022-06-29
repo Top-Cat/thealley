@@ -17,6 +17,7 @@ import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Relay
 import uk.co.thomasc.thealley.repo.SwitchRepository
+import uk.co.thomasc.thealley.scenes.SceneController
 import java.awt.Color
 
 @Location("/external")
@@ -29,7 +30,7 @@ class ExternalRoute {
 
 val threadPool = newFixedThreadPoolContext(10, "ExternalRoute")
 
-fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: AlleyTokenStore, deviceMapper: DeviceMapper) {
+fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: SceneController, alleyTokenStore: AlleyTokenStore, deviceMapper: DeviceMapper) {
     fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices.map {
@@ -46,6 +47,17 @@ fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: All
 
                             dev?.let { bulbN ->
                                 when (ex.command) {
+                                    "action.devices.commands.ActivateScene" -> {
+                                        sceneController.scenes[devices.first]?.let {
+                                            if (ex.params["deactivate"] as Boolean) {
+                                                it.off()
+                                            } else {
+                                                it.execute()
+                                            }
+                                        }
+
+                                        ExecuteStatus.SUCCESS
+                                    }
                                     "action.devices.commands.OnOff" -> {
                                         bulbN.setPowerState(ex.params["on"] as Boolean)
 
@@ -205,6 +217,21 @@ fun Route.externalRoute(switchRepository: SwitchRepository, alleyTokenStore: All
                     name = it.name
                 ),
                 false
+            )
+        } + sceneController.scenes.map {
+            AlleyDevice(
+                "scene-${it.key}",
+                "action.devices.types.SCENE",
+                listOf(
+                    "action.devices.traits.Scene"
+                ),
+                AlleyDeviceNames(
+                    name = "scene-${it.key}"
+                ),
+                false,
+                attributes = mapOf(
+                    "sceneReversible" to true
+                )
             )
         }
     )

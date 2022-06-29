@@ -274,7 +274,7 @@ fun Application.setup() {
             }
         }
 
-        externalRoute(switchRepository, alleyTokenStore, deviceMapper)
+        externalRoute(switchRepository, sceneController, alleyTokenStore, deviceMapper)
 
         static("") {
             resources("static")
