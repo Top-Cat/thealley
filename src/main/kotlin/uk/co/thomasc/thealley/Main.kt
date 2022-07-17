@@ -128,7 +128,6 @@ fun Application.setup() {
     }
 
     val client = MqttClient("tcp://${config.mqtt.host}:1883", "thealley")
-    client.connect(connectionOptions)
 
     val sender = object : RelayMqtt.DeviceGateway {
         override fun sendToMqtt(topic: String, payload: MqttMessage) {
@@ -149,6 +148,7 @@ fun Application.setup() {
     val tado = TadoClient(config)
 
     val alleyTokenStore = AlleyTokenStore()
+    client.connect(connectionOptions)
 
     install(ContentNegotiation) {
         formData { }

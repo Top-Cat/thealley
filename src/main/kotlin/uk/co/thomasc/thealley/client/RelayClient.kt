@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallback
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.Config
@@ -18,7 +19,7 @@ data class ZigbeeUpdate(val illuminance: Int, val linkquality: Int, val occupanc
 
 class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneController: SceneController, val api: Api) {
     init {
-        client.setCallback(object : MqttCallback {
+        client.setCallback(object : MqttCallbackExtended {
             override fun connectionLost(cause: Throwable) {
                 println("connectionLost")
                 cause.printStackTrace()
@@ -60,8 +61,12 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
             override fun deliveryComplete(token: IMqttDeliveryToken) {
                 println("deliveryComplete")
             }
+
+            override fun connectComplete(reconnect: Boolean, serverURI: String?) {
+                println("connectComplete")
+                client.subscribe("#")
+            }
         })
-        client.subscribe("#")
     }
 
     interface DeviceGateway {
