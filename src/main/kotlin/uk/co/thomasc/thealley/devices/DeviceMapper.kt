@@ -1,5 +1,9 @@
 package uk.co.thomasc.thealley.devices
 
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.repo.SwitchRepository
@@ -38,15 +42,22 @@ class DeviceMapper(
     private suspend fun <T : HasDeviceId, S : Any> List<T>.innerEach(block: suspend (Light<*>, T) -> S?) =
         map {
             getLight(it.deviceId) to it
-        }.map {
-            it.first.innerToLight() to it.second
-        }.mapNotNull {
-            try {
-                it.first?.let { light ->
-                    block(light, it.second)
-                }
-            } catch (e: KotlinNullPointerException) {
-                null
+        }.asFlow().flatMapMerge(10) {
+            flow {
+                emit(it.first.innerToLight() to it.second)
             }
-        }
+        }.flatMapMerge(10) {
+            flow {
+                try {
+                    println("innerEach start ${it.second.deviceId}")
+                    it.first?.let { light ->
+                        val result = block(light, it.second)
+                        if (result != null) emit(result)
+                    }
+                    println("innerEach done ${it.second.deviceId}")
+                } catch (e: KotlinNullPointerException) {
+                    // Ignore
+                }
+            }
+        }.toList()
 }

@@ -9,7 +9,7 @@ class Plug(host: String) : KasaDevice<PlugData>(host) {
     private var plugData: PlugData? = null
 
     @Synchronized
-    override suspend fun getData() = (plugData ?: updateData())!!
+    override suspend fun getData() = (plugData ?: updateData())
 
     @Synchronized
     suspend fun updateData() =
@@ -17,10 +17,10 @@ class Plug(host: String) : KasaDevice<PlugData>(host) {
             plugData = this
         }
 
-    suspend fun getName() = getData().alias
-    suspend fun getPowerState() = getData().relay_state
-    suspend fun getUptime() = getData().on_time
-    suspend fun getSignalStrength() = getData().rssi
+    suspend fun getName() = getData()?.alias
+    suspend fun getPowerState() = getData()?.relay_state
+    suspend fun getUptime() = getData()?.on_time
+    suspend fun getSignalStrength() = getData()?.rssi
 
     @Synchronized
     fun getPower() =

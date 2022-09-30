@@ -61,13 +61,13 @@ fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient,
 
                     PlugResponse(
                         plug.hostname,
-                        it.getName(),
-                        if (it.getPowerState()) 1 else 0,
+                        it.getName() ?: "",
+                        if (it.getPowerState() == true) 1 else 0,
                         power.power,
                         power.voltage,
                         power.current,
-                        it.getUptime(),
-                        it.getSignalStrength()
+                        it.getUptime() ?: -1,
+                        it.getSignalStrength() ?: -1
                     )
                 }
             } catch (e: KotlinNullPointerException) {

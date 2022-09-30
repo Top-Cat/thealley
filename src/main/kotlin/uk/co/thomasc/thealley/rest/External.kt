@@ -189,7 +189,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                     "action.devices.traits.ColorSpectrum"
                 ),
                 AlleyDeviceNames(
-                    defaultNames = listOf(
+                    defaultNames = listOfNotNull(
                         light.getModel()
                     ),
                     name = dbInfo.name
@@ -201,9 +201,9 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                 ),
                 deviceInfo = AlleyDeviceInfo(
                     "TP-Link",
-                    light.getModel(),
-                    light.getHwVer(),
-                    light.getSwVer()
+                    light.getModel() ?: "",
+                    light.getHwVer() ?: "",
+                    light.getSwVer() ?: ""
                 )
             )
         } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY).map {

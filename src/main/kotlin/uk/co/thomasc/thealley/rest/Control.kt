@@ -93,7 +93,7 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
                 deviceMapper.toLight(res)?.let { l ->
                     if (l is Bulb) {
                         val state = l.getLightState()
-                        BulbState(state.brightness ?: 0, state.hue, state.color_temp)
+                        BulbState(state?.brightness ?: 0, state?.hue, state?.color_temp)
                     } else {
                         BulbState(l.getPowerState())
                     }

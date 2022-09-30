@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import uk.co.thomasc.thealley.client.jackson
+import java.time.Instant
 
 class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
 
@@ -12,23 +13,30 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     private var bulbData: BulbData? = null
 
     @Synchronized
-    override suspend fun getData() = (bulbData ?: updateData())!!
+    override suspend fun getData() = (bulbData ?: updateData())
 
+    private var lastRequest: Instant = Instant.MIN
     @Synchronized
     private suspend fun updateData() =
-        (getSysInfo(host, 5000) as? BulbData)?.apply {
-            bulbData = this
+        run {
+            if (Instant.now().minusSeconds(20).isAfter(lastRequest)) {
+                (getSysInfo(host, 3000) as? BulbData)?.apply {
+                    bulbData = this
+                }
+            } else null
+        }.also {
+            lastRequest = Instant.now()
         }
 
-    suspend fun getName() = getData().alias
-    override suspend fun getPowerState() = getData().light_state.on_off
-    suspend fun getLightState() = getData().light_state
-    suspend fun getSignalStrength() = getData().rssi
+    suspend fun getName() = getData()?.alias
+    override suspend fun getPowerState() = getData()?.light_state?.on_off == true
+    suspend fun getLightState() = getData()?.light_state
+    suspend fun getSignalStrength() = getData()?.rssi
     suspend fun getPowerUsage() = getPower().power_mw
 
-    suspend fun getHwVer() = getData().hw_ver
-    suspend fun getSwVer() = getData().sw_ver
-    suspend fun getModel() = getData().model
+    suspend fun getHwVer() = getData()?.hw_ver
+    suspend fun getSwVer() = getData()?.sw_ver
+    suspend fun getModel() = getData()?.model
 
     @Synchronized
     private fun getPower() =

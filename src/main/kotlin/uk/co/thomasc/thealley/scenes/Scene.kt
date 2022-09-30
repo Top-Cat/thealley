@@ -28,7 +28,7 @@ class Scene(
         deviceMapper.each(lights) {
             bulb, _ ->
             when (bulb) {
-                is Bulb -> if (bulb.getPowerState()) bulb.getLightState().brightness else 0
+                is Bulb -> if (bulb.getPowerState()) bulb.getLightState()?.brightness else 0
                 else -> null
             }
         }.average()

@@ -13,7 +13,7 @@ group = "uk.co.thomasc"
 
 kotlin {
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(15))
+        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(16))
     }
     sourceSets.all {
         languageSettings.optIn("kotlin.io.path.ExperimentalPathApi")
