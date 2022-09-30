@@ -49,12 +49,10 @@ class DeviceMapper(
         }.flatMapMerge(10) {
             flow {
                 try {
-                    println("innerEach start ${it.second.deviceId}")
                     it.first?.let { light ->
                         val result = block(light, it.second)
                         if (result != null) emit(result)
                     }
-                    println("innerEach done ${it.second.deviceId}")
                 } catch (e: KotlinNullPointerException) {
                     // Ignore
                 }
