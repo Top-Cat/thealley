@@ -171,8 +171,9 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                     )
                 }
                 is Relay -> DeviceState(true, light.getPowerState())
-                is Blind -> DeviceState(true, openState =
-                    light.getState()?.let { s -> listOf(DeviceBlindState(s, DeviceBlindStateEnum.UP)) }
+                is Blind -> DeviceState(
+                    true,
+                    openState = light.getState()?.let { s -> listOf(DeviceBlindState(s, DeviceBlindStateEnum.UP)) }
                 )
                 else -> null
             } ?: DeviceState(false)
