@@ -16,6 +16,7 @@ fun Application.config() = environment.config.config("thealley").let {
         },
         it.config("mqtt").let { mCfg ->
             Config.MqttConfig(
+                mCfg.propertyOrNull("clientId")?.getString() ?: "",
                 mCfg.propertyOrNull("host")?.getString() ?: "",
                 mCfg.propertyOrNull("user")?.getString() ?: "",
                 mCfg.propertyOrNull("pass")?.getString() ?: ""
