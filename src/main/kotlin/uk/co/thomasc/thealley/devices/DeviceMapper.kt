@@ -26,6 +26,7 @@ class DeviceMapper(
                 }
             }
             SwitchRepository.DeviceType.RELAY -> relayClient.getRelay(hostname)
+            SwitchRepository.DeviceType.BLIND -> relayClient.getBlind(hostname)
             else -> null
         }
     }

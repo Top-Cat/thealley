@@ -127,7 +127,7 @@ fun Application.setup() {
         isAutomaticReconnect = true
     }
 
-    val client = MqttClient("tcp://${config.mqtt.host}:1883", "thealley")
+    val client = MqttClient("tcp://${config.mqtt.host}:1883", config.mqtt.clientId)
 
     val sender = object : RelayMqtt.DeviceGateway {
         override fun sendToMqtt(topic: String, payload: MqttMessage) {

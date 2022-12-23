@@ -7,6 +7,7 @@ import io.ktor.locations.put
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
+import uk.co.thomasc.thealley.devices.Blind
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.repo.SwitchRepository
@@ -36,7 +37,7 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
         switchRepository.getDeviceForId(id).let { res ->
 
             when (res.type) {
-                SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY ->
+                SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY, SwitchRepository.DeviceType.BLIND ->
                     deviceMapper.toLight(res)?.let {
                         it.setPowerState(state)
                         ControlResult(true)
@@ -67,9 +68,9 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
         val res = switchRepository.getDeviceForId(it.id)
 
         when (res.type) {
-            SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY ->
-                deviceMapper.toLight(res)?.let {
-                    it.setComplexState(
+            SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY, SwitchRepository.DeviceType.BLIND ->
+                deviceMapper.toLight(res)?.let { light ->
+                    light.setComplexState(
                         stateRequest.state,
                         if (stateRequest.color && stateRequest.state > 0) stateRequest.hue else null,
                         if (stateRequest.color && stateRequest.state > 0) 100 else null,
@@ -89,11 +90,13 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
         val res = switchRepository.getDeviceForId(it.id)
 
         when (res.type) {
-            SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY ->
+            SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY, SwitchRepository.DeviceType.BLIND ->
                 deviceMapper.toLight(res)?.let { l ->
                     if (l is Bulb) {
                         val state = l.getLightState()
                         BulbState(state?.brightness ?: 0, state?.hue, state?.color_temp)
+                    } else if (l is Blind) {
+                        BulbState(l.getState() ?: 0, null, null)
                     } else {
                         BulbState(l.getPowerState())
                     }

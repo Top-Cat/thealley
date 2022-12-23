@@ -30,7 +30,9 @@ Control = function() {
         this.updateIcon();
     });
 };
-Control.prototype.updateIcon = function() {
+Control.prototype.updateIcon = function(doUpdate) {
+    doUpdate = typeof doUpdate == 'undefined' ? true : doUpdate;
+
     let color;
     const oldState = Object.assign({}, this.light.state);
     oldState.state = +this.brightness.val();
@@ -50,7 +52,9 @@ Control.prototype.updateIcon = function() {
     }
     this.icon.css({'color': color});
 
-    this.light.setState(oldState);
+    if (doUpdate) {
+        this.light.setState(oldState);
+    }
 };
 Control.prototype.show = function(light) {
     this.mode = light.state.temp == null && light.state.state > 0 ? 0 : 1;
@@ -63,7 +67,7 @@ Control.prototype.show = function(light) {
     this.temp.val(light.state.state > 0 ? light.state.temp / 50 : 64);
     this.light = light;
 
-    this.updateIcon();
+    this.updateIcon(false);
 };
 Light = function(id, name, hostname) {
     this.hostname = hostname;

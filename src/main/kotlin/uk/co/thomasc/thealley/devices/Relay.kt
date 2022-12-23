@@ -48,7 +48,7 @@ class Relay(
 
     override suspend fun togglePowerState() = setLightState(2)
 
-    suspend fun handleMessage(topic: String, message: MqttMessage) {
+    fun handleMessage(topic: String, message: MqttMessage) {
         Regex("([^/,]+)\\/([^/,]+)(?:\\/([^/,]+))?").find(topic)?.also {
             val (str, host, prop, idx) = it.groupValues
 
@@ -57,7 +57,9 @@ class Relay(
                     state = message.toString() == "1"
                 }
                 "button" -> {
-                    togglePowerState()
+                    runBlocking {
+                        togglePowerState()
+                    }
                 }
                 else -> props[prop] = try {
                     message.toString().toDouble()

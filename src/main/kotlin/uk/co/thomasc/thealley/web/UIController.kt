@@ -14,7 +14,8 @@ fun Route.mainRoute(switchRepository: SwitchRepository) {
                 "home.mustache",
                 mapOf(
                     "lights" to switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB) +
-                        switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY)
+                        switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY) +
+                        switchRepository.getDevicesForType(SwitchRepository.DeviceType.BLIND)
                 )
             )
         )

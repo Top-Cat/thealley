@@ -31,6 +31,7 @@ data class Config(
 ) {
 
     data class MqttConfig(
+        var clientId: String = "thealley",
         var host: String = "",
         var user: String = "",
         var pass: String = ""

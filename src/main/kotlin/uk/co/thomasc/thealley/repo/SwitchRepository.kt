@@ -46,7 +46,8 @@ class SwitchRepository {
     enum class DeviceType {
         BULB,
         PLUG,
-        RELAY
+        RELAY,
+        BLIND
     }
 
     fun getDeviceForId(id: Int): Device =

@@ -29,7 +29,9 @@ data class QueryIntentPayload(val devices: List<GoogleHomeDevice>)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class QueryResponse(val devices: Map<String, DeviceState>, override val errorCode: String? = null, override val debugString: String? = null) : GoogleHomePayload(errorCode, debugString)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class DeviceState(val online: Boolean, val on: Boolean? = null, val brightness: Int? = null, val color: DeviceColor? = null)
+data class DeviceState(val online: Boolean, val on: Boolean? = null, val brightness: Int? = null, val color: DeviceColor? = null, val openState: List<DeviceBlindState>? = null)
+data class DeviceBlindState(val openPercent: Int, val openDirection: DeviceBlindStateEnum)
+enum class DeviceBlindStateEnum { UP, DOWN }
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class DeviceColor(val name: String? = null, val spectrumRGB: Int? = null, val temperature: Int? = null)
 

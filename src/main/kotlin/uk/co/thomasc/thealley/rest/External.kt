@@ -13,6 +13,7 @@ import kotlinx.coroutines.runBlocking
 import uk.co.thomasc.thealley.checkOauth
 import uk.co.thomasc.thealley.client.jackson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
+import uk.co.thomasc.thealley.devices.Blind
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Relay
@@ -65,6 +66,11 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                                     }
                                     "action.devices.commands.BrightnessAbsolute" -> {
                                         bulbN.setComplexState(ex.params["brightness"] as Int)
+
+                                        ExecuteStatus.SUCCESS
+                                    }
+                                    "action.devices.commands.OpenClose" -> {
+                                        bulbN.setComplexState(ex.params["openPercent"] as Int)
 
                                         ExecuteStatus.SUCCESS
                                     }
@@ -165,6 +171,9 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                     )
                 }
                 is Relay -> DeviceState(true, light.getPowerState())
+                is Blind -> DeviceState(true, openState =
+                    light.getState()?.let { s -> listOf(DeviceBlindState(s, DeviceBlindStateEnum.UP)) }
+                )
                 else -> null
             } ?: DeviceState(false)
 
@@ -217,6 +226,21 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                     name = it.name
                 ),
                 false
+            )
+        } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.BLIND).map {
+            AlleyDevice(
+                it.deviceId.toString(),
+                "action.devices.types.BLINDS",
+                listOf(
+                    "action.devices.traits.OpenClose"
+                ),
+                AlleyDeviceNames(
+                    name = it.name
+                ),
+                false,
+                attributes = mapOf(
+                    "openDirection" to DeviceBlindStateEnum.values().map { e -> e.toString() }
+                )
             )
         } + sceneController.scenes.map {
             AlleyDevice(
