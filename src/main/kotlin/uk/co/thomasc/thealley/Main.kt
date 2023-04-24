@@ -251,7 +251,10 @@ fun Application.setup() {
                         AuthorizedGrantType.AUTHORIZATION_CODE,
                         AuthorizedGrantType.REFRESH_TOKEN
                     )
-                    redirectUris = setOf("https://developers.google.com/oauthplayground")
+                    redirectUris = setOf(
+                        "https://developers.google.com/oauthplayground",
+                        "https://oauth-redirect.googleusercontent.com/r/the-alley-4c2e7"
+                    )
                 }
             }
         }
