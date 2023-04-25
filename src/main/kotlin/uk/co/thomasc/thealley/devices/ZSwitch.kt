@@ -46,10 +46,12 @@ class ZSwitch(private val switchRepository: SwitchRepository, val scene: Scene, 
                 }
                 "brightness_step_up", "brightness_step_down", "color_temperature_step_up", "color_temperature_step_down" -> {
                     if (state == 0) return@launch
+                    val toTheRight = setOf("brightness_step_up", "color_temperature_step_down")
 
                     val update = jackson.treeToValue<BrightnessUpdate>(node)!!
+                    val stepSize = (update.action_step_size / 2.55f).roundToInt()
 
-                    val step = if (update.action.endsWith("_step_up")) 5 else -5
+                    val step = if (toTheRight.contains(update.action)) stepSize else -stepSize
                     lastKnownState = min(100, max(1, state + step))
                     scene.execute(lastKnownState, (update.action_transition_time * 1000).roundToInt())
                 }
