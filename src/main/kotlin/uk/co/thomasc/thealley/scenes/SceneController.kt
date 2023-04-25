@@ -20,6 +20,11 @@ class SceneController(sceneRepository: SceneRepository, switchRepository: Switch
     }
     val switches by switchDelegate
 
+    private val zSwitchDelegate = resetableLazy {
+        switchRepository.getZSwitches(scenes)
+    }
+    val zswitches by zSwitchDelegate
+
     private fun tick() {
         runBlocking {
             for (rule in rules) {

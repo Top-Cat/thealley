@@ -1,14 +1,34 @@
 package uk.co.thomasc.thealley.devices
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.client.ZigbeeUpdate
+import uk.co.thomasc.thealley.client.jackson
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+
+data class BlindMotorUpdate(
+    // Generic
+    override val linkquality: Int,
+    override val battery: Int?,
+
+    // Blind motor
+    val device_temperature: Int?,
+    val motor_state: BlindMotorState?,
+    val position: Int?,
+    val power_outage_count: Int?,
+    val running: Boolean?,
+    val state: BlindState?
+) : ZigbeeUpdate
+
+enum class BlindMotorState { DECLINING, RISING, PAUSE, BLOCKED }
+enum class BlindState { ON, OFF }
 
 enum class BlindCommand {
     OPEN, CLOSE, STOP
@@ -43,7 +63,9 @@ class Blind(
 
     override suspend fun togglePowerState() = setPowerState(!getPowerState())
 
-    fun handleMessage(message: ZigbeeUpdate) {
+    fun handleMessage(node: JsonNode) {
+        val message = jackson.treeToValue<BlindMotorUpdate>(node)!!
+
         state = message.position
         latch.withLock {
             condition.signalAll()

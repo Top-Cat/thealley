@@ -38,9 +38,9 @@ class Scene(
         deviceMapper.each(lights) {
             bulb, it ->
 
-            when (it.brightness) {
+            when (val newBrightness = (it.brightness * percent) / 100) {
                 0 -> bulb.setPowerState(false)
-                else -> bulb.setComplexState((it.brightness * percent) / 100, it.hue, it.saturation, it.colorTemp, transitionTime)
+                else -> bulb.setComplexState(newBrightness, it.hue, it.saturation, it.colorTemp, transitionTime)
             }
         }
     }

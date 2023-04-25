@@ -16,6 +16,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Switch
+import uk.co.thomasc.thealley.devices.ZSwitch
 import uk.co.thomasc.thealley.scenes.Scene
 
 object SwitchTable : Table("switch") {
@@ -23,6 +24,11 @@ object SwitchTable : Table("switch") {
     val button = integer("button")
     val scene = reference("scene", SceneTable)
     val state = short("state")
+}
+
+object ZSwitchTable : Table("zswitch") {
+    val switch = varchar("id", 128)
+    val scene = reference("scene_id", SceneTable)
 }
 
 object DeviceTable : IntIdTable("device") {
@@ -33,6 +39,7 @@ object DeviceTable : IntIdTable("device") {
 
 class SwitchRepository {
     data class SwitchObj(val switch: Int, val button: Int, val scene: Int, val state: Short)
+    data class ZSwitchObj(val switch: String, val scene: Int)
 
     data class Device(val key: EntityID<Int>) : IntEntity(key), DeviceMapper.HasDeviceId {
         companion object : IntEntityClass<Device>(DeviceTable)
@@ -76,6 +83,17 @@ class SwitchRepository {
                 Switch(this@SwitchRepository, so, sObj)
             }
         }.associateBy { it.obj.switch to it.obj.button }
+    }
+
+    fun getZSwitches(scene: Map<Int, Scene>) = transaction {
+        ZSwitchTable.selectAll().mapNotNull {
+            val sObj = ZSwitchObj(
+                it[ZSwitchTable.switch], it[ZSwitchTable.scene].value
+            )
+            scene[sObj.scene]?.let { so ->
+                ZSwitch(this@SwitchRepository, so, sObj)
+            }
+        }.associateBy { it.obj.switch }
     }
 
     fun getDevicesForType(type: DeviceType): List<Device> = transaction {

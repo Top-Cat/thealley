@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.client
 
 import com.fasterxml.jackson.annotation.JsonAlias
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import kotlinx.coroutines.runBlocking
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
@@ -15,28 +15,22 @@ import uk.co.thomasc.thealley.rest.PropertyData
 import uk.co.thomasc.thealley.scenes.SceneController
 
 data class RelayState(@JsonAlias("relay/0") val relay0: Boolean)
-data class ZigbeeUpdate(
+interface ZigbeeUpdate {
+    val linkquality: Int
+    val battery: Int?
+}
+data class MotionSensorUpdate(
     // Generic
-    val linkquality: Int,
-    val battery: Int?,
+    override val linkquality: Int,
+    override val battery: Int?,
 
     // Light sensor
-    val voltage: Int?,
+    val voltage: Int,
 
     val illuminance: Int,
-    val illuminance_lux: Int?,
-    val occupancy: Boolean?,
-
-    // Blind motor
-    val device_temperature: Int?,
-    val motor_state: BlindMotorState?,
-    val position: Int?,
-    val power_outage_count: Int?,
-    val running: Boolean?,
-    val state: BlindState?
-)
-enum class BlindMotorState { DECLINING, RISING, PAUSE, BLOCKED }
-enum class BlindState { ON, OFF }
+    val illuminance_lux: Int,
+    val occupancy: Boolean,
+) : ZigbeeUpdate
 
 class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneController: SceneController, val api: Api) {
     init {
@@ -55,24 +49,27 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
                     // Check this is a message isn't from the bridge
                     if (!deviceId.startsWith("0x") || deviceId.contains('/')) return
 
-                    val update = jackson.readValue<ZigbeeUpdate>(message.toString())
-                    println("Received zigbee message, device: $deviceId, data: $update")
+                    val updateRaw = jackson.readTree(message.toString())
+                    println("Received zigbee message, device: $deviceId, data: $updateRaw")
 
-                    if (update.motor_state != null) {
-                        relayClient.getBlind(deviceId).handleMessage(update)
+                    if (updateRaw.has("motor_state")) {
+                        relayClient.getBlind(deviceId).handleMessage(updateRaw)
+                    } else if (sceneController.zswitches.containsKey(deviceId)) {
+                        sceneController.zswitches[deviceId]?.handleMessage(updateRaw)
                     } else {
-                        if (update.occupancy == true) {
+                        val update = jackson.treeToValue<MotionSensorUpdate>(updateRaw)!!
+
+                        if (update.occupancy) {
                             runBlocking {
                                 sceneController.onChange(deviceId)
                             }
                         }
+
                         api.onPropertyChange(PropertyData(deviceId, "illuminance", update.illuminance.toDouble()))
                         update.battery?.let {
                             api.onPropertyChange(PropertyData(deviceId, "battery", it.toDouble()))
                         }
-                        update.voltage?.let {
-                            api.onPropertyChange(PropertyData(deviceId, "voltage", it.toDouble()))
-                        }
+                        api.onPropertyChange(PropertyData(deviceId, "voltage", update.voltage.toDouble()))
                     }
                 } else {
                     relayClient.getRelay(host).handleMessage(topic, message)
