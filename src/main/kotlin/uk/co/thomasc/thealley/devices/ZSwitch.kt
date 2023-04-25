@@ -45,6 +45,8 @@ class ZSwitch(private val switchRepository: SwitchRepository, val scene: Scene, 
                     }
                 }
                 "brightness_step_up", "brightness_step_down", "color_temperature_step_up", "color_temperature_step_down" -> {
+                    if (state == 0) return@launch
+
                     val update = jackson.treeToValue<BrightnessUpdate>(node)!!
 
                     val step = if (update.action.endsWith("_step_up")) 5 else -5
