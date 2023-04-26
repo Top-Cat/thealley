@@ -36,7 +36,7 @@ class Switch(private val switchRepository: SwitchRepository, val scene: Scene, v
         scene.execute(startBrightness, 0)
         if (state > 0) {
             // Fade to 0
-            scene.execute(0, startBrightness * FADE_TIME)
+            scene.execute(1, startBrightness * FADE_TIME)
         } else {
             // Fade to 100
             scene.execute(100, (100 - startBrightness) * FADE_TIME)
