@@ -21,6 +21,8 @@ kotlin {
         languageSettings.optIn("kotlin.time.ExperimentalTime")
         languageSettings.optIn("io.ktor.util.KtorExperimentalAPI")
         languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
+        languageSettings.optIn("kotlinx.coroutines.FlowPreview")
+        languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
     }
 }
 

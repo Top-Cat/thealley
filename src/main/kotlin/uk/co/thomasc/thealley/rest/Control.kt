@@ -42,7 +42,7 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
                         it.setPowerState(state)
                         ControlResult(true)
                     } ?: ControlResult(false)
-                SwitchRepository.DeviceType.PLUG -> ControlResult(false)
+                SwitchRepository.DeviceType.PLUG, SwitchRepository.DeviceType.ZPLUG -> ControlResult(false)
             }
         }
 
@@ -80,7 +80,7 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
 
                     stateRequest
                 } ?: BulbState(false)
-            SwitchRepository.DeviceType.PLUG -> BulbState(false)
+            SwitchRepository.DeviceType.PLUG, SwitchRepository.DeviceType.ZPLUG -> BulbState(false)
         }.let { bs ->
             call.respond(bs)
         }
@@ -101,7 +101,7 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
                         BulbState(l.getPowerState())
                     }
                 } ?: BulbState(false)
-            SwitchRepository.DeviceType.PLUG -> BulbState(false)
+            SwitchRepository.DeviceType.PLUG, SwitchRepository.DeviceType.ZPLUG -> BulbState(false)
         }.let { bs ->
             call.respond(bs)
         }

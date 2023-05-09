@@ -54,7 +54,8 @@ class SwitchRepository {
         BULB,
         PLUG,
         RELAY,
-        BLIND
+        BLIND,
+        ZPLUG
     }
 
     fun getDeviceForId(id: Int): Device =
@@ -91,7 +92,7 @@ class SwitchRepository {
                 it[ZSwitchTable.switch], it[ZSwitchTable.scene].value
             )
             scene[sObj.scene]?.let { so ->
-                ZSwitch(this@SwitchRepository, so, sObj)
+                ZSwitch(so, sObj)
             }
         }.associateBy { it.obj.switch }
     }

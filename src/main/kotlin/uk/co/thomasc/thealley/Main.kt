@@ -264,7 +264,7 @@ fun Application.setup() {
 
     routing {
         apiRoute(api, sceneController)
-        statsRoute(switchRepository, tado, deviceMapper)
+        statsRoute(switchRepository, tado, deviceMapper, relayClient)
         controlRoute(switchRepository, sceneController, deviceMapper)
         mainRoute(switchRepository)
 

@@ -10,6 +10,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.Config
 import uk.co.thomasc.thealley.devices.Blind
 import uk.co.thomasc.thealley.devices.Relay
+import uk.co.thomasc.thealley.devices.ZPlug
 import uk.co.thomasc.thealley.rest.Api
 import uk.co.thomasc.thealley.rest.PropertyData
 import uk.co.thomasc.thealley.scenes.SceneController
@@ -54,6 +55,8 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
 
                     if (updateRaw.has("motor_state")) {
                         relayClient.getBlind(deviceId).handleMessage(updateRaw)
+                    } else if (relayClient.isZPlug(deviceId)) {
+                        relayClient.getZPlug(deviceId).handleMessage(updateRaw)
                     } else if (sceneController.zswitches.containsKey(deviceId)) {
                         sceneController.zswitches[deviceId]?.handleMessage(updateRaw)
                     } else {
@@ -96,6 +99,7 @@ class RelayClient(val config: Config, val mqtt: RelayMqtt.DeviceGateway) {
 
     private val relayMap = mutableMapOf<String, Relay>()
     private val blindMap = mutableMapOf<String, Blind>()
+    private val plugMap = mutableMapOf<String, ZPlug>()
 
     fun getRelay(host: String) = relayMap.getOrPut(host.uppercase()) {
         Relay(host, client, config.relay.apiKey, mqtt)
@@ -104,4 +108,12 @@ class RelayClient(val config: Config, val mqtt: RelayMqtt.DeviceGateway) {
     fun getBlind(deviceId: String) = blindMap.getOrPut(deviceId) {
         Blind(deviceId, mqtt)
     }
+
+    fun getZPlug(deviceId: String) = plugMap.getOrPut(deviceId) {
+        ZPlug(deviceId, mqtt)
+    }
+
+    fun isRelay(deviceId: String) = relayMap.containsKey(deviceId)
+    fun isBlind(deviceId: String) = blindMap.containsKey(deviceId)
+    fun isZPlug(deviceId: String) = plugMap.containsKey(deviceId)
 }

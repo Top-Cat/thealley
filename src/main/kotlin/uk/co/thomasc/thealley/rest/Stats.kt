@@ -6,11 +6,17 @@ import io.ktor.locations.Location
 import io.ktor.locations.get
 import io.ktor.response.respond
 import io.ktor.routing.Route
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
+import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.client.TadoClient
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Plug
 import uk.co.thomasc.thealley.devices.Relay
+import uk.co.thomasc.thealley.devices.ZPlugState
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -51,9 +57,9 @@ class StatsRoute {
     data class Tado(val api: StatsRoute)
 }
 
-fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient, deviceMapper: DeviceMapper) {
-    get<StatsRoute.Plug> {
-        switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).mapNotNull { plug ->
+fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient, deviceMapper: DeviceMapper, mqtt: RelayClient) {
+    suspend fun getPlugs() = switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).asFlow().flatMapMerge(10) { plug ->
+        flow {
             try {
                 Plug(plug.hostname).let {
                     it.updateData()
@@ -69,13 +75,42 @@ fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient,
                         it.getUptime() ?: -1,
                         it.getSignalStrength() ?: -1
                     )
+                }.also {
+                    emit(it)
                 }
             } catch (e: KotlinNullPointerException) {
-                null
+                // Ignore
             }
-        }.let {
-            call.respond(it)
         }
+    }
+
+    suspend fun getZPlugs() = switchRepository.getDevicesForType(SwitchRepository.DeviceType.ZPLUG).asFlow().flatMapMerge(10) { plug ->
+        flow {
+            try {
+                mqtt.getZPlug(plug.hostname).let {
+                    it.getState()?.let { state ->
+                        PlugResponse(
+                            plug.hostname,
+                            plug.name,
+                            if (state.state == ZPlugState.ON) 1 else 0,
+                            state.power,
+                            state.voltage,
+                            state.current,
+                            -1,
+                            state.linkquality
+                        )
+                    }
+                }.also {
+                    emit(it)
+                }
+            } catch (e: KotlinNullPointerException) {
+                // Ignore
+            }
+        }
+    }
+
+    get<StatsRoute.Plug> {
+        call.respond(kotlinx.coroutines.flow.merge(getPlugs(), getZPlugs()).toList())
     }
 
     get<StatsRoute.Bulb> {

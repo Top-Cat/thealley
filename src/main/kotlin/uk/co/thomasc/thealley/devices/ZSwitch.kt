@@ -24,7 +24,7 @@ data class BrightnessUpdate(
     val action_transition_time: Float
 ) : ZigbeeUpdate
 
-class ZSwitch(private val switchRepository: SwitchRepository, val scene: Scene, val obj: SwitchRepository.ZSwitchObj) {
+class ZSwitch(val scene: Scene, val obj: SwitchRepository.ZSwitchObj) {
     var lastKnownState = 0
 
     companion object {
