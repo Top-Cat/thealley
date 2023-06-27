@@ -1,14 +1,18 @@
 package uk.co.thomasc.thealley
 
+import io.ktor.application.ApplicationEnvironment
+import io.ktor.application.ApplicationStopped
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.connection
+import io.ktor.network.sockets.isClosed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.runBlocking
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.scenes.SceneController
@@ -18,8 +22,9 @@ import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 
 class SwitchServer(
-    val sceneController: SceneController,
-    val mqtt: RelayMqtt.DeviceGateway
+    private val sceneController: SceneController,
+    private val mqtt: RelayMqtt.DeviceGateway,
+    private val environment: ApplicationEnvironment
 ) {
     companion object {
         val threadPool = newFixedThreadPoolContext(10, "SwitchServer")
@@ -42,9 +47,15 @@ class SwitchServer(
     suspend fun listenForClients() {
         while (true) {
             val client = server.accept()
-            GlobalScope.launch(threadPool) {
+            val job = GlobalScope.launch(threadPool) {
                 client.use {
                     SwitchClient(sceneController, it, mqtt).run()
+                }
+            }
+            environment.monitor.subscribe(ApplicationStopped) {
+                job.cancel()
+                runBlocking {
+                    job.join()
                 }
             }
         }
@@ -54,9 +65,8 @@ class SwitchServer(
 class SwitchClient(
     private val sceneController: SceneController,
     private val client: Socket,
-    val mqtt: RelayMqtt.DeviceGateway
+    private val mqtt: RelayMqtt.DeviceGateway,
 ) {
-
     suspend fun run() {
         println("Client connected: ${client.remoteAddress}")
         val conn = client.connection()
@@ -105,6 +115,10 @@ class SwitchClient(
             }
         } catch (e: IOException) {
             println("Client disconnected: ${client.remoteAddress}")
+        } finally {
+            println("Closing ${client.remoteAddress}")
+            client.close()
+            println("Finally: ${client.remoteAddress}, ${client.isClosed}")
         }
     }
 }

@@ -144,7 +144,7 @@ fun Application.setup() {
 
     val sceneController = SceneController(sr, switchRepository)
     val mqtt = RelayMqtt(client, relayClient, sceneController, api)
-    val ss = SwitchServer(sceneController, sender)
+    val ss = SwitchServer(sceneController, sender, environment)
     val tado = TadoClient(config)
 
     val alleyTokenStore = AlleyTokenStore()
