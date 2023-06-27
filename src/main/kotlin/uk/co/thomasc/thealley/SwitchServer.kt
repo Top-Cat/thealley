@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley
 
 import io.ktor.application.ApplicationEnvironment
-import io.ktor.application.ApplicationStopped
+import io.ktor.application.ApplicationStopPreparing
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
@@ -10,6 +10,7 @@ import io.ktor.network.sockets.connection
 import io.ktor.network.sockets.isClosed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.runBlocking
@@ -44,18 +45,21 @@ class SwitchServer(
         }
     }
 
-    suspend fun listenForClients() {
+    private suspend fun listenForClients() {
         while (true) {
             val client = server.accept()
-            val job = GlobalScope.launch(threadPool) {
-                client.use {
-                    SwitchClient(sceneController, it, mqtt).run()
+            GlobalScope.launch {
+                val job = with(SwitchClient(sceneController, client, mqtt)) {
+                    launch { client.use { run() } } to launch { keepalive() }
                 }
-            }
-            environment.monitor.subscribe(ApplicationStopped) {
-                job.cancel()
-                runBlocking {
-                    job.join()
+
+                environment.monitor.subscribe(ApplicationStopPreparing) {
+                    job.first.cancel()
+                    job.second.cancel()
+                    runBlocking {
+                        job.first.join()
+                        job.second.join()
+                    }
                 }
             }
         }
@@ -67,9 +71,28 @@ class SwitchClient(
     private val client: Socket,
     private val mqtt: RelayMqtt.DeviceGateway,
 ) {
+    companion object {
+        const val keepaliveInterval = 10
+    }
+
+    private val conn = client.connection()
+
+    suspend fun keepalive() {
+        try {
+            while (true) {
+                delay(keepaliveInterval * 1000L)
+                with(conn.output) {
+                    writeByte(51)
+                    flush()
+                }
+            }
+        } catch (e: IOException) {
+            // do nothing
+        }
+    }
+
     suspend fun run() {
         println("Client connected: ${client.remoteAddress}")
-        val conn = client.connection()
         val bb = ByteBuffer.allocate(32)
         val q = ArrayBlockingQueue<Int>(128)
 
