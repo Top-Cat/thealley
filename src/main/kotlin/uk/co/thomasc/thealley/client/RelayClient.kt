@@ -15,6 +15,8 @@ import uk.co.thomasc.thealley.rest.Api
 import uk.co.thomasc.thealley.rest.PropertyData
 import uk.co.thomasc.thealley.scenes.SceneController
 
+val debugMqtt = System.getenv("MQTT_DEBUG") == "true"
+
 data class RelayState(@JsonAlias("relay/0") val relay0: Boolean)
 interface ZigbeeUpdate {
     val linkquality: Int
@@ -34,6 +36,11 @@ data class MotionSensorUpdate(
 ) : ZigbeeUpdate
 
 class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneController: SceneController, val api: Api) {
+    private fun debugInfo(s: String) {
+        if (debugMqtt)
+            println(s)
+    }
+
     init {
         client.setCallback(object : MqttCallbackExtended {
             override fun connectionLost(cause: Throwable) {
@@ -51,7 +58,7 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
                     if (!deviceId.startsWith("0x") || deviceId.contains('/')) return
 
                     val updateRaw = jackson.readTree(message.toString())
-                    println("Received zigbee message, device: $deviceId, data: $updateRaw")
+                    debugInfo("Received zigbee message, device: $deviceId, data: $updateRaw")
 
                     if (updateRaw.has("motor_state")) {
                         relayClient.getBlind(deviceId).handleMessage(updateRaw)
@@ -80,11 +87,11 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
             }
 
             override fun deliveryComplete(token: IMqttDeliveryToken) {
-                println("deliveryComplete")
+                debugInfo("deliveryComplete")
             }
 
             override fun connectComplete(reconnect: Boolean, serverURI: String?) {
-                println("connectComplete")
+                debugInfo("connectComplete")
                 client.subscribe("#")
             }
         })
