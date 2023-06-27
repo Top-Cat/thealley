@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley
 
 import io.ktor.application.ApplicationEnvironment
 import io.ktor.application.ApplicationStopPreparing
+import io.ktor.application.ApplicationStopping
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
@@ -39,6 +40,13 @@ class SwitchServer(
         GlobalScope.launch(threadPool) {
             listenForClients()
         }.apply {
+            environment.monitor.subscribe(ApplicationStopPreparing) {
+                cancel()
+                runBlocking {
+                    join()
+                }
+            }
+
             invokeOnCompletion {
                 server.close()
             }
@@ -53,7 +61,7 @@ class SwitchServer(
                     launch { client.use { run() } } to launch { keepalive() }
                 }
 
-                environment.monitor.subscribe(ApplicationStopPreparing) {
+                environment.monitor.subscribe(ApplicationStopping) {
                     job.first.cancel()
                     job.second.cancel()
                     runBlocking {
