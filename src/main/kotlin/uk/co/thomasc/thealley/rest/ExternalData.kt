@@ -8,7 +8,7 @@ import uk.co.thomasc.thealley.devices.DeviceMapper
 data class GoogleHomeReq(val requestId: String, val inputs: List<JsonElement>)
 
 @Serializable
-data class GoogleHomeDevice(val id: String, val customData: JsonElement) : DeviceMapper.HasDeviceId {
+data class GoogleHomeDevice(val id: String, val customData: JsonElement? = null) : DeviceMapper.HasDeviceId {
     override val deviceId = Integer.parseInt(id.removePrefix("scene-"))
 }
 
