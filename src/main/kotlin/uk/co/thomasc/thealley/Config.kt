@@ -12,7 +12,8 @@ fun Application.config() = environment.config.config("thealley").let {
         it.config("tado").let { tCfg ->
             Config.TadoConfig(
                 tCfg.propertyOrNull("email")?.getString() ?: "",
-                tCfg.propertyOrNull("password")?.getString() ?: ""
+                tCfg.propertyOrNull("password")?.getString() ?: "",
+                tCfg.propertyOrNull("homeId")?.getString()?.toIntOrNull() ?: 0
             )
         },
         it.config("mqtt").let { mCfg ->
@@ -44,6 +45,7 @@ data class Config(
 
     data class TadoConfig(
         val email: String,
-        val password: String
+        val password: String,
+        val homeId: Int
     )
 }

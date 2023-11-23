@@ -6,24 +6,35 @@ import at.topc.tado.data.common.typed.ITadoTyped
 import at.topc.tado.data.common.typed.TadoTypedHeating
 import at.topc.tado.data.common.typed.TadoTypedPercentage
 import at.topc.tado.data.common.typed.TadoTypedTemperature
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 sealed interface ITadoSetting
+@Serializable
 sealed interface ITadoData
 
+@Serializable
+@SerialName("percentage")
 data class PercentageData(
     val percentage: Double
 ) : ITadoData
 
+@Serializable
+@SerialName("temperature")
 data class TemperatureData(
     val celsius: Double,
     val fahrenheit: Double
 ) : ITadoData
 
+@Serializable
+@SerialName("heating")
 data class HeatingSetting(
     val power: Int,
     val temperature: TadoTemperature? = null
 ) : ITadoSetting
 
+@Serializable
 data class TransformedZoneState(
     val zone: Int,
     val tadoMode: Int,

@@ -1,6 +1,6 @@
 package uk.co.thomasc.thealley.rest
 
-import at.topc.tado.Tado
+import at.topc.tado.TadoHomeApi
 import io.ktor.server.application.call
 import io.ktor.server.locations.Location
 import io.ktor.server.locations.get
@@ -65,7 +65,7 @@ class StatsRoute {
     data class Tado(val api: StatsRoute)
 }
 
-fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: Tado, deviceMapper: DeviceMapper, mqtt: RelayClient) {
+fun Route.statsRoute(switchRepository: SwitchRepository, tadoHome: TadoHomeApi, deviceMapper: DeviceMapper, mqtt: RelayClient) {
     suspend fun getPlugs() = switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).asFlow().flatMapMerge(10) { plug ->
         flow {
             try {
@@ -154,7 +154,6 @@ fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: Tado, devic
         }
     }
 
-    val tadoHome = tadoClient.home(149676)
     get<StatsRoute.Tado> {
         val zones = tadoHome.getZoneStates()
         val res = zones.zoneStates.map { zone ->

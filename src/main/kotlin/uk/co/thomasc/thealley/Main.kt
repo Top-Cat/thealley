@@ -134,7 +134,7 @@ fun Application.setup() {
             config.tado.email,
             config.tado.password
         )
-    )
+    ).home(config.tado.homeId)
 
     client.connect(connectionOptions)
 
