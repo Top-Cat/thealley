@@ -1,11 +1,11 @@
 package uk.co.thomasc.thealley.devices
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
 import mu.KLogging
-import uk.co.thomasc.thealley.client.jackson
+import uk.co.thomasc.thealley.client.alleyJson
 import java.time.Instant
 
 class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
@@ -32,7 +32,7 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
         }
 
     suspend fun getName() = getData()?.alias
-    override suspend fun getPowerState() = getData()?.light_state?.on_off == true
+    override suspend fun getPowerState() = getData()?.light_state?.isOn() == true
     suspend fun getLightState() = getData()?.light_state
     suspend fun getSignalStrength() = getData()?.rssi
     suspend fun getPowerUsage() = getPower().power_mw
@@ -50,7 +50,7 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
                     bulbData = this
                 }
 
-                jackson.readValue<BulbEmeterResponse>(it).emeter.get_realtime
+                alleyJson.decodeFromString<BulbEmeterResponse>(it).emeter.get_realtime
             } ?: BulbRealtimePower(0, -1)
         }
 
@@ -73,8 +73,8 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     private suspend fun setLightState(state: BulbUpdate): Bulb {
         val obj = LightingServiceUpdate(LightingService(state))
 
-        send(jackson.writeValueAsString(obj))?.let {
-            val result = jackson.readValue<LightingServiceUpdate>(it)
+        send(alleyJson.encodeToString(obj))?.let {
+            val result = alleyJson.decodeFromString<LightingServiceUpdate>(it)
             bulbData = getData()?.copy(light_state = result.lightingService.transition_light_state)
         }
 

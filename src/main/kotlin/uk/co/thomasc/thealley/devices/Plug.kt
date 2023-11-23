@@ -1,10 +1,9 @@
 package uk.co.thomasc.thealley.devices
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import uk.co.thomasc.thealley.client.jackson
+import uk.co.thomasc.thealley.client.alleyJson
 
 class Plug(host: String) : KasaDevice<PlugData>(host) {
 
@@ -34,7 +33,7 @@ class Plug(host: String) : KasaDevice<PlugData>(host) {
                     plugData = this
                 }
 
-                jackson.readValue<EmeterResponse>(it).emeter.get_realtime
+                alleyJson.decodeFromString<EmeterResponse>(it).emeter.get_realtime
             } ?: RealtimePower(0F, 0F, 0F, 0F, -1)
         }
 

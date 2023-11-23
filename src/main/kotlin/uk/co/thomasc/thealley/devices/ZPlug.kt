@@ -1,14 +1,14 @@
 package uk.co.thomasc.thealley.devices
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.treeToValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.client.ZigbeeUpdate
-import uk.co.thomasc.thealley.client.jackson
+import uk.co.thomasc.thealley.client.alleyJson
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -39,8 +39,8 @@ class ZPlug(
 
     private var plugData: ZPlugData? = null
 
-    fun handleMessage(node: JsonNode) {
-        val message = jackson.treeToValue<ZPlugData>(node)!!
+    fun handleMessage(node: JsonElement) {
+        val message = alleyJson.decodeFromJsonElement<ZPlugData>(node)
 
         plugData = message
         latch.withLock {

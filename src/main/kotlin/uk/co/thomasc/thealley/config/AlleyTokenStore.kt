@@ -1,6 +1,10 @@
 package uk.co.thomasc.thealley.config
 
+import nl.myndocs.oauth2.client.inmemory.InMemoryClient
+import nl.myndocs.oauth2.exception.InvalidClientException
+import nl.myndocs.oauth2.exception.InvalidGrantException
 import nl.myndocs.oauth2.identity.Identity
+import nl.myndocs.oauth2.identity.TokenInfo
 import nl.myndocs.oauth2.token.AccessToken
 import nl.myndocs.oauth2.token.CodeToken
 import nl.myndocs.oauth2.token.RefreshToken
@@ -33,7 +37,7 @@ object NewRefreshTokenTable : IdTable<String>("oa_refresh_token") {
     val clientId = varchar("client_id", 256)
 }
 
-class AlleyTokenStore : TokenStore {
+class AlleyTokenStore(val clientStore: InMemoryClient) : TokenStore {
     companion object {
         val codes = mutableMapOf<String, CodeToken>()
     }
@@ -131,5 +135,13 @@ class AlleyTokenStore : TokenStore {
                 it[clientId] = refreshToken.clientId
             }
         }
+    }
+
+    override fun tokenInfo(token: String) = (accessToken(token) ?: throw InvalidGrantException()).let { at ->
+        TokenInfo(
+            at.identity,
+            clientStore.clientOf(at.clientId) ?: throw InvalidClientException(),
+            at.scopes
+        )
     }
 }

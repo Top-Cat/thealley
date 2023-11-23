@@ -1,7 +1,5 @@
 package uk.co.thomasc.thealley.devices
 
-import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
@@ -10,11 +8,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.withTimeoutOrNull
-import uk.co.thomasc.thealley.client.jackson
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.decryptWithHeader
 import uk.co.thomasc.thealley.encryptWithHeader
-import java.net.InetAddress
-import java.net.InetSocketAddress
 import java.net.SocketException
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
@@ -32,22 +33,23 @@ abstract class KasaDevice<out T>(val host: String) {
 
     protected fun parseSysInfo(json: String): Any? {
         val node = try {
-            jackson.readValue(json, JsonNode::class.java)
-        } catch (e: JsonParseException) {
+            alleyJson.parseToJsonElement(json).jsonObject
+        } catch (e: SerializationException) {
             println("Failed to parse json from $host")
             return null
         }
-        val deviceNode = node.get("system").get("get_sysinfo")
+        val deviceNode = node["system"]?.jsonObject?.get("get_sysinfo")
+        val deviceNodeObj = deviceNode?.jsonObject
 
         val type = when {
-            deviceNode.has("mic_type") -> deviceNode.get("mic_type").textValue()
-            deviceNode.has("type") -> deviceNode.get("type").textValue()
-            else -> ""
-        }
+            deviceNodeObj?.containsKey("mic_type") == true -> deviceNodeObj["mic_type"]
+            deviceNodeObj?.containsKey("type") == true -> deviceNodeObj["type"]
+            else -> JsonPrimitive("")
+        }?.jsonPrimitive?.content
 
         return when (type) {
-            "IOT.SMARTBULB" -> jackson.treeToValue(deviceNode, BulbData::class.java)
-            "IOT.SMARTPLUGSWITCH" -> jackson.treeToValue(deviceNode, PlugData::class.java)
+            "IOT.SMARTBULB" -> alleyJson.decodeFromJsonElement<BulbData>(deviceNode!!)
+            "IOT.SMARTPLUGSWITCH" -> alleyJson.decodeFromJsonElement<PlugData>(deviceNode!!)
             else -> null
         }
     }
@@ -56,7 +58,7 @@ abstract class KasaDevice<out T>(val host: String) {
         withTimeoutOrNull(timeout) {
             async(threadPool) {
                 try {
-                    aSocket(selector).tcp().connect(InetSocketAddress(InetAddress.getByName(host), port)).use {
+                    aSocket(selector).tcp().connect(host, port).use {
                         val buff = ByteBuffer.wrap(encryptWithHeader(json))
                         val inputChannel = it.openReadChannel()
                         val outputChannel = it.openWriteChannel(true)

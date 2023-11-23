@@ -6,8 +6,6 @@ import at.topc.tado.data.common.typed.ITadoTyped
 import at.topc.tado.data.common.typed.TadoTypedHeating
 import at.topc.tado.data.common.typed.TadoTypedPercentage
 import at.topc.tado.data.common.typed.TadoTypedTemperature
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonInclude.Include
 
 sealed interface ITadoSetting
 sealed interface ITadoData
@@ -21,10 +19,9 @@ data class TemperatureData(
     val fahrenheit: Double
 ) : ITadoData
 
-@JsonInclude(Include.NON_NULL)
 data class HeatingSetting(
     val power: Int,
-    val temperature: TadoTemperature?
+    val temperature: TadoTemperature? = null
 ) : ITadoSetting
 
 data class TransformedZoneState(

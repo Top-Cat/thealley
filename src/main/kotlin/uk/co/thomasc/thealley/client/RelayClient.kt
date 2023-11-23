@@ -1,8 +1,9 @@
 package uk.co.thomasc.thealley.client
 
-import com.fasterxml.jackson.annotation.JsonAlias
-import com.fasterxml.jackson.module.kotlin.treeToValue
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -17,11 +18,11 @@ import uk.co.thomasc.thealley.scenes.SceneController
 
 val debugMqtt = System.getenv("MQTT_DEBUG") == "true"
 
-data class RelayState(@JsonAlias("relay/0") val relay0: Boolean)
 interface ZigbeeUpdate {
     val linkquality: Int
     val battery: Int?
 }
+@Serializable
 data class MotionSensorUpdate(
     // Generic
     override val linkquality: Int,
@@ -57,17 +58,17 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
                     // Check this is a message isn't from the bridge
                     if (!deviceId.startsWith("0x") || deviceId.contains('/')) return
 
-                    val updateRaw = jackson.readTree(message.toString())
+                    val updateRaw = alleyJson.parseToJsonElement(message.toString())
                     debugInfo("Received zigbee message, device: $deviceId, data: $updateRaw")
 
-                    if (updateRaw.has("motor_state")) {
+                    if (updateRaw is JsonObject && updateRaw.containsKey("motor_state")) {
                         relayClient.getBlind(deviceId).handleMessage(updateRaw)
                     } else if (relayClient.isZPlug(deviceId)) {
                         relayClient.getZPlug(deviceId).handleMessage(updateRaw)
                     } else if (sceneController.zswitches.containsKey(deviceId)) {
                         sceneController.zswitches[deviceId]?.handleMessage(updateRaw)
                     } else {
-                        val update = jackson.treeToValue<MotionSensorUpdate>(updateRaw)!!
+                        val update = alleyJson.decodeFromJsonElement<MotionSensorUpdate>(updateRaw)
 
                         if (update.occupancy) {
                             runBlocking {

@@ -1,6 +1,6 @@
 package uk.co.thomasc.thealley.config
 
-import io.ktor.application.Application
+import io.ktor.server.application.Application
 
 fun Application.clients() = environment.config.configList("clients").let { cl ->
     ClientProperties(

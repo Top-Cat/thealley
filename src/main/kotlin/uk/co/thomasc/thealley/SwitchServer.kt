@@ -1,16 +1,17 @@
 package uk.co.thomasc.thealley
 
-import io.ktor.application.ApplicationEnvironment
-import io.ktor.application.ApplicationStopPreparing
-import io.ktor.application.ApplicationStopping
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.connection
 import io.ktor.network.sockets.isClosed
+import io.ktor.server.application.ApplicationEnvironment
+import io.ktor.server.application.ApplicationStopPreparing
+import io.ktor.server.application.ApplicationStopping
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
@@ -19,7 +20,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.scenes.SceneController
 import java.io.IOException
-import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 
@@ -33,8 +33,8 @@ class SwitchServer(
         val selector = ActorSelectorManager(Dispatchers.IO)
     }
 
-    var server: ServerSocket =
-        aSocket(selector).tcp().bind(InetSocketAddress(5558))
+    private val server: ServerSocket =
+        aSocket(selector).tcp().bind(port = 5558)
 
     init {
         GlobalScope.launch(threadPool) {
@@ -56,17 +56,19 @@ class SwitchServer(
     private suspend fun listenForClients() {
         while (true) {
             val client = server.accept()
-            GlobalScope.launch {
-                val job = with(SwitchClient(sceneController, client, mqtt)) {
-                    launch { client.use { run() } } to launch { keepalive() }
-                }
+            coroutineScope {
+                launch {
+                    val job = with(SwitchClient(sceneController, client, mqtt)) {
+                        launch { client.use { run() } } to launch { keepalive() }
+                    }
 
-                environment.monitor.subscribe(ApplicationStopping) {
-                    job.first.cancel()
-                    job.second.cancel()
-                    runBlocking {
-                        job.first.join()
-                        job.second.join()
+                    environment.monitor.subscribe(ApplicationStopping) {
+                        job.first.cancel()
+                        job.second.cancel()
+                        runBlocking {
+                            job.first.join()
+                            job.second.join()
+                        }
                     }
                 }
             }

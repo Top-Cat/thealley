@@ -1,25 +1,16 @@
 package uk.co.thomasc.thealley.rest
 
 import at.topc.tado.Tado
-import at.topc.tado.data.common.TadoMode
-import at.topc.tado.data.common.typed.ITadoTyped
-import at.topc.tado.data.common.typed.TadoTypedHeating
-import at.topc.tado.data.common.typed.TadoTypedPercentage
-import at.topc.tado.data.common.typed.TadoTypedTemperature
-import com.fasterxml.jackson.annotation.JsonInclude
-import io.ktor.application.call
-import io.ktor.locations.Location
-import io.ktor.locations.get
-import io.ktor.response.respond
-import io.ktor.routing.Route
+import io.ktor.server.application.call
+import io.ktor.server.locations.Location
+import io.ktor.server.locations.get
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import uk.co.thomasc.thealley.client.HeatingSetting
-import uk.co.thomasc.thealley.client.PercentageData
 import uk.co.thomasc.thealley.client.RelayClient
-import uk.co.thomasc.thealley.client.TemperatureData
 import uk.co.thomasc.thealley.client.TransformedZoneState
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
@@ -28,13 +19,12 @@ import uk.co.thomasc.thealley.devices.Relay
 import uk.co.thomasc.thealley.devices.ZPlugState
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 data class BulbResponse(
     val host: String,
-    val name: String?,
+    val name: String? = null,
     val state: Int,
     val power: Int,
-    val rssi: Int?
+    val rssi: Int? = null
 )
 
 data class RelayResponse(

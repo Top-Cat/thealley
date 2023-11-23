@@ -2,49 +2,45 @@ package uk.co.thomasc.thealley
 
 import at.topc.tado.Tado
 import at.topc.tado.config.TadoConfig
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.github.mustachejava.DefaultMustacheFactory
 import com.toxicbakery.bcrypt.Bcrypt
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.auth.Authentication
-import io.ktor.auth.UserIdPrincipal
-import io.ktor.auth.authenticate
-import io.ktor.auth.form
-import io.ktor.auth.parseAuthorizationHeader
-import io.ktor.auth.principal
 import io.ktor.client.request.forms.formData
-import io.ktor.features.ContentNegotiation
-import io.ktor.features.NotFoundException
-import io.ktor.features.StatusPages
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.auth.HttpAuthHeader
-import io.ktor.http.content.resources
-import io.ktor.http.content.static
-import io.ktor.jackson.jackson
-import io.ktor.locations.Locations
-import io.ktor.mustache.Mustache
-import io.ktor.mustache.MustacheContent
-import io.ktor.request.header
-import io.ktor.response.respond
-import io.ktor.response.respondRedirect
-import io.ktor.response.respondText
-import io.ktor.routing.post
-import io.ktor.routing.routing
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.UserIdPrincipal
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.form
+import io.ktor.server.auth.parseAuthorizationHeader
+import io.ktor.server.auth.principal
+import io.ktor.server.http.content.staticResources
+import io.ktor.server.locations.Locations
+import io.ktor.server.mustache.Mustache
+import io.ktor.server.mustache.MustacheContent
 import io.ktor.server.netty.EngineMain
-import io.ktor.sessions.SessionStorageMemory
-import io.ktor.sessions.Sessions
-import io.ktor.sessions.cookie
-import io.ktor.sessions.get
-import io.ktor.sessions.sessions
-import io.ktor.sessions.set
+import io.ktor.server.plugins.NotFoundException
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.header
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondRedirect
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
+import io.ktor.server.sessions.SessionStorageMemory
+import io.ktor.server.sessions.Sessions
+import io.ktor.server.sessions.cookie
+import io.ktor.server.sessions.get
+import io.ktor.server.sessions.sessions
+import io.ktor.server.sessions.set
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.runBlocking
 import nl.myndocs.oauth2.authenticator.Credentials
@@ -60,9 +56,9 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
-import uk.co.thomasc.thealley.client.KotlinTimeModule
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.client.RelayMqtt
+import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
 import uk.co.thomasc.thealley.config.clients
 import uk.co.thomasc.thealley.devices.DeviceMapper
@@ -104,14 +100,6 @@ fun setupDB(): DataSource {
 }
 
 fun Application.setup() {
-    setupDB().let { ds ->
-        Flyway.configure()
-            .dataSource(ds)
-            .locations("db/migration")
-            .load()
-            .migrate()
-    }
-
     val config = config()
     val clients = clients()
 
@@ -143,32 +131,25 @@ fun Application.setup() {
     val ss = SwitchServer(sceneController, sender, environment)
     val tado = Tado(
         TadoConfig(
-            "tado@thomasc.co.uk",
-            config.tado.refreshToken
+            config.tado.email,
+            config.tado.password
         )
     )
 
-    val alleyTokenStore = AlleyTokenStore()
     client.connect(connectionOptions)
 
     install(ContentNegotiation) {
         formData { }
-        jackson {
-            enable(SerializationFeature.INDENT_OUTPUT)
-            registerModule(JavaTimeModule())
-            registerModule(KotlinTimeModule())
-            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        }
+        json(alleyJson)
     }
 
     install(Locations)
     install(StatusPages) {
-        exception<NotFoundException> {
+        exception<NotFoundException> { call, _ ->
             call.respond(HttpStatusCode.NotFound, "Not Found")
         }
 
-        exception<Throwable> { cause ->
+        exception<Throwable> { call, cause ->
             call.respond(HttpStatusCode.InternalServerError, "Internal Server Error")
             throw cause
         }
@@ -198,6 +179,25 @@ fun Application.setup() {
             cookie.extensions["SameSite"] = "lax"
         }
     }
+
+    val alleyClientSvc = InMemoryClient().also { imc ->
+        clients.clients.forEach {
+            imc.client {
+                clientId = it.clientId
+                clientSecret = it.secret
+                scopes = it.scopes.toSet()
+                authorizedGrantTypes = setOf(
+                    AuthorizedGrantType.AUTHORIZATION_CODE,
+                    AuthorizedGrantType.REFRESH_TOKEN
+                )
+                redirectUris = setOf(
+                    "https://developers.google.com/oauthplayground",
+                    "https://oauth-redirect.googleusercontent.com/r/the-alley-4c2e7"
+                )
+            }
+        }
+    }
+    val alleyTokenStore = AlleyTokenStore(alleyClientSvc)
 
     install(Oauth2ServerFeature) {
         authenticationCallback = { call, callRouter ->
@@ -242,23 +242,7 @@ fun Application.setup() {
                 } ?: false
         }
 
-        clientService = InMemoryClient().also { imc ->
-            clients.clients.forEach {
-                imc.client {
-                    clientId = it.clientId
-                    clientSecret = it.secret
-                    scopes = it.scopes.toSet()
-                    authorizedGrantTypes = setOf(
-                        AuthorizedGrantType.AUTHORIZATION_CODE,
-                        AuthorizedGrantType.REFRESH_TOKEN
-                    )
-                    redirectUris = setOf(
-                        "https://developers.google.com/oauthplayground",
-                        "https://oauth-redirect.googleusercontent.com/r/the-alley-4c2e7"
-                    )
-                }
-            }
-        }
+        clientService = alleyClientSvc
 
         tokenStore = alleyTokenStore
     }
@@ -280,9 +264,7 @@ fun Application.setup() {
 
         externalRoute(switchRepository, sceneController, alleyTokenStore, deviceMapper)
 
-        static("") {
-            resources("static")
-        }
+        staticResources("/static", "static")
     }
 }
 
@@ -302,5 +284,13 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: A
 }
 
 fun main(args: Array<String>) {
+    setupDB().let { ds ->
+        Flyway.configure()
+            .dataSource(ds)
+            .locations("db/migration")
+            .load()
+            .migrate()
+    }
+
     EngineMain.main(args)
 }

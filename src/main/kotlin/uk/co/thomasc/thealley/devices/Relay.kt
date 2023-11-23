@@ -1,13 +1,13 @@
 package uk.co.thomasc.thealley.devices
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.http.ContentType
 import kotlinx.coroutines.runBlocking
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.client.RelayMqtt
-import uk.co.thomasc.thealley.client.RelayState
 
 class Relay(
     private val host: String,
@@ -31,14 +31,14 @@ class Relay(
         mqtt.sendToMqtt("$host/relay/0/set", MqttMessage("$state".toByteArray()))
     }
 
-    override suspend fun getPowerState() = state ?: runBlocking {
+    override suspend fun getPowerState() = state ?: run {
         val newState = try {
-            restTemplate.get<RelayState>("http://$host.light.kirkstall.top-cat.me/api/relay/0?apikey=$apiKey") {
-                accept(ContentType.Application.Json)
-            }.relay0
+            restTemplate.get("http://$host.light.kirkstall.top-cat.me/api/relay/0?apikey=$apiKey") {
+                accept(ContentType.Any)
+            }.body<Int>() > 0
         } catch (e: Exception) {
-            null
-        } ?: false
+            false
+        }
 
         // Temporary variable prevents null return type
         state = newState
@@ -49,7 +49,7 @@ class Relay(
     override suspend fun togglePowerState() = setLightState(2)
 
     fun handleMessage(topic: String, message: MqttMessage) {
-        Regex("([^/,]+)\\/([^/,]+)(?:\\/([^/,]+))?").find(topic)?.also {
+        Regex("([^/,]+)/([^/,]+)(?:/([^/,]+))?").find(topic)?.also {
             val (str, host, prop, idx) = it.groupValues
 
             when (prop) {

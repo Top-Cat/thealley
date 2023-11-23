@@ -1,12 +1,12 @@
 package uk.co.thomasc.thealley.rest
 
-import io.ktor.application.call
-import io.ktor.locations.Location
-import io.ktor.locations.get
-import io.ktor.locations.put
-import io.ktor.request.receive
-import io.ktor.response.respond
-import io.ktor.routing.Route
+import io.ktor.server.application.call
+import io.ktor.server.locations.Location
+import io.ktor.server.locations.get
+import io.ktor.server.locations.put
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
 import uk.co.thomasc.thealley.devices.Blind
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
@@ -92,13 +92,12 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
         when (res.type) {
             SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY, SwitchRepository.DeviceType.BLIND ->
                 deviceMapper.toLight(res)?.let { l ->
-                    if (l is Bulb) {
-                        val state = l.getLightState()
-                        BulbState(state?.brightness ?: 0, state?.hue, state?.color_temp)
-                    } else if (l is Blind) {
-                        BulbState(l.getState() ?: 0, null, null)
-                    } else {
-                        BulbState(l.getPowerState())
+                    when (l) {
+                        is Bulb -> l.getLightState().let { state ->
+                            BulbState(state?.brightness ?: 0, state?.hue, state?.color_temp)
+                        }
+                        is Blind -> BulbState(l.getState() ?: 0, null, null)
+                        else -> BulbState(l.getPowerState())
                     }
                 } ?: BulbState(false)
             SwitchRepository.DeviceType.PLUG, SwitchRepository.DeviceType.ZPLUG -> BulbState(false)

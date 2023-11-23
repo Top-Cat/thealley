@@ -1,37 +1,45 @@
 package uk.co.thomasc.thealley.devices
 
-import com.fasterxml.jackson.annotation.JsonGetter
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.serialization.Serializable
 
-data class LightingServiceUpdate(
-    @JsonProperty("smartlife.iot.smartbulb.lightingservice")
-    var lightingService: LightingService
-)
+@Serializable
+data class LightingServiceUpdate(val smartlife: LSU1) {
+    val lightingService: LightingService
+        get() = smartlife.iot.smartbulb.lightingservice
 
+    constructor(lightingservice: LightingService) : this(LSU1(LSU2(LSU3(lightingservice))))
+}
+
+@Serializable
+data class LSU1(val iot: LSU2)
+@Serializable
+data class LSU2(val smartbulb: LSU3, val common: BulbEmeterResponse? = null)
+@Serializable
+data class LSU3(val lightingservice: LightingService)
+@Serializable
 data class LightingService(val transition_light_state: BulbUpdate)
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-data class BulbUpdate(
-    override val transition_period: Int?,
-    override val on_off: Boolean,
-    override val mode: String?,
-    override val hue: Int?,
-    override val saturation: Int?,
-    override val brightness: Int?,
-    override val color_temp: Int?,
-    override val ignore_default: Boolean = true
+@Serializable
+class BulbUpdate private constructor(
+    override val transition_period: Int? = null,
+    override val on_off: Int,
+    override val mode: String? = null,
+    override val hue: Int? = null,
+    override val saturation: Int? = null,
+    override val brightness: Int? = null,
+    override val color_temp: Int? = null,
+    override val ignore_default: Int
 ) : IBulbUpdate() {
-    constructor(on_off: Boolean, transition_period: Int? = null) : this(transition_period, on_off, null, null, null, null, null)
+    constructor(transition_period: Int? = null, on_off: Boolean, mode: String? = null, hue: Int? = null, saturation: Int? = null, brightness: Int? = null, color_temp: Int? = null, ignore_default: Boolean = true) :
+            this(transition_period, if (on_off) 1 else 0, mode, hue, saturation, brightness, color_temp, if (ignore_default) 1 else 0)
+    constructor(on_off: Boolean, transition_period: Int? = null) : this(transition_period, if (on_off) 1 else 0, null, null, null, null, null, 1)
+
+    fun isOn() = on_off > 0
 }
 
 abstract class IBulbUpdate : IBulbState() {
     abstract val transition_period: Int?
-    abstract val ignore_default: Boolean
-
-    @JsonGetter("ignore_default")
-    private fun getIgnoreDefault() = if (ignore_default) 1 else 0
+    abstract val ignore_default: Int
 }
 
 abstract class IBulbState : IBulbOnOff() {
@@ -42,12 +50,8 @@ abstract class IBulbState : IBulbOnOff() {
     abstract val color_temp: Int?
 }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 abstract class IBulbOnOff {
-    abstract val on_off: Boolean
-
-    @JsonGetter("on_off")
-    private fun getState() = if (on_off) 1 else 0
+    abstract val on_off: Int
 }
 
 /*data class BulbState(
@@ -62,7 +66,6 @@ abstract class IBulbOnOff {
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BulbOnOff(override val on_off: Boolean) : IBulbOnOff()*/
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class BulbData(
     val sw_ver: String,
     val hw_ver: String,
@@ -102,16 +105,9 @@ data class CtrlProtocol(
     val version: String
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class BulbEmeterResponse(
-    @JsonProperty("smartlife.iot.common.emeter")
-    val emeter: BulbEmeter
-)
-
+@Serializable
+data class BulbEmeterResponse(val emeter: BulbEmeter)
+@Serializable
 data class BulbEmeter(val get_realtime: BulbRealtimePower)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class BulbRealtimePower(
-    val power_mw: Int,
-    val err_code: Int
-)
+@Serializable
+data class BulbRealtimePower(val power_mw: Int, val err_code: Int)

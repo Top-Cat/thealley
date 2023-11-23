@@ -1,6 +1,6 @@
 package uk.co.thomasc.thealley
 
-import io.ktor.application.Application
+import io.ktor.server.application.Application
 
 fun Application.config() = environment.config.config("thealley").let {
     Config(
@@ -11,7 +11,8 @@ fun Application.config() = environment.config.config("thealley").let {
         },
         it.config("tado").let { tCfg ->
             Config.TadoConfig(
-                tCfg.propertyOrNull("refreshToken")?.getString() ?: ""
+                tCfg.propertyOrNull("email")?.getString() ?: "",
+                tCfg.propertyOrNull("password")?.getString() ?: ""
             )
         },
         it.config("mqtt").let { mCfg ->
@@ -26,23 +27,23 @@ fun Application.config() = environment.config.config("thealley").let {
 }
 
 data class Config(
-    val relay: RelayConfig = RelayConfig(),
-    val tado: TadoConfig = TadoConfig(),
-    val mqtt: MqttConfig = MqttConfig()
+    val relay: RelayConfig ,
+    val tado: TadoConfig,
+    val mqtt: MqttConfig
 ) {
-
     data class MqttConfig(
-        var clientId: String = "thealley",
-        var host: String = "",
-        var user: String = "",
-        var pass: String = ""
+        val clientId: String,
+        val host: String,
+        val user: String,
+        val pass: String
     )
 
     data class RelayConfig(
-        var apiKey: String = ""
+        val apiKey: String
     )
 
     data class TadoConfig(
-        var refreshToken: String = ""
+        val email: String,
+        val password: String
     )
 }

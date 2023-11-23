@@ -1,17 +1,24 @@
 package uk.co.thomasc.thealley.rest
 
-import io.ktor.application.call
-import io.ktor.locations.Location
-import io.ktor.locations.get
-import io.ktor.locations.post
-import io.ktor.request.receive
-import io.ktor.response.respond
-import io.ktor.routing.Route
+import io.ktor.server.application.call
+import io.ktor.server.locations.Location
+import io.ktor.server.locations.get
+import io.ktor.server.locations.post
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
 import kotlinx.coroutines.async
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import uk.co.thomasc.thealley.checkOauth
-import uk.co.thomasc.thealley.client.jackson
+import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
 import uk.co.thomasc.thealley.devices.Blind
 import uk.co.thomasc.thealley.devices.Bulb
@@ -50,7 +57,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                                 when (ex.command) {
                                     "action.devices.commands.ActivateScene" -> {
                                         sceneController.scenes[devices.first.deviceId]?.let {
-                                            if (ex.params["deactivate"] as Boolean) {
+                                            if (ex.params["deactivate"]?.jsonPrimitive?.booleanOrNull != true) {
                                                 it.off()
                                             } else {
                                                 it.execute()
@@ -60,30 +67,30 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                                         ExecuteStatus.SUCCESS
                                     }
                                     "action.devices.commands.OnOff" -> {
-                                        bulbN.setPowerState(ex.params["on"] as Boolean)
+                                        bulbN.setPowerState(ex.params["on"]?.jsonPrimitive?.booleanOrNull ?: false)
 
                                         ExecuteStatus.SUCCESS
                                     }
                                     "action.devices.commands.BrightnessAbsolute" -> {
-                                        bulbN.setComplexState(ex.params["brightness"] as Int)
+                                        bulbN.setComplexState(ex.params["brightness"]?.jsonPrimitive?.intOrNull)
 
                                         ExecuteStatus.SUCCESS
                                     }
                                     "action.devices.commands.OpenClose" -> {
-                                        bulbN.setComplexState(ex.params["openPercent"] as Int)
+                                        bulbN.setComplexState(ex.params["openPercent"]?.jsonPrimitive?.intOrNull)
 
                                         ExecuteStatus.SUCCESS
                                     }
                                     "action.devices.commands.ColorAbsolute" -> {
                                         val colorObj = ex.params["color"]
 
-                                        if (colorObj is Map<*, *>) {
+                                        if (colorObj is JsonObject) {
                                             if (colorObj.containsKey("temperature")) {
                                                 bulbN.setComplexState(
-                                                    temperature = colorObj["temperature"] as Int
+                                                    temperature = colorObj["temperature"]?.jsonPrimitive?.intOrNull
                                                 )
                                             } else {
-                                                val colorHex = colorObj["spectrumRGB"] as Int
+                                                val colorHex = colorObj["spectrumRGB"]?.jsonPrimitive?.intOrNull ?: 0
                                                 val color = Color.RGBtoHSB(
                                                     (colorHex shr 16) and 255,
                                                     (colorHex shr 8) and 255,
@@ -206,8 +213,8 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                 ),
                 false,
                 attributes = mapOf(
-                    "temperatureMinK" to 2500,
-                    "temperatureMaxK" to 9000
+                    "temperatureMinK" to JsonPrimitive(2500),
+                    "temperatureMaxK" to JsonPrimitive(9000)
                 ),
                 deviceInfo = AlleyDeviceInfo(
                     "TP-Link",
@@ -240,7 +247,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                 ),
                 false,
                 attributes = mapOf(
-                    "openDirection" to DeviceBlindStateEnum.values().map { e -> e.toString() }
+                    "openDirection" to JsonArray(DeviceBlindStateEnum.entries.map { e -> JsonPrimitive(e.toString()) })
                 )
             )
         } + sceneController.scenes.map {
@@ -255,7 +262,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                 ),
                 false,
                 attributes = mapOf(
-                    "sceneReversible" to true
+                    "sceneReversible" to JsonPrimitive(true)
                 )
             )
         }
@@ -272,13 +279,13 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
             val obj = call.receive<GoogleHomeReq>()
             val input = obj.inputs.first()
 
-            val intent = jackson.treeToValue(
-                input,
-                when (input.get("intent").textValue()) {
-                    "action.devices.QUERY" -> QueryIntent::class
-                    "action.devices.EXECUTE" -> ExecuteIntent::class
-                    else -> SyncIntent::class
-                }.java
+            val intent = alleyJson.decodeFromJsonElement(
+                when (input.jsonObject["intent"]?.jsonPrimitive?.content) {
+                    "action.devices.QUERY" -> QueryIntent.serializer()
+                    "action.devices.EXECUTE" -> ExecuteIntent.serializer()
+                    else -> SyncIntent.serializer()
+                },
+                input
             )
 
             when (intent) {

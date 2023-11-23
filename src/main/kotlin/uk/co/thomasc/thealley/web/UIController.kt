@@ -1,10 +1,10 @@
 package uk.co.thomasc.thealley.web
 
-import io.ktor.application.call
-import io.ktor.mustache.MustacheContent
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.get
+import io.ktor.server.application.call
+import io.ktor.server.mustache.MustacheContent
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
 fun Route.mainRoute(switchRepository: SwitchRepository) {
