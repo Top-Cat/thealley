@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface ITadoSetting
+
 @Serializable
 sealed interface ITadoData
 
