@@ -1,21 +1,14 @@
 package uk.co.thomasc.thealley.devices
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LightingServiceUpdate(val smartlife: LSU1) {
+data class LightingServiceUpdate(
+    @SerialName("smartlife.iot.smartbulb.lightingservice")
     val lightingService: LightingService
-        get() = smartlife.iot.smartbulb.lightingservice
+)
 
-    constructor(lightingservice: LightingService) : this(LSU1(LSU2(LSU3(lightingservice))))
-}
-
-@Serializable
-data class LSU1(val iot: LSU2)
-@Serializable
-data class LSU2(val smartbulb: LSU3, val common: BulbEmeterResponse? = null)
-@Serializable
-data class LSU3(val lightingservice: LightingService)
 @Serializable
 data class LightingService(val transition_light_state: BulbUpdate)
 
@@ -28,7 +21,7 @@ class BulbUpdate private constructor(
     override val saturation: Int? = null,
     override val brightness: Int? = null,
     override val color_temp: Int? = null,
-    override val ignore_default: Int
+    override val ignore_default: Int? = null
 ) : IBulbUpdate() {
     constructor(transition_period: Int? = null, on_off: Boolean, mode: String? = null, hue: Int? = null, saturation: Int? = null, brightness: Int? = null, color_temp: Int? = null, ignore_default: Boolean = true) :
             this(transition_period, if (on_off) 1 else 0, mode, hue, saturation, brightness, color_temp, if (ignore_default) 1 else 0)
@@ -39,7 +32,7 @@ class BulbUpdate private constructor(
 
 abstract class IBulbUpdate : IBulbState() {
     abstract val transition_period: Int?
-    abstract val ignore_default: Int
+    abstract val ignore_default: Int?
 }
 
 abstract class IBulbState : IBulbOnOff() {
@@ -66,6 +59,7 @@ abstract class IBulbOnOff {
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BulbOnOff(override val on_off: Boolean) : IBulbOnOff()*/
 
+@Serializable
 data class BulbData(
     val sw_ver: String,
     val hw_ver: String,
@@ -82,16 +76,17 @@ data class BulbData(
     val disco_ver: String,
     val ctrl_protocols: CtrlProtocol,
     val light_state: BulbUpdate,
-    val is_dimmable: Boolean,
-    val is_color: Boolean,
-    val is_variable_color_temp: Boolean,
+    val is_dimmable: Int,
+    val is_color: Int,
+    val is_variable_color_temp: Int,
     val preferred_state: List<PreferredState>,
     val rssi: Int,
     val active_mode: String,
-    val heapsize: Int,
+    val heapsize: Int = 0,
     val err_code: Int
 )
 
+@Serializable
 data class PreferredState(
     val index: Int,
     val hue: Int,
@@ -100,6 +95,7 @@ data class PreferredState(
     val brightness: Int
 )
 
+@Serializable
 data class CtrlProtocol(
     val name: String,
     val version: String

@@ -201,21 +201,21 @@ fun Application.setup() {
 
     install(Oauth2ServerFeature) {
         authenticationCallback = { call, callRouter ->
-            runBlocking {
-                val context = KtorCallContext(call)
+            val context = KtorCallContext(call)
 
-                val userSession = call.sessions.get<UserIdPrincipal>()
+            val userSession = call.sessions.get<UserIdPrincipal>()
 
-                if (userSession == null) {
+            if (userSession == null) {
+                runBlocking {
                     context.applicationCall.respond(
                         MustacheContent("login.mustache", null)
                     )
-                } else {
-                    callRouter.route(context, Credentials(userSession.name, "")).also { response ->
-                        if (!response.successfulLogin) {
-                            // Clear auth, we can't show login again now
-                            call.sessions.clear("SESSION_ID")
-                        }
+                }
+            } else {
+                callRouter.route(context, Credentials(userSession.name, "")).also { response ->
+                    if (!response.successfulLogin) {
+                        // Clear auth, we can't show login again now
+                        call.sessions.clear("SESSION_ID")
                     }
                 }
             }

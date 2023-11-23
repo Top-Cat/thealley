@@ -9,9 +9,12 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-val alleyJson = Json {
-    prettyPrint = true
+val alleyJsonUgly = Json {
     ignoreUnknownKeys = true
+}
+
+val alleyJson = Json(alleyJsonUgly) {
+    prettyPrint = true
 }
 
 private fun setupClient(block: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {}) = HttpClient(Apache) {

@@ -3,10 +3,13 @@ package uk.co.thomasc.thealley.devices
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import mu.KLogging
 import uk.co.thomasc.thealley.client.alleyJson
-import java.time.Instant
+import uk.co.thomasc.thealley.client.alleyJsonUgly
+import kotlinx.datetime.Instant
+import kotlin.time.Duration.Companion.seconds
 
 class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
 
@@ -16,19 +19,19 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     private val mutex = Mutex()
 
     override suspend fun getData() = mutex.withLock {
-        updateData() ?: bulbData
+        updateData()
     }
 
-    private var lastRequest: Instant = Instant.MIN
+    private var lastRequest = Instant.DISTANT_PAST
     private suspend fun updateData() =
         run {
-            if (Instant.now().minusSeconds(20).isAfter(lastRequest)) {
+            if (Clock.System.now().minus(20.seconds) > lastRequest) {
                 (getSysInfo(host, 3000) as? BulbData)?.apply {
                     bulbData = this
                 }
-            } else null
+            } else bulbData
         }.also {
-            lastRequest = Instant.now()
+            lastRequest = Clock.System.now()
         }
 
     suspend fun getName() = getData()?.alias
@@ -41,17 +44,20 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     suspend fun getSwVer() = getData()?.sw_ver
     suspend fun getModel() = getData()?.model
 
-    @Synchronized
-    private fun getPower() =
-        runBlocking {
-            // May as well get sysinfo while we're at it
-            send("{\"system\":{\"get_sysinfo\":{}},\"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}")?.let {
-                (parseSysInfo(it) as? BulbData)?.apply {
-                    bulbData = this
-                }
+    private suspend fun getPower() =
+        mutex.withLock {
+            run {
+                // May as well get sysinfo while we're at it
+                send("{\"system\":{\"get_sysinfo\":{}},\"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}")?.let {
+                    (parseSysInfo(it) as? BulbData)?.apply {
+                        bulbData = this
+                    }
 
-                alleyJson.decodeFromString<BulbEmeterResponse>(it).emeter.get_realtime
-            } ?: BulbRealtimePower(0, -1)
+                    alleyJson.decodeFromString<BulbEmeterResponse>(it).emeter.get_realtime
+                } ?: BulbRealtimePower(0, -1)
+            }.also {
+                lastRequest = Clock.System.now()
+            }
         }
 
     override fun setPowerState(value: Boolean): Bulb =
@@ -73,7 +79,7 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     private suspend fun setLightState(state: BulbUpdate): Bulb {
         val obj = LightingServiceUpdate(LightingService(state))
 
-        send(alleyJson.encodeToString(obj))?.let {
+        send(obj)?.let {
             val result = alleyJson.decodeFromString<LightingServiceUpdate>(it)
             bulbData = getData()?.copy(light_state = result.lightingService.transition_light_state)
         }
@@ -84,5 +90,6 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     override suspend fun togglePowerState() =
         setPowerState(!getPowerState())
 
+    private suspend inline fun <reified T> send(obj: T) = send(alleyJsonUgly.encodeToString(obj), host, timeout = 500)
     private suspend fun send(json: String) = send(json, host, timeout = 500)
 }

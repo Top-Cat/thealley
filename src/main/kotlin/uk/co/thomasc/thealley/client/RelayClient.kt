@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
+import mu.KLogging
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -29,23 +30,25 @@ data class MotionSensorUpdate(
     override val battery: Int?,
 
     // Light sensor
-    val voltage: Int,
+    val voltage: Int = 0,
 
-    val illuminance: Int,
-    val illuminance_lux: Int,
-    val occupancy: Boolean,
+    val illuminance: Int = 0,
+    val illuminance_lux: Int = 0,
+    val occupancy: Boolean = false
 ) : ZigbeeUpdate
 
 class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneController: SceneController, val api: Api) {
+    companion object : KLogging()
+
     private fun debugInfo(s: String) {
         if (debugMqtt)
-            println(s)
+            logger.debug(s)
     }
 
     init {
         client.setCallback(object : MqttCallbackExtended {
             override fun connectionLost(cause: Throwable) {
-                println("connectionLost")
+                logger.warn { "connectionLost" }
                 cause.printStackTrace()
             }
 

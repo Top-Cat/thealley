@@ -43,12 +43,13 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
-    implementation("ch.qos.logback:logback-classic:1.2.9")
+    implementation("ch.qos.logback:logback-classic:1.4.7")
     implementation("io.ktor:ktor-server-locations:$ktorVersion")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.3")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
     implementation("com.luckycatlabs:SunriseSunsetCalculator:1.2")
     implementation("at.topc.tado:tado-kt:1.0.10")
 
@@ -59,7 +60,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("org.flywaydb:flyway-core:9.2.2")
+    implementation("org.flywaydb:flyway-mysql:10.1.0")
     implementation("com.zaxxer:HikariCP:3.4.2")
 
     testImplementation("org.junit.platform:junit-platform-launcher:1.0.0")
@@ -69,7 +70,7 @@ dependencies {
 
     implementation("com.ToxicBakery.library.bcrypt:bcrypt:+")
 
-    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.1")
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
 
     implementation("nl.myndocs:oauth2-server-core:$myndocsOauthVersion")
     implementation("nl.myndocs:oauth2-server-ktor:$myndocsOauthVersion")

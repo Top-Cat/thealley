@@ -11,6 +11,10 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
+    <logger name="uk.co.thomasc.thealley" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
     <!-- Set root logger on another level  -->
     <root level="info">
         <appender-ref ref="STDOUT"/>
