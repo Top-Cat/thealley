@@ -1,5 +1,11 @@
 package uk.co.thomasc.thealley.rest
 
+import at.topc.tado.Tado
+import at.topc.tado.data.common.TadoMode
+import at.topc.tado.data.common.typed.ITadoTyped
+import at.topc.tado.data.common.typed.TadoTypedHeating
+import at.topc.tado.data.common.typed.TadoTypedPercentage
+import at.topc.tado.data.common.typed.TadoTypedTemperature
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.ktor.application.call
 import io.ktor.locations.Location
@@ -10,8 +16,11 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import uk.co.thomasc.thealley.client.HeatingSetting
+import uk.co.thomasc.thealley.client.PercentageData
 import uk.co.thomasc.thealley.client.RelayClient
-import uk.co.thomasc.thealley.client.TadoClient
+import uk.co.thomasc.thealley.client.TemperatureData
+import uk.co.thomasc.thealley.client.TransformedZoneState
 import uk.co.thomasc.thealley.devices.Bulb
 import uk.co.thomasc.thealley.devices.DeviceMapper
 import uk.co.thomasc.thealley.devices.Plug
@@ -57,7 +66,7 @@ class StatsRoute {
     data class Tado(val api: StatsRoute)
 }
 
-fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient, deviceMapper: DeviceMapper, mqtt: RelayClient) {
+fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: Tado, deviceMapper: DeviceMapper, mqtt: RelayClient) {
     suspend fun getPlugs() = switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).asFlow().flatMapMerge(10) { plug ->
         flow {
             try {
@@ -146,7 +155,18 @@ fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: TadoClient,
         }
     }
 
+    val tadoHome = tadoClient.home(149676)
     get<StatsRoute.Tado> {
-        call.respond(tadoClient.getState())
+        val zones = tadoHome.getZoneStates()
+        val res = zones.zoneStates.map { zone ->
+            TransformedZoneState(
+                zone.key,
+                zone.value.tadoMode.ordinal,
+                zone.value.setting,
+                zone.value.activityDataPoints,
+                zone.value.sensorDataPoints
+            )
+        }
+        call.respond(res)
     }
 }

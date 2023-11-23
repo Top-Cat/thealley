@@ -4,7 +4,7 @@ val ktorVersion: String by project
 val myndocsOauthVersion: String by project
 
 plugins {
-    kotlin("jvm") version "1.5.30"
+    kotlin("jvm") version "1.9.20"
     id("org.jlleitschuh.gradle.ktlint") version "10.1.0"
     application
 }
@@ -13,7 +13,7 @@ group = "uk.co.thomasc"
 
 kotlin {
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(16))
+        this.languageVersion.set(JavaLanguageVersion.of(16))
     }
     sourceSets.all {
         languageSettings.optIn("kotlin.io.path.ExperimentalPathApi")
@@ -29,6 +29,7 @@ kotlin {
 dependencies {
     repositories {
         mavenCentral()
+        maven { url = uri("https://artifactory.kirkstall.top-cat.me") }
     }
 
     implementation("io.ktor:ktor-jackson:$ktorVersion")
@@ -47,6 +48,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.5.2")
 
     implementation("com.luckycatlabs:SunriseSunsetCalculator:1.2")
+    implementation("at.topc.tado:tado-kt:1.0.10")
 
     // DB & Migrations
     implementation("mysql:mysql-connector-java:8.0.29")

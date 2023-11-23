@@ -1,5 +1,7 @@
 package uk.co.thomasc.thealley
 
+import at.topc.tado.Tado
+import at.topc.tado.config.TadoConfig
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -61,7 +63,6 @@ import org.jetbrains.exposed.sql.Database
 import uk.co.thomasc.thealley.client.KotlinTimeModule
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.client.RelayMqtt
-import uk.co.thomasc.thealley.client.TadoClient
 import uk.co.thomasc.thealley.config.AlleyTokenStore
 import uk.co.thomasc.thealley.config.clients
 import uk.co.thomasc.thealley.devices.DeviceMapper
@@ -76,12 +77,7 @@ import uk.co.thomasc.thealley.rest.statsRoute
 import uk.co.thomasc.thealley.scenes.SceneController
 import uk.co.thomasc.thealley.web.mainRoute
 import javax.sql.DataSource
-import kotlin.collections.Set
-import kotlin.collections.emptyMap
-import kotlin.collections.forEach
 import kotlin.collections.set
-import kotlin.collections.setOf
-import kotlin.collections.toSet
 
 fun setupDB(): DataSource {
     val dbHost = System.getenv("MYSQL_HOSTNAME") ?: "localhost"
@@ -145,7 +141,12 @@ fun Application.setup() {
     val sceneController = SceneController(sr, switchRepository)
     val mqtt = RelayMqtt(client, relayClient, sceneController, api)
     val ss = SwitchServer(sceneController, sender, environment)
-    val tado = TadoClient(config)
+    val tado = Tado(
+        TadoConfig(
+            "tado@thomasc.co.uk",
+            config.tado.refreshToken
+        )
+    )
 
     val alleyTokenStore = AlleyTokenStore()
     client.connect(connectionOptions)

@@ -2,6 +2,8 @@ package uk.co.thomasc.thealley.devices
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import mu.KLogging
 import uk.co.thomasc.thealley.client.jackson
 import java.time.Instant
@@ -11,12 +13,13 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
     companion object : KLogging()
 
     private var bulbData: BulbData? = null
+    private val mutex = Mutex()
 
-    @Synchronized
-    override suspend fun getData() = (bulbData ?: updateData())
+    override suspend fun getData() = mutex.withLock {
+        updateData() ?: bulbData
+    }
 
     private var lastRequest: Instant = Instant.MIN
-    @Synchronized
     private suspend fun updateData() =
         run {
             if (Instant.now().minusSeconds(20).isAfter(lastRequest)) {

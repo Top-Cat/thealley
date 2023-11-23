@@ -2,16 +2,19 @@ package uk.co.thomasc.thealley.devices
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import uk.co.thomasc.thealley.client.jackson
 
 class Plug(host: String) : KasaDevice<PlugData>(host) {
 
     private var plugData: PlugData? = null
+    private val mutex = Mutex()
 
-    @Synchronized
-    override suspend fun getData() = (plugData ?: updateData())
+    override suspend fun getData() = mutex.withLock {
+        plugData ?: updateData()
+    }
 
-    @Synchronized
     suspend fun updateData() =
         (getSysInfo(host, 5000) as? PlugData)?.apply {
             plugData = this

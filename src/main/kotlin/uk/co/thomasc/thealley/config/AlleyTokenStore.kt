@@ -8,9 +8,10 @@ import nl.myndocs.oauth2.token.TokenStore
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.`java-time`.timestamp
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
@@ -86,7 +87,7 @@ class AlleyTokenStore : TokenStore {
     override fun revokeAccessToken(token: String) {
         transaction {
             NewAccessTokenTable.deleteWhere {
-                NewAccessTokenTable.id eq token
+                id eq token
             }
         }
     }
@@ -94,7 +95,7 @@ class AlleyTokenStore : TokenStore {
     override fun revokeRefreshToken(token: String) {
         transaction {
             NewRefreshTokenTable.deleteWhere {
-                NewRefreshTokenTable.id eq token
+                id eq token
             }
         }
     }
