@@ -30,9 +30,6 @@ import java.awt.Color
 
 @Location("/external")
 class ExternalRoute {
-    @Location("/login")
-    data class Login(val api: ExternalRoute)
-
     @Location("/googlehome")
     data class GoogleHome(val api: ExternalRoute)
 

@@ -163,9 +163,6 @@ fun Application.setup() {
     install(Authentication) {
         form("oauth-login") {
             userParamName = "username"
-            challenge {
-                call.respondRedirect("/external/login")
-            }
             validate { creds ->
                 userRepository.getUserByName(creds.name)?.let {
                     if (Bcrypt.verify(creds.password, it.password.removePrefix("{bcrypt}").toByteArray())) {
@@ -258,7 +255,7 @@ fun Application.setup() {
         mainRoute(switchRepository)
 
         authenticate("oauth-login") {
-            post<ExternalRoute.Login> {
+            post("/external/login") {
                 call.sessions.set(call.principal<UserIdPrincipal>())
                 call.request.header(HttpHeaders.Referrer)?.let { call.respondRedirect(it) } ?: run {
                     call.respondText("Hello, ${call.principal<UserIdPrincipal>()?.name}!")
