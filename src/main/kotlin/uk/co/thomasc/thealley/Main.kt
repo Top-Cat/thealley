@@ -66,7 +66,6 @@ import uk.co.thomasc.thealley.repo.SceneRepository
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import uk.co.thomasc.thealley.repo.UserRepository
 import uk.co.thomasc.thealley.rest.Api
-import uk.co.thomasc.thealley.rest.ExternalRoute
 import uk.co.thomasc.thealley.rest.apiRoute
 import uk.co.thomasc.thealley.rest.controlRoute
 import uk.co.thomasc.thealley.rest.externalRoute

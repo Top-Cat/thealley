@@ -22,7 +22,6 @@ kotlin {
         languageSettings.optIn("kotlin.io.path.ExperimentalPathApi")
         languageSettings.optIn("io.ktor.server.locations.KtorExperimentalLocationsAPI")
         languageSettings.optIn("kotlin.time.ExperimentalTime")
-        languageSettings.optIn("io.ktor.util.KtorExperimentalAPI")
         languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
         languageSettings.optIn("kotlinx.coroutines.FlowPreview")
         languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
