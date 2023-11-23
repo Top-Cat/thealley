@@ -8,6 +8,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonArray
@@ -39,7 +40,7 @@ class ExternalRoute {
 val threadPool = newFixedThreadPoolContext(10, "ExternalRoute")
 
 fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: SceneController, alleyTokenStore: AlleyTokenStore, deviceMapper: DeviceMapper) {
-    fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
+    suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices.map {
                 it to switchRepository.getDeviceForId(it.deviceId)
@@ -47,7 +48,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                 it.first to deviceMapper.toLight(it.second)
             }
         }.map { // Execute commands
-            runBlocking {
+            coroutineScope {
                 it.second.map { devices ->
                     async(threadPool) {
                         devices.first to it.first.execution.map { ex ->
@@ -122,10 +123,8 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
         }.flatMap { // Collate results
             // Commands -> Devices -> Executions
             cmd ->
-            cmd.map {
-                _devices ->
-
-                val devices = runBlocking { _devices.await() }
+            cmd.map { localDevices ->
+                val devices = localDevices.await()
 
                 devices.first to devices.second.fold(ExecuteStatus.SUCCESS) {
                     acc, v ->

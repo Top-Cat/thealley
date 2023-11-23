@@ -53,7 +53,7 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
                         bulbData = this
                     }
 
-                    alleyJson.decodeFromString<BulbEmeterResponse>(it).emeter.get_realtime
+                    alleyJson.decodeFromString<BulbEmeterResponse>(it).emeter?.get_realtime
                 } ?: BulbRealtimePower(0, -1)
             }.also {
                 lastRequest = Clock.System.now()
@@ -65,16 +65,14 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
             setLightState(BulbUpdate(value))
         }
 
-    override fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?, transitionTime: Int?) =
-        runBlocking {
-            setLightState(
-                temperature?.let {
-                    BulbUpdate(transitionTime, true, null, null, null, brightness, temperature)
-                } ?: hue?.let {
-                    BulbUpdate(transitionTime, true, null, hue, saturation, brightness, 0)
-                } ?: BulbUpdate(transitionTime, (brightness ?: 1) > 0, null, null, null, brightness, null)
-            )
-        }
+    override suspend fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?, transitionTime: Int?) =
+        setLightState(
+            temperature?.let {
+                BulbUpdate(transitionTime, true, null, null, null, brightness, temperature)
+            } ?: hue?.let {
+                BulbUpdate(transitionTime, true, null, hue, saturation, brightness, 0)
+            } ?: BulbUpdate(transitionTime, (brightness ?: 1) > 0, null, null, null, brightness, null)
+        )
 
     private suspend fun setLightState(state: BulbUpdate): Bulb {
         val obj = LightingServiceUpdate(LightingService(state))

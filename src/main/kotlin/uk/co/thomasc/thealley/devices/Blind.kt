@@ -45,7 +45,7 @@ class Blind(
     override fun setPowerState(value: Boolean) =
         sendCommand(if (value) BlindCommand.OPEN else BlindCommand.CLOSE)
 
-    override fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?, transitionTime: Int?) {
+    override suspend fun setComplexState(brightness: Int?, hue: Int?, saturation: Int?, temperature: Int?, transitionTime: Int?) {
         brightness?.let {
             setPosition(it)
         }

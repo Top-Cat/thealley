@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.merge
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.client.TransformedZoneState
 import uk.co.thomasc.thealley.devices.Bulb
@@ -19,6 +22,7 @@ import uk.co.thomasc.thealley.devices.Relay
 import uk.co.thomasc.thealley.devices.ZPlugState
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
+@Serializable
 data class BulbResponse(
     val host: String,
     val name: String? = null,
@@ -27,12 +31,14 @@ data class BulbResponse(
     val rssi: Int? = null
 )
 
+@Serializable
 data class RelayResponse(
     val host: String,
     val state: Int,
-    val extra: Map<String, Any>
+    val extra: Map<String, JsonElement>
 )
 
+@Serializable
 data class PlugResponse(
     val host: String,
     val name: String,
@@ -109,7 +115,7 @@ fun Route.statsRoute(switchRepository: SwitchRepository, tadoClient: Tado, devic
     }
 
     get<StatsRoute.Plug> {
-        call.respond(kotlinx.coroutines.flow.merge(getPlugs(), getZPlugs()).toList())
+        call.respond(merge(getPlugs(), getZPlugs()).toList())
     }
 
     get<StatsRoute.Bulb> {

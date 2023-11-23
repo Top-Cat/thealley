@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import mu.KLogging
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.decryptWithHeader
 import uk.co.thomasc.thealley.encryptWithHeader
@@ -22,7 +23,7 @@ import java.net.UnknownHostException
 import java.nio.ByteBuffer
 
 abstract class KasaDevice<out T>(val host: String) {
-    companion object {
+    companion object : KLogging() {
         val threadPool = newFixedThreadPoolContext(10, "KasaDevice")
         val selector = ActorSelectorManager(Dispatchers.IO)
     }
@@ -33,10 +34,11 @@ abstract class KasaDevice<out T>(val host: String) {
         this.send("{\"system\":{\"get_sysinfo\":{}}}", host, timeout = timeout)?.let(::parseSysInfo)
 
     protected fun parseSysInfo(json: String): Any? {
+        logger.debug { "Received json from kasa - $json" }
         val node = try {
             alleyJson.parseToJsonElement(json).jsonObject
         } catch (e: SerializationException) {
-            println("Failed to parse json from $host")
+            logger.warn { "Failed to parse json from $host" }
             return null
         }
         val deviceNode = node["system"]?.jsonObject?.get("get_sysinfo")

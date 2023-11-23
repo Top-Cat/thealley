@@ -16,6 +16,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.runBlocking
+import mu.KLogging
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.scenes.SceneController
@@ -81,7 +82,7 @@ class SwitchClient(
     private val client: Socket,
     private val mqtt: RelayMqtt.DeviceGateway,
 ) {
-    companion object {
+    companion object : KLogging() {
         const val keepaliveInterval = 10
     }
 
@@ -102,7 +103,7 @@ class SwitchClient(
     }
 
     suspend fun run() {
-        println("Client connected: ${client.remoteAddress}")
+        logger.info { "Client connected: ${client.remoteAddress}" }
         val bb = ByteBuffer.allocate(32)
         val q = ArrayBlockingQueue<Int>(128)
 
@@ -132,9 +133,9 @@ class SwitchClient(
                                     2 -> it.revoke()
                                     3 -> it.startFade()
                                     4 -> it.endFade()
-                                    else -> println("Unknown state $buttonState")
+                                    else -> logger.warn { "Unknown state $buttonState" }
                                 }
-                            } ?: println("Unknown switch $switchId/$buttonId")
+                            } ?: logger.warn { "Unknown switch $switchId/$buttonId" }
                         }
                         53 -> {
                             val dataType = q.poll()
@@ -147,11 +148,11 @@ class SwitchClient(
                 }
             }
         } catch (e: IOException) {
-            println("Client disconnected: ${client.remoteAddress}")
+            logger.info { "Client disconnected: ${client.remoteAddress}" }
         } finally {
-            println("Closing ${client.remoteAddress}")
+            logger.info { "Closing ${client.remoteAddress}" }
             client.close()
-            println("Finally: ${client.remoteAddress}, ${client.isClosed}")
+            logger.info { "Finally: ${client.remoteAddress}, ${client.isClosed}" }
         }
     }
 }

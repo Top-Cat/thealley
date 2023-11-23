@@ -102,7 +102,10 @@ data class CtrlProtocol(
 )
 
 @Serializable
-data class BulbEmeterResponse(val emeter: BulbEmeter)
+data class BulbEmeterResponse(
+    @SerialName("smartlife.iot.common.emeter")
+    val emeter: BulbEmeter
+)
 @Serializable
 data class BulbEmeter(val get_realtime: BulbRealtimePower)
 @Serializable

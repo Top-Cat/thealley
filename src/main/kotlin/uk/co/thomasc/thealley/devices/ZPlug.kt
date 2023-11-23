@@ -48,7 +48,7 @@ class ZPlug(
         }
     }
 
-    suspend fun getState() = runBlocking {
+    suspend fun getState() = run {
         mqtt.sendToMqtt("zigbee/$deviceId/get", MqttMessage("{\"state\": \"\"}".toByteArray()))
 
         withContext(Dispatchers.IO) {

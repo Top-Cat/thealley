@@ -29,7 +29,7 @@ class Plug(host: String) : KasaDevice<PlugData>(host) {
         }
 
     suspend fun getName() = getData()?.alias
-    suspend fun getPowerState() = getData()?.relay_state
+    suspend fun getPowerState() = getData()?.getRelayState()
     suspend fun getUptime() = getData()?.on_time
     suspend fun getSignalStrength() = getData()?.rssi
 

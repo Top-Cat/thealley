@@ -19,11 +19,7 @@ class DeviceMapper(
     private fun SwitchRepository.Device.innerToLight(): Light<*>? {
         return when (type) {
             SwitchRepository.DeviceType.BULB -> bulbMap.getOrPut(hostname) {
-                Bulb(hostname).apply {
-                    runBlocking {
-                        getName()
-                    }
-                }
+                Bulb(hostname)
             }
             SwitchRepository.DeviceType.RELAY -> relayClient.getRelay(hostname)
             SwitchRepository.DeviceType.BLIND -> relayClient.getBlind(hostname)
