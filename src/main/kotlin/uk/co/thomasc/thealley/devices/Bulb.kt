@@ -4,11 +4,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString
 import mu.KLogging
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.client.alleyJsonUgly
-import kotlinx.datetime.Instant
 import kotlin.time.Duration.Companion.seconds
 
 class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
@@ -29,7 +29,9 @@ class Bulb(host: String) : KasaDevice<BulbData>(host), Light<Bulb> {
                 (getSysInfo(host, 3000) as? BulbData)?.apply {
                     bulbData = this
                 }
-            } else bulbData
+            } else {
+                bulbData
+            }
         }.also {
             lastRequest = Clock.System.now()
         }

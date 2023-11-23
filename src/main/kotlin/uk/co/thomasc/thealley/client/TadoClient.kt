@@ -32,7 +32,7 @@ data class TransformedZoneState(
     val sensorDataPoints: Map<String, ITadoData?>
 ) {
     constructor(zone: Int, tadoMode: Int, setting: ITadoTyped?, activityDataPoints: Map<String, ITadoTyped>, sensorDataPoints: Map<String, ITadoTyped>) :
-            this(zone, tadoMode, mapSetting(setting), activityDataPoints.mapValues(::mapDataPoints), sensorDataPoints.mapValues(::mapDataPoints))
+        this(zone, tadoMode, mapSetting(setting), activityDataPoints.mapValues(::mapDataPoints), sensorDataPoints.mapValues(::mapDataPoints))
 
     companion object {
         fun mapDataPoints(node: Map.Entry<String, ITadoTyped>) = when (val nv = node.value) {

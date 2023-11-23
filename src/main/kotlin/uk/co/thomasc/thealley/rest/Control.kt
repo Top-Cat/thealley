@@ -16,6 +16,7 @@ import uk.co.thomasc.thealley.scenes.SceneController
 
 @Serializable
 data class ControlResult(val success: Boolean)
+
 @Serializable
 data class BulbState(val state: Int, val dimmable: Boolean, val hue: Int?, val temp: Int?, val color: Boolean) {
     constructor(on: Boolean) : this(if (on) 100 else 0, false, 0, 0, false)
@@ -27,10 +28,13 @@ data class SwitchData(val buttons: Map<Int, Int>)
 class ControlRoute {
     @Location("/{id}")
     data class Device(val id: Int, val api: ControlRoute)
+
     @Location("/{id}/on")
     data class TurnOn(val id: Int, val api: ControlRoute)
+
     @Location("/{id}/off")
     data class TurnOff(val id: Int, val api: ControlRoute)
+
     @Location("/switch/{switchId}")
     data class Switch(val switchId: Int, val api: ControlRoute)
 }

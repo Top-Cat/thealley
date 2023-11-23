@@ -23,7 +23,9 @@ class Plug(host: String) : KasaDevice<PlugData>(host) {
                 (getSysInfo(host, 3000) as? PlugData)?.apply {
                     plugData = this
                 }
-            } else plugData
+            } else {
+                plugData
+            }
         }.also {
             lastRequest = Clock.System.now()
         }

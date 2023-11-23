@@ -32,8 +32,10 @@ data class PlugData(
 
 @Serializable
 data class EmeterResponse(val emeter: Emeter)
+
 @Serializable
 data class Emeter(val get_realtime: RealtimePower)
+
 @Serializable
 data class RealtimePower(
     val current: Float,

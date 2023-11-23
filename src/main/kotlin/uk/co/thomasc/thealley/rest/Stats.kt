@@ -9,8 +9,8 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import uk.co.thomasc.thealley.client.RelayClient
@@ -54,10 +54,13 @@ data class PlugResponse(
 class StatsRoute {
     @Location("/plug")
     data class Plug(val api: StatsRoute)
+
     @Location("/bulb")
     data class Bulb(val api: StatsRoute)
+
     @Location("/relay")
     data class Relay(val api: StatsRoute)
+
     @Location("/tado")
     data class Tado(val api: StatsRoute)
 }

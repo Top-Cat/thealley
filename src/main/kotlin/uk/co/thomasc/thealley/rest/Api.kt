@@ -17,6 +17,7 @@ data class PropertyData(override val sensor: String, val property: String, val v
 class ApiRoute {
     @Location("/motion")
     data class Motion(val api: ApiRoute)
+
     @Location("/prop")
     data class Prop(val api: ApiRoute)
 }

@@ -10,7 +10,6 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.newFixedThreadPoolContext
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -31,8 +30,12 @@ import java.awt.Color
 
 @Location("/external")
 class ExternalRoute {
+    @Location("/login")
+    data class Login(val api: ExternalRoute)
+
     @Location("/googlehome")
     data class GoogleHome(val api: ExternalRoute)
+
     @Location("/test")
     data class Test(val api: ExternalRoute)
 }
@@ -120,15 +123,12 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                     }
                 }
             }
-        }.flatMap { // Collate results
+        }.flatMap { cmd -> // Collate results
             // Commands -> Devices -> Executions
-            cmd ->
             cmd.map { localDevices ->
                 val devices = localDevices.await()
 
-                devices.first to devices.second.fold(ExecuteStatus.SUCCESS) {
-                    acc, v ->
-
+                devices.first to devices.second.fold(ExecuteStatus.SUCCESS) { acc, v ->
                     if (v == ExecuteStatus.OFFLINE || acc == ExecuteStatus.OFFLINE) {
                         ExecuteStatus.OFFLINE
                     } else if (v == ExecuteStatus.ERROR) {

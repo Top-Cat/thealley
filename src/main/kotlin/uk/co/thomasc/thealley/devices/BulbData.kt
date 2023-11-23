@@ -24,7 +24,7 @@ class BulbUpdate private constructor(
     override val ignore_default: Int? = null
 ) : IBulbUpdate() {
     constructor(transition_period: Int? = null, on_off: Boolean, mode: String? = null, hue: Int? = null, saturation: Int? = null, brightness: Int? = null, color_temp: Int? = null, ignore_default: Boolean = true) :
-            this(transition_period, if (on_off) 1 else 0, mode, hue, saturation, brightness, color_temp, if (ignore_default) 1 else 0)
+        this(transition_period, if (on_off) 1 else 0, mode, hue, saturation, brightness, color_temp, if (ignore_default) 1 else 0)
     constructor(on_off: Boolean, transition_period: Int? = null) : this(transition_period, if (on_off) 1 else 0, null, null, null, null, null, 1)
 
     fun isOn() = on_off > 0
@@ -106,7 +106,9 @@ data class BulbEmeterResponse(
     @SerialName("smartlife.iot.common.emeter")
     val emeter: BulbEmeter
 )
+
 @Serializable
 data class BulbEmeter(val get_realtime: BulbRealtimePower)
+
 @Serializable
 data class BulbRealtimePower(val power_mw: Int, val err_code: Int)

@@ -80,7 +80,7 @@ class SwitchServer(
 class SwitchClient(
     private val sceneController: SceneController,
     private val client: Socket,
-    private val mqtt: RelayMqtt.DeviceGateway,
+    private val mqtt: RelayMqtt.DeviceGateway
 ) {
     companion object : KLogging() {
         const val keepaliveInterval = 10

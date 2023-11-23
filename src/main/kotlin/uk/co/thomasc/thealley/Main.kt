@@ -66,6 +66,7 @@ import uk.co.thomasc.thealley.repo.SceneRepository
 import uk.co.thomasc.thealley.repo.SwitchRepository
 import uk.co.thomasc.thealley.repo.UserRepository
 import uk.co.thomasc.thealley.rest.Api
+import uk.co.thomasc.thealley.rest.ExternalRoute
 import uk.co.thomasc.thealley.rest.apiRoute
 import uk.co.thomasc.thealley.rest.controlRoute
 import uk.co.thomasc.thealley.rest.externalRoute
@@ -162,6 +163,9 @@ fun Application.setup() {
     install(Authentication) {
         form("oauth-login") {
             userParamName = "username"
+            challenge {
+                call.respondRedirect("/external/login")
+            }
             validate { creds ->
                 userRepository.getUserByName(creds.name)?.let {
                     if (Bcrypt.verify(creds.password, it.password.removePrefix("{bcrypt}").toByteArray())) {
@@ -254,7 +258,7 @@ fun Application.setup() {
         mainRoute(switchRepository)
 
         authenticate("oauth-login") {
-            post("/external/login") {
+            post<ExternalRoute.Login> {
                 call.sessions.set(call.principal<UserIdPrincipal>())
                 call.request.header(HttpHeaders.Referrer)?.let { call.respondRedirect(it) } ?: run {
                     call.respondText("Hello, ${call.principal<UserIdPrincipal>()?.name}!")

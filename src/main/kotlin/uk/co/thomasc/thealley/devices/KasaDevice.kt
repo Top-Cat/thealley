@@ -17,7 +17,6 @@ import mu.KLogging
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.decryptWithHeader
 import uk.co.thomasc.thealley.encryptWithHeader
-import java.lang.Exception
 import java.net.SocketException
 import java.net.UnknownHostException
 import java.nio.ByteBuffer

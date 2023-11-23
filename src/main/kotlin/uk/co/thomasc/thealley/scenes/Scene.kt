@@ -25,8 +25,7 @@ class Scene(
         }
 
     suspend fun averageBrightness() = coerceToBrightness(
-        deviceMapper.each(lights) {
-            bulb, _ ->
+        deviceMapper.each(lights) { bulb, _ ->
             when (bulb) {
                 is Bulb -> if (bulb.getPowerState()) bulb.getLightState()?.brightness else 0
                 else -> null
@@ -35,9 +34,7 @@ class Scene(
     )
 
     suspend fun execute(percent: Int = 100, transitionTime: Int = 1000) {
-        deviceMapper.each(lights) {
-            bulb, it ->
-
+        deviceMapper.each(lights) { bulb, it ->
             when (val newBrightness = (it.brightness * percent) / 100) {
                 0 -> bulb.setPowerState(false)
                 else -> bulb.setComplexState(newBrightness, it.hue, it.saturation, it.colorTemp, transitionTime)

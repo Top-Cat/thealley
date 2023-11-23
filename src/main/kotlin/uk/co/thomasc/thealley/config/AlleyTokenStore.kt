@@ -83,7 +83,7 @@ class AlleyTokenStore(val clientStore: InMemoryClient) : TokenStore {
                     Instant.MAX,
                     it[NewRefreshTokenTable.userName]?.let { u -> Identity(u) },
                     it[NewRefreshTokenTable.clientId],
-                    it[NewRefreshTokenTable.scope].split(",").toSet(),
+                    it[NewRefreshTokenTable.scope].split(",").toSet()
                 )
             }
         }

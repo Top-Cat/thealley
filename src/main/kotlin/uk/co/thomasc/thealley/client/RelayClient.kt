@@ -23,11 +23,12 @@ interface ZigbeeUpdate {
     val linkquality: Int
     val battery: Int?
 }
+
 @Serializable
 data class MotionSensorUpdate(
     // Generic
     override val linkquality: Int,
-    override val battery: Int?,
+    override val battery: Int? = null,
 
     // Light sensor
     val voltage: Int = 0,
@@ -41,8 +42,9 @@ class RelayMqtt(val client: MqttClient, val relayClient: RelayClient, val sceneC
     companion object : KLogging()
 
     private fun debugInfo(s: String) {
-        if (debugMqtt)
+        if (debugMqtt) {
             logger.debug(s)
+        }
     }
 
     init {

@@ -1,3 +1,5 @@
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
+
 val kotlinVersion: String by project
 val exposedVersion: String by project
 val ktorVersion: String by project
@@ -6,7 +8,7 @@ val myndocsOauthVersion: String by project
 plugins {
     kotlin("jvm") version "1.9.20"
     kotlin("plugin.serialization") version "1.9.20"
-    id("org.jlleitschuh.gradle.ktlint") version "10.1.0"
+    id("org.jlleitschuh.gradle.ktlint") version "11.5.1"
     application
 }
 
@@ -84,6 +86,13 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+ktlint {
+    version.set("0.50.0")
+    reporters {
+        reporter(ReporterType.CHECKSTYLE)
+    }
 }
 
 application {

@@ -27,7 +27,7 @@ fun Application.config() = environment.config.config("thealley").let {
 }
 
 data class Config(
-    val relay: RelayConfig ,
+    val relay: RelayConfig,
     val tado: TadoConfig,
     val mqtt: MqttConfig
 ) {

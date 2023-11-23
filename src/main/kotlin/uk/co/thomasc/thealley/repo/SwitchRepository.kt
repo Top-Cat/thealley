@@ -122,14 +122,16 @@ fun <T : Table> T.insertOrUpdate(vararg onDuplicateUpdateKeys: Column<*>, body: 
     }
 
 class InsertOrUpdate<Key : Any>(
-    private val onDuplicateUpdateKeys: Array< out Column<*>>,
+    private val onDuplicateUpdateKeys: Array<out Column<*>>,
     table: Table,
     isIgnore: Boolean = false
 ) : InsertStatement<Key>(table, isIgnore) {
     override fun prepareSQL(transaction: Transaction, prepared: Boolean): String {
         val onUpdateSQL = if (onDuplicateUpdateKeys.isNotEmpty()) {
             " ON DUPLICATE KEY UPDATE " + onDuplicateUpdateKeys.joinToString { "${transaction.identity(it)}=VALUES(${transaction.identity(it)})" }
-        } else ""
+        } else {
+            ""
+        }
         return super.prepareSQL(transaction, prepared) + onUpdateSQL
     }
 }

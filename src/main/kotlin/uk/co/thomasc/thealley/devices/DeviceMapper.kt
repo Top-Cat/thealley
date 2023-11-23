@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
 import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.repo.SwitchRepository
 
