@@ -53,7 +53,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
     implementation("com.luckycatlabs:SunriseSunsetCalculator:1.2")
-    implementation("at.topc.tado:tado-kt:1.0.12")
+    implementation("at.topc.tado:tado-kt:1.0.13")
 
     // DB & Migrations
     implementation("mysql:mysql-connector-java:8.0.33")
