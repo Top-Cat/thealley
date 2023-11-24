@@ -9,9 +9,9 @@ import io.ktor.network.sockets.isClosed
 import io.ktor.server.application.ApplicationEnvironment
 import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.application.ApplicationStopping
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
@@ -23,6 +23,7 @@ import uk.co.thomasc.thealley.scenes.SceneController
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
+import kotlin.coroutines.coroutineContext
 
 class SwitchServer(
     private val sceneController: SceneController,
@@ -57,7 +58,7 @@ class SwitchServer(
     private suspend fun listenForClients() {
         while (true) {
             val client = server.accept()
-            coroutineScope {
+            with(CoroutineScope(coroutineContext)) {
                 launch {
                     val job = with(SwitchClient(sceneController, client, mqtt)) {
                         launch { client.use { run() } } to launch { keepalive() }
