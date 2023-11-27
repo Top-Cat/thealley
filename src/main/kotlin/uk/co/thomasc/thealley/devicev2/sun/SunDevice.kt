@@ -1,0 +1,49 @@
+package uk.co.thomasc.thealley.devicev2.sun
+
+import com.luckycatlabs.sunrisesunset.Zenith
+import com.luckycatlabs.sunrisesunset.calculator.SolarEventCalculator
+import com.luckycatlabs.sunrisesunset.dto.Location
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toKotlinInstant
+import uk.co.thomasc.thealley.devicev2.AlleyDevice
+import uk.co.thomasc.thealley.devicev2.AlleyEventBus
+import uk.co.thomasc.thealley.devicev2.IStateUpdater
+import uk.co.thomasc.thealley.devicev2.SunConfig
+import uk.co.thomasc.thealley.devicev2.TickEvent
+import java.util.Calendar
+
+class SunDevice(config: SunConfig, state: SunState, stateStore: IStateUpdater<SunState>) :
+    AlleyDevice<SunDevice, SunConfig, SunState>(config, state, stateStore) {
+
+    override suspend fun init(bus: AlleyEventBus) {
+        bus.handle<TickEvent> {
+            val daytime = isDaytime()
+            if (state.daytime != daytime) {
+                bus.emit(if (daytime) SunRiseEvent else SunSetEvent)
+                updateState(state.copy(daytime = daytime))
+            }
+        }
+    }
+
+    private val sunCalculator = SolarEventCalculator(Location(config.lat, config.lon), config.tz)
+
+    private lateinit var sunsetCache: Pair<Instant, Instant>
+    private var cacheTime: Calendar? = null
+
+    private fun Calendar.toKInstant() = this.toInstant().toKotlinInstant()
+
+    private fun isDaytime(): Boolean {
+        val now = Calendar.getInstance()
+        val nowInstant = now.toKInstant()
+
+        if (now.get(Calendar.YEAR) != cacheTime?.get(Calendar.YEAR) || now.get(Calendar.DAY_OF_YEAR) != cacheTime?.get(Calendar.DAY_OF_YEAR)) {
+            val sunrise = sunCalculator.computeSunriseCalendar(Zenith(89.0), now).toKInstant()
+            val sunset = sunCalculator.computeSunsetCalendar(Zenith(89.0), now).toKInstant()
+
+            sunsetCache = sunrise to sunset
+            cacheTime = now
+        }
+
+        return sunsetCache.first < nowInstant && sunsetCache.second > nowInstant
+    }
+}
