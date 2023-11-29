@@ -8,11 +8,9 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import kotlinx.serialization.Serializable
-import uk.co.thomasc.thealley.devices.Blind
-import uk.co.thomasc.thealley.devices.Bulb
-import uk.co.thomasc.thealley.devices.DeviceMapper
-import uk.co.thomasc.thealley.repo.SwitchRepository
-import uk.co.thomasc.thealley.scenes.SceneController
+import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
+import uk.co.thomasc.thealley.devicev2.AlleyEventBus
+import uk.co.thomasc.thealley.devicev2.IAlleyLight
 
 @Serializable
 data class ControlResult(val success: Boolean)
@@ -39,18 +37,14 @@ class ControlRoute {
     data class Switch(val switchId: Int, val api: ControlRoute)
 }
 
-fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: SceneController, deviceMapper: DeviceMapper) {
-    fun setState(id: Int, state: Boolean) =
-        switchRepository.getDeviceForId(id).let { res ->
-
-            when (res.type) {
-                SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY, SwitchRepository.DeviceType.BLIND ->
-                    deviceMapper.toLight(res)?.let {
-                        it.setPowerState(state)
-                        ControlResult(true)
-                    } ?: ControlResult(false)
-                SwitchRepository.DeviceType.PLUG, SwitchRepository.DeviceType.ZPLUG -> ControlResult(false)
+fun Route.controlRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper) {
+    suspend fun setState(id: Int, state: Boolean) =
+        when (val device = deviceMapper.getDevice(id)) {
+            is IAlleyLight -> {
+                device.setPowerState(bus, state)
+                ControlResult(true)
             }
+            else -> ControlResult(false)
         }
 
     get<ControlRoute.TurnOn> {
@@ -64,39 +58,54 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
     put<ControlRoute.Switch> {
         val switchData = call.receive<SwitchData>()
 
-        switchData.buttons.forEach { (buttonId, sceneId) ->
+        // TODO: Update switch object
+        /*switchData.buttons.forEach { (buttonId, sceneId) ->
             switchRepository.updateSwitch(it.switchId, buttonId, sceneId)
         }
-        sceneController.resetSwitchDelegate()
+        sceneController.resetSwitchDelegate()*/
     }
 
     put<ControlRoute.Device> {
         val stateRequest = call.receive<BulbState>()
-        val res = switchRepository.getDeviceForId(it.id)
+        val device = deviceMapper.getDevice(it.id)
 
-        when (res.type) {
-            SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY, SwitchRepository.DeviceType.BLIND ->
-                deviceMapper.toLight(res)?.let { light ->
-                    light.setComplexState(
+        // TODO: Support blinds
+        when (device) {
+            is IAlleyLight -> {
+                device.setComplexState(
+                    bus,
+                    IAlleyLight.LightState(
                         stateRequest.state,
                         if (stateRequest.color && stateRequest.state > 0) stateRequest.hue else null,
                         if (stateRequest.color && stateRequest.state > 0) 100 else null,
-                        if (stateRequest.color && stateRequest.state > 0) stateRequest.temp else null,
-                        500
-                    )
+                        if (stateRequest.color && stateRequest.state > 0) stateRequest.temp else null
+                    ),
+                    500
+                )
 
-                    stateRequest
-                } ?: BulbState(false)
-            SwitchRepository.DeviceType.PLUG, SwitchRepository.DeviceType.ZPLUG -> BulbState(false)
+                stateRequest
+            }
+            else -> BulbState(false)
         }.let { bs ->
             call.respond(bs)
         }
     }
 
     get<ControlRoute.Device> {
-        val res = switchRepository.getDeviceForId(it.id)
+        val device = deviceMapper.getDevice(it.id)
 
-        when (res.type) {
+        when (device) {
+            is IAlleyLight -> {
+                val state = device.getLightState()
+                BulbState(state.brightness ?: 0, state.hue, state.temperature)
+            }
+            else -> BulbState(false)
+        }.let { bs ->
+            call.respond(bs)
+        }
+
+        // TODO: Support blinds
+        /*when (res.type) {
             SwitchRepository.DeviceType.BULB, SwitchRepository.DeviceType.RELAY, SwitchRepository.DeviceType.BLIND ->
                 deviceMapper.toLight(res)?.let { l ->
                     when (l) {
@@ -108,8 +117,6 @@ fun Route.controlRoute(switchRepository: SwitchRepository, sceneController: Scen
                     }
                 } ?: BulbState(false)
             SwitchRepository.DeviceType.PLUG, SwitchRepository.DeviceType.ZPLUG -> BulbState(false)
-        }.let { bs ->
-            call.respond(bs)
-        }
+        }*/
     }
 }

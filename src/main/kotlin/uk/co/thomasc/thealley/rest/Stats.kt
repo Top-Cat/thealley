@@ -1,6 +1,5 @@
 package uk.co.thomasc.thealley.rest
 
-import at.topc.tado.TadoHomeApi
 import io.ktor.server.application.call
 import io.ktor.server.locations.Location
 import io.ktor.server.locations.get
@@ -9,18 +8,16 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import uk.co.thomasc.thealley.client.RelayClient
 import uk.co.thomasc.thealley.client.TransformedZoneState
-import uk.co.thomasc.thealley.devices.Bulb
-import uk.co.thomasc.thealley.devices.DeviceMapper
-import uk.co.thomasc.thealley.devices.Plug
-import uk.co.thomasc.thealley.devices.Relay
-import uk.co.thomasc.thealley.devices.ZPlugState
-import uk.co.thomasc.thealley.repo.SwitchRepository
+import uk.co.thomasc.thealley.devicev2.AlleyDevice
+import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
+import uk.co.thomasc.thealley.devicev2.kasa.bulb.BulbDevice
+import uk.co.thomasc.thealley.devicev2.kasa.plug.PlugDevice
+import uk.co.thomasc.thealley.devicev2.relay.RelayDevice
+import uk.co.thomasc.thealley.devicev2.tado.TadoDevice
 
 @Serializable
 data class BulbResponse(
@@ -50,6 +47,12 @@ data class PlugResponse(
     val rssi: Int
 )
 
+@Serializable
+data class TadoResponse(
+    val homeId: Int,
+    val zoneStates: List<TransformedZoneState>
+)
+
 @Location("/stats")
 class StatsRoute {
     @Location("/plug")
@@ -65,106 +68,81 @@ class StatsRoute {
     data class Tado(val api: StatsRoute)
 }
 
-fun Route.statsRoute(switchRepository: SwitchRepository, tadoHome: TadoHomeApi, deviceMapper: DeviceMapper, mqtt: RelayClient) {
-    suspend fun getPlugs() = switchRepository.getDevicesForType(SwitchRepository.DeviceType.PLUG).asFlow().flatMapMerge(10) { plug ->
+suspend inline fun <reified T : AlleyDevice<*, *, *>, U> getStats(devices: AlleyDeviceMapper, crossinline block: suspend (T) -> U, concurrency: Int = 10) =
+    devices.getDevices<T>().asFlow().flatMapMerge(concurrency) { device ->
         flow {
-            try {
-                Plug(plug.hostname).let {
-                    it.updateData()
-                    val power = it.getPower()
-
-                    PlugResponse(
-                        plug.hostname,
-                        it.getName() ?: "",
-                        if (it.getPowerState() == true) 1 else 0,
-                        power.power,
-                        power.voltage,
-                        power.current,
-                        it.getUptime() ?: -1,
-                        it.getSignalStrength() ?: -1
-                    )
-                }.also {
-                    emit(it)
-                }
-            } catch (e: KotlinNullPointerException) {
-                // Ignore
-            }
+            emit(
+                block(device)
+            )
         }
-    }
+    }.toList()
 
-    suspend fun getZPlugs() = switchRepository.getDevicesForType(SwitchRepository.DeviceType.ZPLUG).asFlow().flatMapMerge(10) { plug ->
-        flow {
-            try {
-                mqtt.getZPlug(plug.hostname).let {
-                    it.getState()?.let { state ->
-                        PlugResponse(
-                            plug.hostname,
-                            plug.name,
-                            if (state.state == ZPlugState.ON) 1 else 0,
-                            state.power,
-                            state.voltage,
-                            state.current,
-                            -1,
-                            state.linkquality
-                        )
-                    }
-                }.also {
-                    emit(it)
-                }
-            } catch (e: KotlinNullPointerException) {
-                // Ignore
-            }
-        }
-    }
+fun Route.statsRoute(devices: AlleyDeviceMapper) {
+    suspend fun getPlugs() = getStats(devices, { plug: PlugDevice ->
+        val power = plug.getPower()
+
+        PlugResponse(
+            plug.config.host,
+            plug.getName() ?: "",
+            if (plug.getPowerState() == true) 1 else 0,
+            power.power,
+            power.voltage,
+            power.current,
+            plug.getUptime() ?: -1,
+            plug.getSignalStrength() ?: -1
+        )
+    })
 
     get<StatsRoute.Plug> {
-        call.respond(merge(getPlugs(), getZPlugs()).toList())
+        call.respond(getPlugs())
     }
 
     get<StatsRoute.Bulb> {
-        deviceMapper.each(switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB)) { bulb, dev ->
-            (bulb as? Bulb)?.let {
-                // Power update will cause sysinfo update
-                val power = bulb.getPowerUsage()
+        getStats(devices, { bulb: BulbDevice ->
+            val power = bulb.getPowerUsage()
 
-                BulbResponse(
-                    dev.hostname,
-                    bulb.getName(),
-                    if (bulb.getPowerState()) 1 else 0,
-                    power,
-                    bulb.getSignalStrength()
-                )
-            }
-        }.let {
+            BulbResponse(
+                bulb.config.host,
+                bulb.getName(),
+                if (bulb.getPowerState()) 1 else 0,
+                power,
+                bulb.getSignalStrength()
+            )
+        }).let {
             call.respond(it)
         }
     }
 
     get<StatsRoute.Relay> {
-        deviceMapper.each(switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY)) { relay, dev ->
-            (relay as? Relay)?.let {
-                RelayResponse(
-                    dev.hostname,
-                    if (relay.getPowerState()) 1 else 0,
-                    relay.props
-                )
-            }
-        }.let {
+        getStats(devices, { relay: RelayDevice ->
+            RelayResponse(
+                relay.config.host,
+                if (relay.state.on) 1 else 0,
+                relay.props
+            )
+        }).let {
             call.respond(it)
         }
     }
 
     get<StatsRoute.Tado> {
-        val zones = tadoHome.getZoneStates()
-        val res = zones.zoneStates.map { zone ->
-            TransformedZoneState(
-                zone.key,
-                zone.value.tadoMode.ordinal,
-                zone.value.setting,
-                zone.value.activityDataPoints,
-                zone.value.sensorDataPoints
+        getStats(devices, { tado: TadoDevice ->
+            val zones = tado.home.getZoneStates()
+
+            TadoResponse(
+                tado.homeId,
+                zones.zoneStates.map { zone ->
+                    TransformedZoneState(
+                        zone.key,
+                        zone.value.tadoMode.ordinal,
+                        zone.value.setting,
+                        zone.value.activityDataPoints,
+                        zone.value.sensorDataPoints
+                    )
+                }
             )
+        }).let {
+            call.respond(it)
         }
-        call.respond(res)
     }
 }

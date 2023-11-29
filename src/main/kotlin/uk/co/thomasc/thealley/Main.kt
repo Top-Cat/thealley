@@ -1,7 +1,5 @@
 package uk.co.thomasc.thealley
 
-import at.topc.tado.Tado
-import at.topc.tado.config.TadoConfig
 import com.github.mustachejava.DefaultMustacheFactory
 import com.toxicbakery.bcrypt.Bcrypt
 import com.zaxxer.hikari.HikariConfig
@@ -51,26 +49,15 @@ import nl.myndocs.oauth2.identity.Identity
 import nl.myndocs.oauth2.identity.IdentityService
 import nl.myndocs.oauth2.ktor.feature.Oauth2ServerFeature
 import nl.myndocs.oauth2.ktor.feature.request.KtorCallContext
-import org.eclipse.paho.client.mqttv3.MqttClient
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions
-import org.eclipse.paho.client.mqttv3.MqttMessage
-import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
-import uk.co.thomasc.thealley.client.RelayClient
-import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
 import uk.co.thomasc.thealley.config.clients
-import uk.co.thomasc.thealley.devices.DeviceMapper
-import uk.co.thomasc.thealley.repo.SceneRepository
-import uk.co.thomasc.thealley.repo.SwitchRepository
+import uk.co.thomasc.thealley.devicev2.newDevices
 import uk.co.thomasc.thealley.repo.UserRepository
-import uk.co.thomasc.thealley.rest.Api
-import uk.co.thomasc.thealley.rest.apiRoute
 import uk.co.thomasc.thealley.rest.controlRoute
 import uk.co.thomasc.thealley.rest.externalRoute
 import uk.co.thomasc.thealley.rest.statsRoute
-import uk.co.thomasc.thealley.scenes.SceneController
 import uk.co.thomasc.thealley.web.mainRoute
 import javax.sql.DataSource
 import kotlin.collections.set
@@ -100,43 +87,10 @@ fun setupDB(): DataSource {
 }
 
 fun Application.setup() {
-    val config = config()
     val clients = clients()
+    val (bus, devices) = newDevices()
 
-    val connectionOptions = MqttConnectOptions().apply {
-        serverURIs = arrayOf("tcp://${config.mqtt.host}:1883")
-        userName = config.mqtt.user
-        password = config.mqtt.pass.toCharArray()
-        maxInflight = 50
-        isAutomaticReconnect = true
-    }
-
-    val client = MqttClient("tcp://${config.mqtt.host}:1883", config.mqtt.clientId)
-
-    val sender = object : RelayMqtt.DeviceGateway {
-        override fun sendToMqtt(topic: String, payload: MqttMessage) {
-            client.publish(topic, payload)
-        }
-    }
-    val relayClient = RelayClient(config, sender)
-
-    val api = Api()
-    val switchRepository = SwitchRepository()
     val userRepository = UserRepository()
-    val deviceMapper = DeviceMapper(relayClient, switchRepository)
-    val sr = SceneRepository(deviceMapper)
-
-    val sceneController = SceneController(sr, switchRepository)
-    val mqtt = RelayMqtt(client, relayClient, sceneController, api)
-    val ss = SwitchServer(sceneController, sender, environment)
-    val tado = Tado(
-        TadoConfig(
-            config.tado.email,
-            config.tado.password
-        )
-    ).home(config.tado.homeId)
-
-    client.connect(connectionOptions)
 
     install(ContentNegotiation) {
         formData { }
@@ -248,10 +202,10 @@ fun Application.setup() {
     }
 
     routing {
-        apiRoute(api, sceneController)
-        statsRoute(switchRepository, tado, deviceMapper, relayClient)
-        controlRoute(switchRepository, sceneController, deviceMapper)
-        mainRoute(switchRepository)
+        // apiRoute(api, sceneController)
+        statsRoute(devices)
+        controlRoute(bus, devices)
+        mainRoute(devices)
 
         authenticate("oauth-login") {
             post("/external/login") {
@@ -262,7 +216,7 @@ fun Application.setup() {
             }
         }
 
-        externalRoute(switchRepository, sceneController, alleyTokenStore, deviceMapper)
+        externalRoute(bus, devices, alleyTokenStore)
 
         staticResources("/static", "static")
     }
@@ -285,11 +239,11 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: A
 
 fun main(args: Array<String>) {
     setupDB().let { ds ->
-        Flyway.configure()
+        /*Flyway.configure()
             .dataSource(ds)
             .locations("db/migration")
             .load()
-            .migrate()
+            .migrate()*/
     }
 
     EngineMain.main(args)

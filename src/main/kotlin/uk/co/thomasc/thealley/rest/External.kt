@@ -10,7 +10,6 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.newFixedThreadPoolContext
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -20,12 +19,12 @@ import kotlinx.serialization.json.jsonPrimitive
 import uk.co.thomasc.thealley.checkOauth
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
-import uk.co.thomasc.thealley.devices.Blind
-import uk.co.thomasc.thealley.devices.Bulb
-import uk.co.thomasc.thealley.devices.DeviceMapper
-import uk.co.thomasc.thealley.devices.Relay
-import uk.co.thomasc.thealley.repo.SwitchRepository
-import uk.co.thomasc.thealley.scenes.SceneController
+import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
+import uk.co.thomasc.thealley.devicev2.AlleyEventBus
+import uk.co.thomasc.thealley.devicev2.IAlleyLight
+import uk.co.thomasc.thealley.devicev2.kasa.bulb.BulbDevice
+import uk.co.thomasc.thealley.devicev2.relay.RelayDevice
+import uk.co.thomasc.thealley.devicev2.scene.SceneDevice
 import java.awt.Color
 
 @Location("/external")
@@ -39,82 +38,79 @@ class ExternalRoute {
 
 val threadPool = newFixedThreadPoolContext(10, "ExternalRoute")
 
-fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: SceneController, alleyTokenStore: AlleyTokenStore, deviceMapper: DeviceMapper) {
+fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, alleyTokenStore: AlleyTokenStore) {
     suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
-            cmd to cmd.devices.map {
-                it to switchRepository.getDeviceForId(it.deviceId)
-            }.map {
-                it.first to deviceMapper.toLight(it.second)
-            }
+            cmd to cmd.devices
         }.map { // Execute commands
             coroutineScope {
-                it.second.map { devices ->
+                it.second.map { device ->
                     async(threadPool) {
-                        devices.first to it.first.execution.map { ex ->
-                            val dev = devices.second
-
-                            dev?.let { bulbN ->
-                                when (ex.command) {
-                                    "action.devices.commands.ActivateScene" -> {
-                                        sceneController.scenes[devices.first.deviceId]?.let {
-                                            if (ex.params["deactivate"]?.jsonPrimitive?.booleanOrNull != true) {
-                                                it.off()
-                                            } else {
-                                                it.execute()
-                                            }
+                        device to it.first.execution.map { ex ->
+                            val bulbN = deviceMapper.getDevice(device.deviceId) as? IAlleyLight
+                            when (ex.command) {
+                                "action.devices.commands.ActivateScene" -> {
+                                    deviceMapper.getDevice<SceneDevice>(device.deviceId)?.let {
+                                        if (ex.params["deactivate"]?.jsonPrimitive?.booleanOrNull != true) {
+                                            it.off(bus)
+                                        } else {
+                                            it.execute(bus)
                                         }
-
-                                        ExecuteStatus.SUCCESS
                                     }
-                                    "action.devices.commands.OnOff" -> {
-                                        bulbN.setPowerState(ex.params["on"]?.jsonPrimitive?.booleanOrNull ?: false)
 
-                                        ExecuteStatus.SUCCESS
-                                    }
-                                    "action.devices.commands.BrightnessAbsolute" -> {
-                                        bulbN.setComplexState(ex.params["brightness"]?.jsonPrimitive?.intOrNull)
+                                    ExecuteStatus.SUCCESS
+                                }
+                                "action.devices.commands.OnOff" -> bulbN?.let {
+                                    it.setPowerState(bus, ex.params["on"]?.jsonPrimitive?.booleanOrNull ?: false)
 
-                                        ExecuteStatus.SUCCESS
-                                    }
-                                    "action.devices.commands.OpenClose" -> {
-                                        bulbN.setComplexState(ex.params["openPercent"]?.jsonPrimitive?.intOrNull)
+                                    ExecuteStatus.SUCCESS
+                                }
+                                "action.devices.commands.BrightnessAbsolute" -> bulbN?.let {
+                                    bulbN.setComplexState(bus, IAlleyLight.LightState(ex.params["brightness"]?.jsonPrimitive?.intOrNull))
 
-                                        ExecuteStatus.SUCCESS
-                                    }
-                                    "action.devices.commands.ColorAbsolute" -> {
-                                        val colorObj = ex.params["color"]
+                                    ExecuteStatus.SUCCESS
+                                }
+                                "action.devices.commands.OpenClose" -> bulbN?.let {
+                                    bulbN.setComplexState(bus, IAlleyLight.LightState(ex.params["openPercent"]?.jsonPrimitive?.intOrNull))
 
-                                        if (colorObj is JsonObject) {
-                                            if (colorObj.containsKey("temperature")) {
-                                                bulbN.setComplexState(
-                                                    temperature = colorObj["temperature"]?.jsonPrimitive?.intOrNull
-                                                )
-                                            } else {
-                                                val colorHex = colorObj["spectrumRGB"]?.jsonPrimitive?.intOrNull ?: 0
-                                                val color = Color.RGBtoHSB(
-                                                    (colorHex shr 16) and 255,
-                                                    (colorHex shr 8) and 255,
-                                                    colorHex and 255,
-                                                    null
-                                                )
+                                    ExecuteStatus.SUCCESS
+                                }
+                                "action.devices.commands.ColorAbsolute" -> bulbN?.let {
+                                    val colorObj = ex.params["color"]
 
-                                                bulbN.setComplexState(
+                                    if (colorObj is JsonObject) {
+                                        if (colorObj.containsKey("temperature")) {
+                                            bulbN.setComplexState(
+                                                bus,
+                                                IAlleyLight.LightState(temperature = colorObj["temperature"]?.jsonPrimitive?.intOrNull)
+                                            )
+                                        } else {
+                                            val colorHex = colorObj["spectrumRGB"]?.jsonPrimitive?.intOrNull ?: 0
+                                            val color = Color.RGBtoHSB(
+                                                (colorHex shr 16) and 255,
+                                                (colorHex shr 8) and 255,
+                                                colorHex and 255,
+                                                null
+                                            )
+
+                                            bulbN.setComplexState(
+                                                bus,
+                                                IAlleyLight.LightState(
                                                     (color[2] * 100).toInt(),
                                                     (color[0] * 360).toInt(),
                                                     (color[1] * 100).toInt()
                                                 )
-                                            }
-
-                                            // TODO: Check values were set?
-
-                                            ExecuteStatus.SUCCESS
-                                        } else {
-                                            ExecuteStatus.ERROR
+                                            )
                                         }
+
+                                        // TODO: Check values were set?
+
+                                        ExecuteStatus.SUCCESS
+                                    } else {
+                                        ExecuteStatus.ERROR
                                     }
-                                    else -> ExecuteStatus.ERROR
                                 }
+                                else -> ExecuteStatus.ERROR
                             }
                         }
                     }
@@ -144,23 +140,19 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
     )
 
     suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
-        intent.payload.devices.map {
-            switchRepository.getDeviceForId(it.deviceId)
-        }.map {
-            deviceMapper.toLight(it) to it
-        }.associate {
-            val light = it.first
-            val dbInfo = it.second
+        intent.payload.devices.mapNotNull {
+            deviceMapper.getDevice(it.deviceId)
+        }.associate { light ->
 
             suspend fun getState() = when (light) {
-                is Bulb -> light.getLightState()?.let { lightState ->
+                is BulbDevice -> light.getLightState().let { lightState ->
                     DeviceState(
                         true,
                         light.getPowerState(),
                         lightState.brightness,
-                        if (lightState.color_temp != null && lightState.color_temp > 0) {
+                        if (lightState.temperature != null && lightState.temperature > 0) {
                             DeviceColor(
-                                temperature = lightState.color_temp
+                                temperature = lightState.temperature
                             )
                         } else {
                             DeviceColor(
@@ -173,27 +165,24 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                         }
                     )
                 }
-                is Relay -> DeviceState(true, light.getPowerState())
-                is Blind -> DeviceState(
+                is RelayDevice -> DeviceState(true, light.getPowerState())
+                // TODO: Support blinds
+                /*is Blind -> DeviceState(
                     true,
                     openState = light.getState()?.let { s -> listOf(DeviceBlindState(s, DeviceBlindStateEnum.UP)) }
-                )
+                )*/
                 else -> null
             } ?: DeviceState(false)
 
-            dbInfo.deviceId.toString() to getState()
+            light.id.toString() to getState()
         }
     )
 
     suspend fun syncRequest(intent: SyncIntent) = SyncResponse(
-        devices = switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB).map {
-            deviceMapper.toLight(it) to it
-        }.map { mapIn ->
-            val light = mapIn.first as Bulb
-            val dbInfo = mapIn.second
+        devices = deviceMapper.getDevices<BulbDevice>().map { light ->
 
             AlleyDevice(
-                dbInfo.deviceId.toString(),
+                light.id.toString(),
                 "action.devices.types.LIGHT",
                 listOf(
                     "action.devices.traits.OnOff",
@@ -205,7 +194,7 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                     defaultNames = listOfNotNull(
                         light.getModel()
                     ),
-                    name = dbInfo.name
+                    name = light.config.name
                 ),
                 false,
                 attributes = mapOf(
@@ -219,19 +208,20 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                     light.getSwVer() ?: ""
                 )
             )
-        } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY).map {
+        } + deviceMapper.getDevices<RelayDevice>().map {
             AlleyDevice(
-                it.deviceId.toString(),
+                it.id.toString(),
                 "action.devices.types.LIGHT",
                 listOf(
                     "action.devices.traits.OnOff"
                 ),
                 AlleyDeviceNames(
-                    name = it.name
+                    name = it.config.name
                 ),
                 false
             )
-        } + switchRepository.getDevicesForType(SwitchRepository.DeviceType.BLIND).map {
+        } +
+        /* switchRepository.getDevicesForType(SwitchRepository.DeviceType.BLIND).map { // TODO: Support blinds
             AlleyDevice(
                 it.deviceId.toString(),
                 "action.devices.types.BLINDS",
@@ -246,22 +236,23 @@ fun Route.externalRoute(switchRepository: SwitchRepository, sceneController: Sce
                     "openDirection" to JsonArray(DeviceBlindStateEnum.entries.map { e -> JsonPrimitive(e.toString()) })
                 )
             )
-        } + sceneController.scenes.map {
-            AlleyDevice(
-                "scene-${it.key}",
-                "action.devices.types.SCENE",
-                listOf(
-                    "action.devices.traits.Scene"
-                ),
-                AlleyDeviceNames(
-                    name = "scene-${it.key}"
-                ),
-                false,
-                attributes = mapOf(
-                    "sceneReversible" to JsonPrimitive(true)
+        }*/
+            deviceMapper.getDevices<SceneDevice>().map {
+                AlleyDevice(
+                    "scene-${it.id}",
+                    "action.devices.types.SCENE",
+                    listOf(
+                        "action.devices.traits.Scene"
+                    ),
+                    AlleyDeviceNames(
+                        name = "scene-${it.id}"
+                    ),
+                    false,
+                    attributes = mapOf(
+                        "sceneReversible" to JsonPrimitive(true)
+                    )
                 )
-            )
-        }
+            }
     )
 
     get<ExternalRoute.Test> {
