@@ -20,6 +20,6 @@
                 <label for="temp">Temperature</label><input type="range" min="54" max="130" id="temp" name="temp">
             </div>
         </div>
-        <script> {{#lights}}new Light({{deviceId}}, '{{name}}', '{{hostname}}').render(); {{/lights}}</script>
+        <script> {{#lights}}new Light({{id}}, '{{config.name}}', 'unknown.alley.topc.at').render(); {{/lights}}</script>
     </body>
 </html>

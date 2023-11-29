@@ -12,10 +12,10 @@ import uk.co.thomasc.thealley.devicev2.AlleyDevice
 import uk.co.thomasc.thealley.devicev2.AlleyEventBus
 import uk.co.thomasc.thealley.devicev2.EmptyState
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
-import uk.co.thomasc.thealley.devicev2.MqttConfig
+import uk.co.thomasc.thealley.devicev2.types.MqttConfig
 
-class MqttDevice(config: MqttConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
-    AlleyDevice<MqttDevice, MqttConfig, EmptyState>(config, state, stateStore) {
+class MqttDevice(id: Int, config: MqttConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
+    AlleyDevice<MqttDevice, MqttConfig, EmptyState>(id, config, state, stateStore) {
 
     private val connectionOptions = MqttConnectOptions().apply {
         serverURIs = arrayOf("tcp://${config.host}:1883")

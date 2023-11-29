@@ -8,12 +8,12 @@ import kotlinx.datetime.toKotlinInstant
 import uk.co.thomasc.thealley.devicev2.AlleyDevice
 import uk.co.thomasc.thealley.devicev2.AlleyEventBus
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
-import uk.co.thomasc.thealley.devicev2.SunConfig
 import uk.co.thomasc.thealley.devicev2.TickEvent
+import uk.co.thomasc.thealley.devicev2.types.SunConfig
 import java.util.Calendar
 
-class SunDevice(config: SunConfig, state: SunState, stateStore: IStateUpdater<SunState>) :
-    AlleyDevice<SunDevice, SunConfig, SunState>(config, state, stateStore) {
+class SunDevice(id: Int, config: SunConfig, state: SunState, stateStore: IStateUpdater<SunState>) :
+    AlleyDevice<SunDevice, SunConfig, SunState>(id, config, state, stateStore) {
 
     override suspend fun init(bus: AlleyEventBus) {
         bus.handle<TickEvent> {

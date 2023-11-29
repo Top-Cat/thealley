@@ -5,17 +5,16 @@ import io.ktor.server.mustache.MustacheContent
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import uk.co.thomasc.thealley.repo.SwitchRepository
+import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
+import uk.co.thomasc.thealley.devicev2.IAlleyLight
 
-fun Route.mainRoute(switchRepository: SwitchRepository) {
+fun Route.mainRoute(deviceMapper: AlleyDeviceMapper) {
     get("/") {
         call.respond(
             MustacheContent(
                 "home.mustache",
                 mapOf(
-                    "lights" to switchRepository.getDevicesForType(SwitchRepository.DeviceType.BULB) +
-                        switchRepository.getDevicesForType(SwitchRepository.DeviceType.RELAY) +
-                        switchRepository.getDevicesForType(SwitchRepository.DeviceType.BLIND)
+                    "lights" to deviceMapper.getDevices().filterIsInstance<IAlleyLight>()
                 )
             )
         )
