@@ -14,10 +14,10 @@ import kotlinx.serialization.json.JsonElement
 import uk.co.thomasc.thealley.client.TransformedZoneState
 import uk.co.thomasc.thealley.devicev2.AlleyDevice
 import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
+import uk.co.thomasc.thealley.devicev2.energy.tado.TadoDevice
 import uk.co.thomasc.thealley.devicev2.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devicev2.kasa.plug.PlugDevice
 import uk.co.thomasc.thealley.devicev2.relay.RelayDevice
-import uk.co.thomasc.thealley.devicev2.tado.TadoDevice
 
 @Serializable
 data class BulbResponse(
@@ -127,10 +127,10 @@ fun Route.statsRoute(devices: AlleyDeviceMapper) {
 
     get<StatsRoute.Tado> {
         getStats(devices, { tado: TadoDevice ->
-            val zones = tado.home.getZoneStates()
+            val zones = tado.getHome().getZoneStates()
 
             TadoResponse(
-                tado.homeId,
+                tado.getHomeId(),
                 zones.zoneStates.map { zone ->
                     TransformedZoneState(
                         zone.key,

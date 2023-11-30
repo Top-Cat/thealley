@@ -6,7 +6,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.timestamp
-import uk.co.thomasc.thealley.devicev2.IAlleyConfig
+import uk.co.thomasc.thealley.devicev2.types.IAlleyConfig
 
 object NewDeviceTable : IntIdTable("devicev2") {
     val config = json<IAlleyConfig>("config", json = Json)
