@@ -20,8 +20,8 @@ import uk.co.thomasc.thealley.devicev2.AlleyEventEmitter
 import uk.co.thomasc.thealley.devicev2.EmptyState
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
 import uk.co.thomasc.thealley.devicev2.ShutdownEvent
-import uk.co.thomasc.thealley.devicev2.SwitchServerConfig
 import uk.co.thomasc.thealley.devicev2.mqtt.MqttSendEvent
+import uk.co.thomasc.thealley.devicev2.types.SwitchServerConfig
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue

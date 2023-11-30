@@ -9,9 +9,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-val alleyJsonUgly = Json {
-    ignoreUnknownKeys = true
-}
+val alleyJsonUgly = Json
 
 val alleyJson = Json(alleyJsonUgly) {
     prettyPrint = true
