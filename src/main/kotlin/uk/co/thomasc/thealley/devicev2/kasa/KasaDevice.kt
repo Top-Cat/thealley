@@ -71,7 +71,7 @@ abstract class KasaDevice<X, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKas
     protected inline fun <reified T : KasaResponse<U>, U> parseSysInfo(json: String) = parseSysInfo(serializer<T>(), json)
 
     protected fun <T : KasaResponse<*>> parseSysInfo(serializer: KSerializer<T>, json: String): T? {
-        logger.info { "Received json from kasa - $json" }
+        logger.debug { "Received json from kasa - $json" }
 
         return try {
             alleyJson.decodeFromString(serializer, json)
