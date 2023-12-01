@@ -38,7 +38,10 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
 
     suspend fun off(bus: AlleyEventBus) {
         config.parts.forEach { s ->
-            emitFadeEvent(bus, s, 0)
+            val light = dev.getDevice(s.lightId)
+            if (light is IAlleyLight) {
+                light.setPowerState(bus, false)
+            }
         }
     }
 
