@@ -59,6 +59,11 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
     }
 
     override suspend fun togglePowerState(bus: AlleyEventBus) = setLightState(bus, 2)
+
+    override suspend fun hold() {
+        // TODO: revoke override so rules can change light state
+    }
+
     override suspend fun revoke() {
         // TODO: revoke override so rules can change light state
     }
