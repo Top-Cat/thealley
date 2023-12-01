@@ -12,20 +12,18 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.serializer
 import mu.KLogging
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.client.alleyJsonUgly
 import uk.co.thomasc.thealley.decryptWithHeader
-import uk.co.thomasc.thealley.devices.BulbData
-import uk.co.thomasc.thealley.devices.PlugData
 import uk.co.thomasc.thealley.devicev2.AlleyDevice
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
+import uk.co.thomasc.thealley.devicev2.kasa.plug.data.KasaData
+import uk.co.thomasc.thealley.devicev2.kasa.plug.data.KasaResponse
 import uk.co.thomasc.thealley.devicev2.types.IKasaConfig
 import uk.co.thomasc.thealley.encryptWithHeader
 import java.net.SocketException
@@ -46,13 +44,11 @@ abstract class KasaDevice<X, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKas
         }
     }
 
-    protected suspend fun getData() = mutex.withLock {
-        updateData()
-    }
+    protected suspend inline fun <reified T : KasaResponse<U>, U : KasaData> getData() = getData(serializer<T>())
 
-    private suspend fun updateData() = run {
+    protected suspend fun <T : KasaResponse<U>, U> getData(serializer: KSerializer<T>) = mutex.withLock {
         if (Clock.System.now().minus(20.seconds) > lastRequest) {
-            (getSysInfo(3000) as? X)?.apply {
+            (getSysInfo(serializer, 3000) as? X)?.apply {
                 deviceData = this
             }
         }
@@ -64,30 +60,24 @@ abstract class KasaDevice<X, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKas
     protected suspend inline fun <reified T> send(obj: T) = send(alleyJsonUgly.encodeToString(obj), timeout = 500)
     protected suspend fun send(json: String) = send(json, timeout = 500)
 
-    private suspend fun getSysInfo(timeout: Long = 500): Any? =
-        this.send("{\"system\":{\"get_sysinfo\":{}}}", timeout = timeout)?.let(::parseSysInfo)
+    private suspend inline fun <reified T : KasaResponse<U>, U> getSysInfo(timeout: Long = 500): T? =
+        getSysInfo(serializer<T>(), timeout)
 
-    protected fun parseSysInfo(json: String): Any? {
-        logger.debug { "Received json from kasa - $json" }
-        val node = try {
-            alleyJson.parseToJsonElement(json).jsonObject
+    private suspend fun <T : KasaResponse<U>, U> getSysInfo(serializer: KSerializer<T>, timeout: Long = 500): T? =
+        this.send("{\"system\":{\"get_sysinfo\":{}}}", timeout = timeout)?.let {
+            parseSysInfo(serializer, it)
+        }
+
+    protected inline fun <reified T : KasaResponse<U>, U> parseSysInfo(json: String) = parseSysInfo(serializer<T>(), json)
+
+    protected fun <T : KasaResponse<*>> parseSysInfo(serializer: KSerializer<T>, json: String): T? {
+        logger.info { "Received json from kasa - $json" }
+
+        return try {
+            alleyJson.decodeFromString(serializer, json)
         } catch (e: SerializationException) {
             logger.warn { "Failed to parse json from ${config.host}" }
             return null
-        }
-        val deviceNode = node["system"]?.jsonObject?.get("get_sysinfo")
-        val deviceNodeObj = deviceNode?.jsonObject
-
-        val type = when {
-            deviceNodeObj?.containsKey("mic_type") == true -> deviceNodeObj["mic_type"]
-            deviceNodeObj?.containsKey("type") == true -> deviceNodeObj["type"]
-            else -> JsonPrimitive("")
-        }?.jsonPrimitive?.content
-
-        return when (type) {
-            "IOT.SMARTBULB" -> alleyJson.decodeFromJsonElement<BulbData>(deviceNode!!)
-            "IOT.SMARTPLUGSWITCH" -> alleyJson.decodeFromJsonElement<PlugData>(deviceNode!!)
-            else -> null
         }
     }
 
@@ -128,7 +118,7 @@ abstract class KasaDevice<X, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKas
         }
 
     companion object : KLogging() {
-        val threadPool = newFixedThreadPoolContext(10, "KasaDevice")
+        val threadPool = newFixedThreadPoolContext(4, "KasaDevice")
         val selector = ActorSelectorManager(Dispatchers.IO)
     }
 }

@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.client
+package uk.co.thomasc.thealley.rest
 
 import at.topc.tado.data.common.TadoPower
 import at.topc.tado.data.common.TadoTemperature

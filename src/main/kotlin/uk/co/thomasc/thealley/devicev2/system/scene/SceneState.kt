@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devicev2.scene
+package uk.co.thomasc.thealley.devicev2.system.scene
 
 import kotlinx.serialization.Serializable
 

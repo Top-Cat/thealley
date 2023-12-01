@@ -7,7 +7,9 @@ import io.ktor.server.locations.post
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import uk.co.thomasc.thealley.scenes.SceneController
+import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
+import uk.co.thomasc.thealley.devicev2.AlleyEventBus
+import uk.co.thomasc.thealley.devicev2.xiaomi.aq2.MotionDevice
 
 sealed class EventData(open val sensor: String)
 data class MotionData(override val sensor: String) : EventData(sensor)
@@ -36,10 +38,13 @@ class Api {
     }
 }
 
-fun Route.apiRoute(api: Api, sceneController: SceneController) {
+fun Route.apiRoute(api: Api, bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper) {
     post<ApiRoute.Motion> {
         val obj = call.receive<MotionData>()
-        sceneController.onChange(obj.sensor)
+        deviceMapper
+            .getDevices<MotionDevice>()
+            .firstOrNull { it.config.deviceId == obj.sensor }
+            ?.trigger(bus)
     }
 
     post<ApiRoute.Prop> {

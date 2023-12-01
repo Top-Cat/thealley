@@ -4,8 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
-import uk.co.thomasc.thealley.devicev2.scene.SceneDevice
-import uk.co.thomasc.thealley.devicev2.scene.SceneState
+import uk.co.thomasc.thealley.devicev2.system.scene.SceneDevice
+import uk.co.thomasc.thealley.devicev2.system.scene.SceneState
 
 @Serializable
 @SerialName("Scene")

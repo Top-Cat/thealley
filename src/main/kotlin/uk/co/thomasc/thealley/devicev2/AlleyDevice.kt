@@ -3,12 +3,17 @@ package uk.co.thomasc.thealley.devicev2
 import uk.co.thomasc.thealley.devicev2.types.IAlleyConfig
 import java.io.Closeable
 
-abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(val id: Int, val config: T, var state: U, private val stateStore: IStateUpdater<U>) : Closeable {
+abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(val id: Int, val config: T, state: U, private val stateStore: IStateUpdater<U>) : Closeable {
+    private var currentState = state
+    protected var state
+        get() = currentState
+        private set(value) {}
+
     open suspend fun init(bus: AlleyEventBus) { }
     suspend fun updateState(state: U) {
-        if (this.state != state) {
+        if (this.currentState != state) {
             stateStore.saveState(state)
-            this.state = state
+            this.currentState = state
         }
     }
 

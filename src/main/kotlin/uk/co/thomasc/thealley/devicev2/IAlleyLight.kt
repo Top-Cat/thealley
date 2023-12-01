@@ -11,7 +11,14 @@ interface IAlleyLight : IAlleyRevocable {
 
     suspend fun togglePowerState(bus: AlleyEventBus)
 
-    data class LightState(val brightness: Int? = null, val hue: Int? = null, val saturation: Int? = null, val temperature: Int? = null)
+    data class LightState(override val brightness: Int? = null, override val hue: Int? = null, override val saturation: Int? = null, override val temperature: Int? = null) : ILightState
+}
+
+interface ILightState {
+    val hue: Int?
+    val saturation: Int?
+    val brightness: Int?
+    val temperature: Int?
 }
 
 interface IAlleyRevocable {

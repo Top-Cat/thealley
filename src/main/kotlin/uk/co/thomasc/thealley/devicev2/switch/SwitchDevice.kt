@@ -4,7 +4,7 @@ import mu.KLogging
 import uk.co.thomasc.thealley.devicev2.AlleyDevice
 import uk.co.thomasc.thealley.devicev2.AlleyEventBus
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
-import uk.co.thomasc.thealley.devicev2.scene.SceneEvent
+import uk.co.thomasc.thealley.devicev2.system.scene.SceneEvent
 import uk.co.thomasc.thealley.devicev2.types.SwitchConfig
 
 class SwitchDevice(id: Int, config: SwitchConfig, state: SwitchState, stateStore: IStateUpdater<SwitchState>) :

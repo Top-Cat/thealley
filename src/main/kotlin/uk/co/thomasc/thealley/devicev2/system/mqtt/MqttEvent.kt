@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devicev2.mqtt
+package uk.co.thomasc.thealley.devicev2.system.mqtt
 
 import uk.co.thomasc.thealley.devicev2.IAlleyEvent
 

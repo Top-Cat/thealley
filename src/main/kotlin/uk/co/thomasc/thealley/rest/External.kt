@@ -24,7 +24,7 @@ import uk.co.thomasc.thealley.devicev2.AlleyEventBus
 import uk.co.thomasc.thealley.devicev2.IAlleyLight
 import uk.co.thomasc.thealley.devicev2.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devicev2.relay.RelayDevice
-import uk.co.thomasc.thealley.devicev2.scene.SceneDevice
+import uk.co.thomasc.thealley.devicev2.system.scene.SceneDevice
 import java.awt.Color
 
 @Location("/external")

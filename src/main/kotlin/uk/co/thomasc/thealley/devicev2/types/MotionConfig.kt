@@ -13,7 +13,7 @@ data class MotionConfig(override val name: String, val deviceId: String) : IAlle
     override fun deviceConfig() = MotionDeviceConfig(this)
 
     class MotionDeviceConfig(val config: MotionConfig) : IAlleyDeviceConfig<MotionDevice, MotionConfig, EmptyState>() {
-        override fun create(id: Int, state: EmptyState, stateStore: IStateUpdater<EmptyState>, dev: AlleyDeviceMapper) = MotionDevice(id, config, state, stateStore)
+        override fun create(id: Int, state: EmptyState, stateStore: IStateUpdater<EmptyState>, dev: AlleyDeviceMapper) = MotionDevice(id, config, state, stateStore, dev)
         override fun stateSerializer() = EmptyState.serializer()
     }
 }

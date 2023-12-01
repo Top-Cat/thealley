@@ -2,18 +2,18 @@ package uk.co.thomasc.thealley.devicev2.xiaomi.aq2
 
 import kotlinx.serialization.json.JsonPrimitive
 import mu.KLogging
-import uk.co.thomasc.thealley.client.MotionSensorUpdate
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.devicev2.AlleyDevice
+import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devicev2.AlleyEventBus
 import uk.co.thomasc.thealley.devicev2.EmptyState
 import uk.co.thomasc.thealley.devicev2.IAlleyStats
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
-import uk.co.thomasc.thealley.devicev2.mqtt.MqttMessageEvent
+import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devicev2.types.MotionConfig
 import kotlin.collections.set
 
-class MotionDevice(id: Int, config: MotionConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
+class MotionDevice(id: Int, config: MotionConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>, val dev: AlleyDeviceMapper) :
     AlleyDevice<MotionDevice, MotionConfig, EmptyState>(id, config, state, stateStore), IAlleyStats {
 
     override suspend fun init(bus: AlleyEventBus) {
@@ -27,7 +27,7 @@ class MotionDevice(id: Int, config: MotionConfig, state: EmptyState, stateStore:
             val update = alleyJson.decodeFromString<MotionSensorUpdate>(ev.payload)
 
             if (update.occupancy) {
-                bus.emit(MotionEvent(config.deviceId))
+                trigger(bus)
             }
 
             props["illuminance"] = JsonPrimitive(update.illuminance.toDouble())
@@ -36,6 +36,10 @@ class MotionDevice(id: Int, config: MotionConfig, state: EmptyState, stateStore:
             }
             props["voltage"] = JsonPrimitive(update.voltage.toDouble())
         }
+    }
+
+    suspend fun trigger(bus: AlleyEventBus) {
+        bus.emit(MotionEvent(id, config.deviceId))
     }
 
     companion object : KLogging()

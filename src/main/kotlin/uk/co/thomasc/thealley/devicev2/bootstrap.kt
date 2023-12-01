@@ -12,21 +12,23 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
-import uk.co.thomasc.thealley.devicev2.mqtt.MqttMessageEvent
+import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.repo.NewDeviceDao
 import uk.co.thomasc.thealley.repo.NewDeviceTable
 import uk.co.thomasc.thealley.repo.NowExpression
 import kotlin.reflect.KClass
 
 private class AlleyEventBusImpl : AlleyEventBus() {
-    val threadPool = newFixedThreadPoolContext(10, "AlleyEventBus")
+    val threadPool = newFixedThreadPoolContext(4, "AlleyEventBus")
     val channel = Channel<suspend () -> Unit>(50)
     val listeners = mutableMapOf<KClass<out IAlleyEvent>, MutableList<EventHandler<*>>>()
 
     init {
-        GlobalScope.launch(threadPool) {
-            while (true) {
-                channel.receive().invoke()
+        repeat(10) {
+            GlobalScope.launch(threadPool) {
+                while (true) {
+                    channel.receive().invoke()
+                }
             }
         }
     }
@@ -36,7 +38,7 @@ private class AlleyEventBusImpl : AlleyEventBus() {
     }
 
     override suspend fun <T : IAlleyEvent> emit(event: T) {
-        if (event !is MqttMessageEvent) {
+        if (event !is MqttMessageEvent && event !is TickEvent) {
             logger.info { "Emitting event $event" }
         }
 
