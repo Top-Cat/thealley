@@ -88,7 +88,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
             send("{\"system\":{\"get_sysinfo\":{}},\"smartlife.iot.common.emeter\":{\"get_realtime\":{}}}")?.let {
                 parseSysInfo<BulbResponse, BulbData>(it)?.let { response ->
                     deviceData = response.system.sysInfo
-                    response.emeter.realtime
+                    response.emeter?.realtime
                 }
             } ?: BulbRealtimePower(0, 0, -1)
         }

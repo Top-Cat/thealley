@@ -13,7 +13,7 @@ import uk.co.thomasc.thealley.devicev2.kasa.plug.data.KasaSysInfo
 data class BulbResponse(
     override val system: KasaSysInfo<BulbData>,
     @SerialName("smartlife.iot.common.emeter")
-    val emeter: BulbEmeter
+    val emeter: BulbEmeter? = null
 ) : KasaResponse<BulbData>
 
 @Serializable
