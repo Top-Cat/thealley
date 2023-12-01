@@ -76,7 +76,7 @@ abstract class KasaDevice<X, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKas
         return try {
             alleyJson.decodeFromString(serializer, json)
         } catch (e: SerializationException) {
-            logger.warn { "Failed to parse json from ${config.host}" }
+            logger.warn(e) { "Failed to parse json from ${config.host}" }
             return null
         }
     }
