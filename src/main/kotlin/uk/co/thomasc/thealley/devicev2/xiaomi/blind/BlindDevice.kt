@@ -51,6 +51,10 @@ class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: I
 
     override suspend fun togglePowerState(bus: AlleyEventBus) = setPowerState(bus, !getPowerState())
 
+    override suspend fun hold() {
+        // TODO: revoke override so rules can change light state
+    }
+
     override suspend fun revoke() {
         // TODO: revoke override so rules can change light state
     }

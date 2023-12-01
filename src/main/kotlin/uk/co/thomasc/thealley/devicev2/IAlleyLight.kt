@@ -22,5 +22,6 @@ interface ILightState {
 }
 
 interface IAlleyRevocable {
+    suspend fun hold()
     suspend fun revoke()
 }

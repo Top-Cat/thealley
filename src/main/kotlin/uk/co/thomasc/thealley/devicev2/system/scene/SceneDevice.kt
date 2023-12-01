@@ -34,6 +34,9 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
         if (light is IAlleyLight) {
             light.setComplexState(bus, IAlleyLight.LightState((s.brightness * percent) / 100, s.hue, s.saturation, s.temperature), transitionTime)
         }
+        if (light is IAlleyRevocable) {
+            light.hold()
+        }
     }
 
     suspend fun off(bus: AlleyEventBus) {
@@ -41,6 +44,9 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
             val light = dev.getDevice(s.lightId)
             if (light is IAlleyLight) {
                 light.setPowerState(bus, false)
+            }
+            if (light is IAlleyRevocable) {
+                light.hold()
             }
         }
     }

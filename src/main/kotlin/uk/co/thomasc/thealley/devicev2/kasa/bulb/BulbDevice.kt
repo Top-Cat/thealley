@@ -96,7 +96,6 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
     override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) = setLightState(BulbUpdate(value))
 
     override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
-        updateState(state.copy(ignoreMotionUntil = Clock.System.now().plus(config.switchTimeout)))
         setComplexState(lightState, transitionTime)
     }
 
@@ -114,6 +113,10 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
 
     override suspend fun togglePowerState(bus: AlleyEventBus) =
         setPowerState(bus, !getPowerState())
+
+    override suspend fun hold() {
+        updateState(state.copy(ignoreMotionUntil = Clock.System.now().plus(config.switchTimeout)))
+    }
 
     override suspend fun revoke() {
         updateState(state.copy(ignoreMotionUntil = null))
