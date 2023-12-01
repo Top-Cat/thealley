@@ -4,8 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
-import uk.co.thomasc.thealley.devicev2.sun.SunDevice
-import uk.co.thomasc.thealley.devicev2.sun.SunState
+import uk.co.thomasc.thealley.devicev2.system.sun.SunDevice
+import uk.co.thomasc.thealley.devicev2.system.sun.SunState
 
 @Serializable
 @SerialName("Sun")

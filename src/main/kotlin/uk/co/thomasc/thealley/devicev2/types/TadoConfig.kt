@@ -9,7 +9,7 @@ import uk.co.thomasc.thealley.devicev2.energy.tado.TadoState
 
 @Serializable
 @SerialName("Tado")
-data class TadoConfig(override val name: String, val email: String, val pass: String) : IAlleyConfig {
+data class TadoConfig(override val name: String, val email: String, val pass: String, val updateReadings: Boolean = false) : IAlleyConfig {
     override fun deviceConfig() = TadoDeviceConfig(this)
 
     class TadoDeviceConfig(val config: TadoConfig) : IAlleyDeviceConfig<TadoDevice, TadoConfig, TadoState>() {

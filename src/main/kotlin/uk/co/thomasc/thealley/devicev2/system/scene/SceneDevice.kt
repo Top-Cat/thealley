@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devicev2.scene
+package uk.co.thomasc.thealley.devicev2.system.scene
 
 import mu.KLogging
 import uk.co.thomasc.thealley.devicev2.AlleyDevice

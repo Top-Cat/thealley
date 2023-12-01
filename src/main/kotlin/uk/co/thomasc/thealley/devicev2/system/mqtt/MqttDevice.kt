@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devicev2.mqtt
+package uk.co.thomasc.thealley.devicev2.system.mqtt
 
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
@@ -7,7 +7,6 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
-import uk.co.thomasc.thealley.client.RelayMqtt
 import uk.co.thomasc.thealley.devicev2.AlleyDevice
 import uk.co.thomasc.thealley.devicev2.AlleyEventBus
 import uk.co.thomasc.thealley.devicev2.EmptyState
@@ -25,12 +24,6 @@ class MqttDevice(id: Int, config: MqttConfig, state: EmptyState, stateStore: ISt
         isAutomaticReconnect = true
     }
     private val client = MqttClient("tcp://${config.host}:1883", config.clientId)
-
-    private val sender = object : RelayMqtt.DeviceGateway {
-        override fun sendToMqtt(topic: String, payload: MqttMessage) {
-            client.publish(topic, payload)
-        }
-    }
 
     override suspend fun init(bus: AlleyEventBus) {
         client.setCallback(object : MqttCallbackExtended {
@@ -52,7 +45,7 @@ class MqttDevice(id: Int, config: MqttConfig, state: EmptyState, stateStore: ISt
             }
 
             override fun connectComplete(reconnect: Boolean, serverURI: String?) {
-                logger.debug { "connectComplete" }
+                logger.info { "connectComplete" }
                 client.subscribe("#")
             }
         })
@@ -60,7 +53,7 @@ class MqttDevice(id: Int, config: MqttConfig, state: EmptyState, stateStore: ISt
         client.connect(connectionOptions)
 
         bus.handle<MqttSendEvent> {
-            sender.sendToMqtt(it.topic, MqttMessage(it.payload.toByteArray()))
+            client.publish(it.topic, MqttMessage(it.payload.toByteArray()))
         }
     }
 

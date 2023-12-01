@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class BrightCatchupResult(
-    val status: String,
+    val status: String? = null,
     val valid: Boolean
 )

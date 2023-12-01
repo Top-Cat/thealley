@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import uk.co.thomasc.thealley.client.TransformedZoneState
 import uk.co.thomasc.thealley.devicev2.AlleyDevice
 import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devicev2.energy.tado.TadoDevice
@@ -66,6 +65,9 @@ class StatsRoute {
 
     @Location("/tado")
     data class Tado(val api: StatsRoute)
+
+    @Location("/tado-multi")
+    data class TadoMulti(val api: StatsRoute)
 }
 
 suspend inline fun <reified T : AlleyDevice<*, *, *>, U> getStats(devices: AlleyDeviceMapper, crossinline block: suspend (T) -> U, concurrency: Int = 10) =
@@ -117,7 +119,7 @@ fun Route.statsRoute(devices: AlleyDeviceMapper) {
         getStats(devices, { relay: RelayDevice ->
             RelayResponse(
                 relay.config.host,
-                if (relay.state.on) 1 else 0,
+                if (relay.getPowerState()) 1 else 0,
                 relay.props
             )
         }).let {
@@ -126,6 +128,31 @@ fun Route.statsRoute(devices: AlleyDeviceMapper) {
     }
 
     get<StatsRoute.Tado> {
+        getStats(devices, { tado: TadoDevice ->
+            if (!tado.config.updateReadings) {
+                val zones = tado.getHome().getZoneStates()
+
+                TadoResponse(
+                    tado.getHomeId(),
+                    zones.zoneStates.map { zone ->
+                        TransformedZoneState(
+                            zone.key,
+                            zone.value.tadoMode.ordinal,
+                            zone.value.setting,
+                            zone.value.activityDataPoints,
+                            zone.value.sensorDataPoints
+                        )
+                    }
+                )
+            } else {
+                null
+            }
+        }).let {
+            call.respond(it.filterNotNull().first())
+        }
+    }
+
+    get<StatsRoute.TadoMulti> {
         getStats(devices, { tado: TadoDevice ->
             val zones = tado.getHome().getZoneStates()
 

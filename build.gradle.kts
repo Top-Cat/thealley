@@ -54,7 +54,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
     implementation("com.luckycatlabs:SunriseSunsetCalculator:1.2")
-    implementation("at.topc.tado:tado-kt:1.0.15")
+    implementation("at.topc.tado:tado-kt:1.0.16")
 
     // DB & Migrations
     implementation("mysql:mysql-connector-java:8.0.33")

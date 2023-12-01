@@ -38,7 +38,7 @@ class Bright(private val email: String, private val pass: String) {
         tokenMutex.withLock {
             if (token?.let { t -> t.exp < Clock.System.now().epochSeconds } != false) {
                 logger.info { "Getting token with login" }
-                getToken()
+                token = getToken()
             }
         }
 

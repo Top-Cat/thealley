@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devicev2.sun
+package uk.co.thomasc.thealley.devicev2.system.sun
 
 import com.luckycatlabs.sunrisesunset.Zenith
 import com.luckycatlabs.sunrisesunset.calculator.SolarEventCalculator

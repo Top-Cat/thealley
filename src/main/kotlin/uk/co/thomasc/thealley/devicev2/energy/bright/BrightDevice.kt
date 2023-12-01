@@ -24,24 +24,32 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
         bus.handle<TickEvent> {
             val now = Clock.System.now()
             if (state.nextCatchup?.let { now > it } != false) {
-                logger.info { "Catchup gas consumption" }
-                bright.catchup(BrightResourceType.GAS_CONSUMPTION)
-                val result = bright.getReadings(
-                    BrightResourceType.GAS_CONSUMPTION,
-                    BrightPeriod.PT1H,
-                    state.latestReading.plus(1.hours),
-                    now
-                )
+                val catchup = bright.catchup(BrightResourceType.GAS_CONSUMPTION)
+                if (catchup.data.status != null) {
+                    logger.info { "Bright catchup initiated ${catchup.data.status}" }
+                }
 
-                val newReadings = result.readings.filter { it.consumption != null }
+                val from = state.latestReading.plus(1.hours)
+                val to = now.minus(1.hours)
+
+                val newReadings = if (from < to) {
+                    bright
+                        .getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, to)
+                        .readings
+                        .filter { it.consumption != null }
+                        .dropLast(1) // Last value could be the current bucket
+                } else {
+                    listOf()
+                }
+
                 val consumption = newReadings.mapNotNull { it.m3 }.sum()
-                val latest = newReadings.maxOf { it.time }
+                val latest = newReadings.maxOfOrNull { it.time } ?: state.latestReading
                 val next = Instant.fromEpochSeconds(nextHalfHour(now) + Random.Default.nextInt(120))
                 val newTotal = state.meterTotal + consumption
 
                 logger.info { "Got ${newReadings.size} new readings, Latest = $latest, Total = $newTotal" }
                 updateState(state.copy(nextCatchup = next, latestReading = latest, meterTotal = newTotal))
-                bus.emit(BrightEvent(newTotal, latest))
+                if (newReadings.isNotEmpty()) bus.emit(BrightEvent(newTotal, latest))
             }
         }
     }

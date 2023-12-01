@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devicev2.EmptyState
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
-import uk.co.thomasc.thealley.devicev2.mqtt.MqttDevice
+import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttDevice
 
 @Serializable
 @SerialName("Mqtt")

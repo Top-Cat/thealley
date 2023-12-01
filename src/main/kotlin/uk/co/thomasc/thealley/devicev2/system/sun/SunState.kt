@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devicev2.sun
+package uk.co.thomasc.thealley.devicev2.system.sun
 
 import kotlinx.serialization.Serializable
 

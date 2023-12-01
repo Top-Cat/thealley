@@ -2,14 +2,13 @@ package uk.co.thomasc.thealley.rest
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
-import uk.co.thomasc.thealley.devices.DeviceMapper
 
 @Serializable
 data class GoogleHomeReq(val requestId: String, val inputs: List<JsonElement>)
 
 @Serializable
-data class GoogleHomeDevice(val id: String, val customData: JsonElement? = null) : DeviceMapper.HasDeviceId {
-    override val deviceId = Integer.parseInt(id.removePrefix("scene-"))
+data class GoogleHomeDevice(val id: String, val customData: JsonElement? = null) {
+    val deviceId = Integer.parseInt(id.removePrefix("scene-"))
 }
 
 @Serializable

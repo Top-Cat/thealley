@@ -4,6 +4,10 @@ import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.http.ContentType
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import mu.KLogging
 import uk.co.thomasc.thealley.client.client
@@ -12,16 +16,17 @@ import uk.co.thomasc.thealley.devicev2.AlleyEventBus
 import uk.co.thomasc.thealley.devicev2.IAlleyLight
 import uk.co.thomasc.thealley.devicev2.IAlleyStats
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
-import uk.co.thomasc.thealley.devicev2.mqtt.MqttMessageEvent
-import uk.co.thomasc.thealley.devicev2.mqtt.MqttSendEvent
-import uk.co.thomasc.thealley.devicev2.sun.SunRiseEvent
-import uk.co.thomasc.thealley.devicev2.sun.SunSetEvent
+import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttMessageEvent
+import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devicev2.types.RelayConfig
+import kotlin.time.Duration.Companion.seconds
 
 class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: IStateUpdater<RelayState>) :
     AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyLight, IAlleyStats {
 
     override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()
+    private var lastRequest = Instant.DISTANT_PAST
+    private val mutex = Mutex()
 
     private suspend fun setLightState(bus: AlleyEventBus, state: Int) {
         bus.emit(MqttSendEvent("${config.host}/relay/0/set", "$state"))
@@ -36,14 +41,22 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
         }
     }
 
-    override suspend fun getPowerState() =
-        try {
-            client.get("http://${config.host}.light.kirkstall.top-cat.me/api/relay/0?apikey=${config.apiKey}") {
-                accept(ContentType.Any)
-            }.body<Int>() > 0
-        } catch (e: Exception) {
-            false
+    override suspend fun getPowerState() = mutex.withLock {
+        if (Clock.System.now().minus(20.seconds) > lastRequest) {
+            try {
+                client.get("http://${config.host}.light.kirkstall.top-cat.me/api/relay/0?apikey=${config.apiKey}") {
+                    accept(ContentType.Any)
+                }.body<Int>() > 0
+            } catch (e: Exception) {
+                false
+            }.also {
+                updateState(state.copy(on = it))
+            }
         }
+
+        lastRequest = Clock.System.now()
+        state.on
+    }
 
     override suspend fun togglePowerState(bus: AlleyEventBus) = setLightState(bus, 2)
     override suspend fun revoke() {
@@ -68,12 +81,12 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
                 }
             }
         }
-        bus.handle<SunRiseEvent> {
+        /*bus.handle<SunRiseEvent> {
             setLightState(bus, 0)
         }
         bus.handle<SunSetEvent> {
             setLightState(bus, 1)
-        }
+        }*/
     }
 
     companion object : KLogging()
