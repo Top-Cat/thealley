@@ -46,8 +46,7 @@ object ExternalLogger : KLogging()
 fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, alleyTokenStore: AlleyTokenStore) {
     val logger = ExternalLogger.logger
 
-    suspend fun executeRequest(requestId: String, intent: ExecuteIntent) = ExecuteResponse(
-        requestId,
+    suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices
         }.map { // Execute commands
@@ -147,8 +146,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         }
     )
 
-    suspend fun queryRequest(requestId: String, intent: QueryIntent) = QueryResponse(
-        requestId,
+    suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
         intent.payload.devices.mapNotNull {
             deviceMapper.getDevice(it.deviceId)
         }.associate { light ->
@@ -188,8 +186,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         }
     )
 
-    suspend fun syncRequest(requestId: String, userId: String, intent: SyncIntent) = SyncResponse(
-        requestId,
+    suspend fun syncRequest(userId: String, intent: SyncIntent) = SyncResponse(
         userId,
         devices = deviceMapper.getDevices<BulbDevice>().map { light ->
 
@@ -280,19 +277,18 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
             val intent = obj.inputs.first()
 
             when (intent) {
-                is SyncIntent -> syncRequest(obj.requestId, userId, intent)
-                is QueryIntent -> queryRequest(obj.requestId, intent)
-                is ExecuteIntent -> executeRequest(obj.requestId, intent)
-                is DisconnectIntent -> DisconnectResponse(obj.requestId)
+                is SyncIntent -> syncRequest(userId, intent)
+                is QueryIntent -> queryRequest(intent)
+                is ExecuteIntent -> executeRequest(intent)
+                is DisconnectIntent -> DisconnectResponse()
             }.let {
-                val txt2 = alleyJson.encodeToString(it)
-                logger.info { "Responding - $txt2" }
-                call.respond(
-                    GoogleHomeRes(
-                        obj.requestId,
-                        it
-                    )
+                val res = GoogleHomeRes(
+                    obj.requestId,
+                    it
                 )
+                val txt2 = alleyJson.encodeToString(res)
+                logger.info { "Responding - $txt2" }
+                call.respond(res)
             }
         }
     }

@@ -31,9 +31,7 @@ interface GoogleHomeMayFail {
 }
 
 @Serializable
-sealed interface GoogleHomePayload : GoogleHomeMayFail {
-    val requestId: String
-}
+sealed interface GoogleHomePayload : GoogleHomeMayFail
 
 @Serializable
 data class AlleyDevice(val id: String, val type: String, val traits: List<String>, val name: AlleyDeviceNames, val willReportState: Boolean, val deviceInfo: AlleyDeviceInfo? = null, val attributes: Map<String, JsonElement>? = null, val customData: JsonElement? = null)
@@ -58,13 +56,17 @@ data class DisconnectIntent(
 
 @Serializable
 data class DisconnectResponse(
-    override val requestId: String,
     override val errorCode: String? = null,
     override val debugString: String? = null
 ) : GoogleHomePayload
 
 @Serializable
-data class SyncResponse(override val requestId: String, val agentUserId: String, override val errorCode: String? = null, override val debugString: String? = null, val devices: List<AlleyDevice>) : GoogleHomePayload
+data class SyncResponse(
+    val agentUserId: String,
+    override val errorCode: String? = null,
+    override val debugString: String? = null,
+    val devices: List<AlleyDevice>
+) : GoogleHomePayload
 
 @Serializable
 @SerialName("action.devices.QUERY")
@@ -77,7 +79,11 @@ data class QueryIntent(
 data class QueryIntentPayload(val devices: List<GoogleHomeDevice>)
 
 @Serializable
-data class QueryResponse(override val requestId: String, val devices: Map<String, DeviceState>, override val errorCode: String? = null, override val debugString: String? = null) : GoogleHomePayload
+data class QueryResponse(
+    val devices: Map<String, DeviceState>,
+    override val errorCode: String? = null,
+    override val debugString: String? = null
+) : GoogleHomePayload
 
 @Serializable
 data class DeviceState(val online: Boolean, val on: Boolean? = null, val brightness: Int? = null, val color: DeviceColor? = null, val openState: List<DeviceBlindState>? = null)
@@ -107,7 +113,11 @@ data class ExecuteIntentCommand(val devices: List<GoogleHomeDevice>, val executi
 data class ExecuteIntentExecution(val command: String, val params: Map<String, JsonElement>)
 
 @Serializable
-data class ExecuteResponse(override val requestId: String, val commands: List<ExecuteResponseCommand>, override val errorCode: String? = null, override val debugString: String? = null) : GoogleHomePayload
+data class ExecuteResponse(
+    val commands: List<ExecuteResponseCommand>,
+    override val errorCode: String? = null,
+    override val debugString: String? = null
+) : GoogleHomePayload
 
 @Serializable
 data class ExecuteResponseCommand(val ids: List<String>, val status: ExecuteStatus, val states: DeviceState? = null, override val errorCode: String? = null, override val debugString: String? = null) : GoogleHomeMayFail
