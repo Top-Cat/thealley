@@ -49,6 +49,7 @@ import nl.myndocs.oauth2.identity.Identity
 import nl.myndocs.oauth2.identity.IdentityService
 import nl.myndocs.oauth2.ktor.feature.Oauth2ServerFeature
 import nl.myndocs.oauth2.ktor.feature.request.KtorCallContext
+import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
@@ -239,11 +240,11 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: A
 
 fun main(args: Array<String>) {
     setupDB().let { ds ->
-        /*Flyway.configure()
+        Flyway.configure()
             .dataSource(ds)
             .locations("db/migration")
             .load()
-            .migrate()*/
+            .migrate()
     }
 
     EngineMain.main(args)

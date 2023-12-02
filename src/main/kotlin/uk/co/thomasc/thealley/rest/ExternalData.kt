@@ -1,10 +1,21 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package uk.co.thomasc.thealley.rest
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
-data class GoogleHomeReq(val requestId: String, val inputs: List<JsonElement>)
+data class GoogleHomeReq(val requestId: String, val inputs: List<GoogleHomeIntent>)
+
+@Serializable
+@JsonClassDiscriminator("intent")
+sealed interface GoogleHomeIntent {
+    val context: JsonElement?
+}
 
 @Serializable
 data class GoogleHomeDevice(val id: String, val customData: JsonElement? = null) {
@@ -32,13 +43,20 @@ data class AlleyDeviceNames(val defaultNames: List<String>? = null, val name: St
 data class AlleyDeviceInfo(val manufacturer: String, val model: String, val hwVersion: String, val swVersion: String)
 
 @Serializable
-data class SyncIntent(val intent: String)
+@SerialName("action.devices.SYNC")
+data class SyncIntent(
+    override val context: JsonElement
+) : GoogleHomeIntent
 
 @Serializable
 data class SyncResponse(val agentUserId: String? = null, override val errorCode: String? = null, override val debugString: String? = null, val devices: List<AlleyDevice>) : GoogleHomePayload()
 
 @Serializable
-data class QueryIntent(val intent: String, val payload: QueryIntentPayload)
+@SerialName("action.devices.QUERY")
+data class QueryIntent(
+    val payload: QueryIntentPayload,
+    override val context: JsonElement? = null
+) : GoogleHomeIntent
 
 @Serializable
 data class QueryIntentPayload(val devices: List<GoogleHomeDevice>)
@@ -58,7 +76,11 @@ enum class DeviceBlindStateEnum { UP, DOWN }
 data class DeviceColor(val name: String? = null, val spectrumRGB: Int? = null, val temperature: Int? = null)
 
 @Serializable
-data class ExecuteIntent(val intent: String, val payload: ExecuteIntentPayload)
+@SerialName("action.devices.EXECUTE")
+data class ExecuteIntent(
+    val payload: ExecuteIntentPayload,
+    override val context: JsonElement?
+) : GoogleHomeIntent
 
 @Serializable
 data class ExecuteIntentPayload(val commands: List<ExecuteIntentCommand>)

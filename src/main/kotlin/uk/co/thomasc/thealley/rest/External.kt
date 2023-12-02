@@ -10,14 +10,13 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import uk.co.thomasc.thealley.checkOauth
-import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
 import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devicev2.AlleyEventBus
@@ -25,6 +24,7 @@ import uk.co.thomasc.thealley.devicev2.IAlleyLight
 import uk.co.thomasc.thealley.devicev2.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devicev2.relay.RelayDevice
 import uk.co.thomasc.thealley.devicev2.system.scene.SceneDevice
+import uk.co.thomasc.thealley.devicev2.xiaomi.blind.BlindDevice
 import java.awt.Color
 
 @Location("/external")
@@ -220,39 +220,37 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                 ),
                 false
             )
-        } +
-        /* switchRepository.getDevicesForType(SwitchRepository.DeviceType.BLIND).map { // TODO: Support blinds
+        } + deviceMapper.getDevices<BlindDevice>().map {
             AlleyDevice(
-                it.deviceId.toString(),
+                it.id.toString(),
                 "action.devices.types.BLINDS",
                 listOf(
                     "action.devices.traits.OpenClose"
                 ),
                 AlleyDeviceNames(
-                    name = it.name
+                    name = it.config.name
                 ),
                 false,
                 attributes = mapOf(
                     "openDirection" to JsonArray(DeviceBlindStateEnum.entries.map { e -> JsonPrimitive(e.toString()) })
                 )
             )
-        }*/
-            deviceMapper.getDevices<SceneDevice>().map {
-                AlleyDevice(
-                    "scene-${it.id}",
-                    "action.devices.types.SCENE",
-                    listOf(
-                        "action.devices.traits.Scene"
-                    ),
-                    AlleyDeviceNames(
-                        name = "scene-${it.id}"
-                    ),
-                    false,
-                    attributes = mapOf(
-                        "sceneReversible" to JsonPrimitive(true)
-                    )
+        } + deviceMapper.getDevices<SceneDevice>().map {
+            AlleyDevice(
+                "scene-${it.id}",
+                "action.devices.types.SCENE",
+                listOf(
+                    "action.devices.traits.Scene"
+                ),
+                AlleyDeviceNames(
+                    name = "scene-${it.id}"
+                ),
+                false,
+                attributes = mapOf(
+                    "sceneReversible" to JsonPrimitive(true)
                 )
-            }
+            )
+        }
     )
 
     get<ExternalRoute.Test> {
@@ -264,23 +262,13 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
     post<ExternalRoute.GoogleHome> {
         checkOauth(alleyTokenStore) {
             val obj = call.receive<GoogleHomeReq>()
-            val input = obj.inputs.first()
-
-            val intent = alleyJson.decodeFromJsonElement(
-                when (input.jsonObject["intent"]?.jsonPrimitive?.content) {
-                    "action.devices.QUERY" -> QueryIntent.serializer()
-                    "action.devices.EXECUTE" -> ExecuteIntent.serializer()
-                    else -> SyncIntent.serializer()
-                },
-                input
-            )
+            val intent = obj.inputs.first()
 
             when (intent) {
                 is SyncIntent -> syncRequest(intent)
                 is QueryIntent -> queryRequest(intent)
                 is ExecuteIntent -> executeRequest(intent)
-                else -> null
-            }?.let {
+            }.let {
                 call.respond(
                     GoogleHomeRes(
                         obj.requestId,
