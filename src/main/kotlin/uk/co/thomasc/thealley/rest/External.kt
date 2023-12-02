@@ -188,8 +188,9 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         }
     )
 
-    suspend fun syncRequest(requestId: String, intent: SyncIntent) = SyncResponse(
+    suspend fun syncRequest(requestId: String, userId: String, intent: SyncIntent) = SyncResponse(
         requestId,
+        userId,
         devices = deviceMapper.getDevices<BulbDevice>().map { light ->
 
             AlleyDevice(
@@ -271,7 +272,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
     }
 
     post<ExternalRoute.GoogleHome> {
-        checkOauth(alleyTokenStore) {
+        checkOauth(alleyTokenStore) { userId ->
             val txt = call.receiveText()
             logger.info { "Received google home request - $txt" }
             // val obj = call.receive<GoogleHomeReq>()
@@ -279,7 +280,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
             val intent = obj.inputs.first()
 
             when (intent) {
-                is SyncIntent -> syncRequest(obj.requestId, intent)
+                is SyncIntent -> syncRequest(obj.requestId, userId, intent)
                 is QueryIntent -> queryRequest(obj.requestId, intent)
                 is ExecuteIntent -> executeRequest(obj.requestId, intent)
                 is DisconnectIntent -> DisconnectResponse(obj.requestId)

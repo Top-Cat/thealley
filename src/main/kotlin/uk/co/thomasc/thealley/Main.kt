@@ -223,14 +223,14 @@ fun Application.setup() {
     }
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: AlleyTokenStore, block: suspend () -> Unit) {
+suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: AlleyTokenStore, block: suspend (String) -> Unit) {
     val authHeader = call.request.parseAuthorizationHeader()
     if (authHeader is HttpAuthHeader.Single) {
         val token = alleyTokenStore.accessToken(authHeader.blob)
 
         when (token?.expired()) {
             true -> alleyTokenStore.revokeAccessToken(token.accessToken).let { null }
-            false -> block().let { true }
+            false -> block(token.identity?.username ?: "").let { true }
             null -> null
         }
     } else {

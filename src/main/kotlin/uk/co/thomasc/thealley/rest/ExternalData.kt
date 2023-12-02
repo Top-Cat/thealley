@@ -64,7 +64,7 @@ data class DisconnectResponse(
 ) : GoogleHomePayload
 
 @Serializable
-data class SyncResponse(override val requestId: String, val agentUserId: String? = null, override val errorCode: String? = null, override val debugString: String? = null, val devices: List<AlleyDevice>) : GoogleHomePayload
+data class SyncResponse(override val requestId: String, val agentUserId: String, override val errorCode: String? = null, override val debugString: String? = null, val devices: List<AlleyDevice>) : GoogleHomePayload
 
 @Serializable
 @SerialName("action.devices.QUERY")
