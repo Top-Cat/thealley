@@ -6,9 +6,9 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.connection
 import io.ktor.network.sockets.isClosed
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
@@ -25,6 +25,7 @@ import uk.co.thomasc.thealley.devicev2.types.SwitchServerConfig
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
+import kotlin.coroutines.coroutineContext
 
 class SwitchServerDevice(id: Int, config: SwitchServerConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<SwitchServerDevice, SwitchServerConfig, EmptyState>(id, config, state, stateStore) {
@@ -34,7 +35,7 @@ class SwitchServerDevice(id: Int, config: SwitchServerConfig, state: EmptyState,
     private suspend fun listenForClients(bus: AlleyEventBus) {
         while (true) {
             val client = server.accept()
-            coroutineScope {
+            with(CoroutineScope(coroutineContext)) {
                 launch {
                     val job = with(SwitchClient(bus, client)) {
                         launch { client.use { run() } } to launch { keepalive() }
@@ -126,6 +127,7 @@ class SwitchServerDevice(id: Int, config: SwitchServerConfig, state: EmptyState,
 
                                 bus.emit(SwitchEvent(switchId, buttonId, SwitchEvent.State.fromInt(buttonState)))
                             }
+
                             53 -> {
                                 val dataType = q.poll()
                                 // Read signed short
