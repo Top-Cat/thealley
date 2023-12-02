@@ -99,7 +99,7 @@ data class DeviceState(
     val online: Boolean,
     val on: Boolean? = null,
     val brightness: Int? = null,
-    val color: DeviceColor? = null,
+    val color: DeviceColorState? = null,
     val openState: List<DeviceBlindState>? = null
 )
 
@@ -108,8 +108,38 @@ data class DeviceBlindState(val openPercent: Int, val openDirection: DeviceBlind
 
 enum class DeviceBlindStateEnum { UP, DOWN }
 
+interface DeviceColor {
+    val name: String?
+    val spectrumRgb: Int?
+    val spectrumHsv: DeviceColorHSV?
+    val temperature: Int?
+}
+
 @Serializable
-data class DeviceColor(val name: String? = null, val spectrumRGB: Int? = null, val temperature: Int? = null)
+data class DeviceColorState(
+    override val name: String? = null,
+    override val spectrumRgb: Int? = null,
+    override val spectrumHsv: DeviceColorHSV? = null,
+    @SerialName("temperatureK")
+    override val temperature: Int? = null
+) : DeviceColor
+
+@Serializable
+data class DeviceColorCommand(
+    override val name: String? = null,
+    @SerialName("spectrumRGB")
+    override val spectrumRgb: Int? = null,
+    @SerialName("spectrumHSV")
+    override val spectrumHsv: DeviceColorHSV? = null,
+    override val temperature: Int? = null
+) : DeviceColor
+
+@Serializable
+data class DeviceColorHSV(
+    val hue: Int,
+    val saturation: Float,
+    val brightness: Float
+)
 
 @Serializable
 @SerialName("action.devices.EXECUTE")

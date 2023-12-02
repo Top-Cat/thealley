@@ -14,6 +14,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -78,32 +79,45 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                                     ExecuteStatus.SUCCESS
                                 }
                                 "action.devices.commands.ColorAbsolute" -> bulbN?.let {
-                                    val colorObj = ex.params["color"]
+                                    val colorObj = ex.params["color"]?.let {
+                                        alleyJson.decodeFromJsonElement<DeviceColorCommand>(it)
+                                    }
 
-                                    if (colorObj is JsonObject) {
-                                        if (colorObj.containsKey("temperature")) {
-                                            bulbN.setComplexState(
-                                                bus,
-                                                IAlleyLight.LightState(temperature = colorObj["temperature"]?.jsonPrimitive?.intOrNull)
+                                    if (colorObj?.temperature != null) {
+                                        bulbN.setComplexState(
+                                            bus,
+                                            IAlleyLight.LightState(temperature = colorObj.temperature)
+                                        )
+                                        ExecuteStatus.SUCCESS
+                                    } else if (colorObj?.spectrumHsv != null) {
+                                        val color = colorObj.spectrumHsv
+                                        bulbN.setComplexState(
+                                            bus,
+                                            IAlleyLight.LightState(
+                                                (color.brightness * 100).toInt(),
+                                                color.hue,
+                                                (color.saturation * 100).toInt()
                                             )
-                                        } else {
-                                            val colorHex = colorObj["spectrumRGB"]?.jsonPrimitive?.intOrNull ?: 0
-                                            val color = Color.RGBtoHSB(
-                                                (colorHex shr 16) and 255,
-                                                (colorHex shr 8) and 255,
-                                                colorHex and 255,
-                                                null
-                                            )
+                                        )
 
-                                            bulbN.setComplexState(
-                                                bus,
-                                                IAlleyLight.LightState(
-                                                    (color[2] * 100).toInt(),
-                                                    (color[0] * 360).toInt(),
-                                                    (color[1] * 100).toInt()
-                                                )
+                                        ExecuteStatus.SUCCESS
+                                    } else if (colorObj?.spectrumRgb != null) {
+                                        val colorHex = colorObj.spectrumRgb
+                                        val color = Color.RGBtoHSB(
+                                            (colorHex shr 16) and 255,
+                                            (colorHex shr 8) and 255,
+                                            colorHex and 255,
+                                            null
+                                        )
+
+                                        bulbN.setComplexState(
+                                            bus,
+                                            IAlleyLight.LightState(
+                                                (color[2] * 100).toInt(),
+                                                (color[0] * 360).toInt(),
+                                                (color[1] * 100).toInt()
                                             )
-                                        }
+                                        )
 
                                         // TODO: Check values were set?
 
@@ -153,19 +167,17 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                         light.getPowerState(),
                         lightState.brightness,
                         if (lightState.temperature?.let { it > 0 } == true) {
-                            DeviceColor(
+                            DeviceColorState(
                                 temperature = lightState.temperature
                             )
-                        } else if (lightState.brightness?.let { it > 0 } == true) {
-                            DeviceColor(
-                                spectrumRGB = Color.HSBtoRGB(
-                                    (lightState.hue ?: 0) / 360f,
+                        } else {
+                            DeviceColorState(
+                                spectrumHsv = DeviceColorHSV(
+                                    lightState.hue ?: 0,
                                     (lightState.saturation ?: 0) / 100f,
-                                    lightState.brightness / 100f
+                                    (lightState.brightness ?: 0) / 100f
                                 )
                             )
-                        } else {
-                            null
                         }
                     )
                 }
@@ -186,14 +198,14 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
     suspend fun syncRequest(userId: String, intent: SyncIntent) = SyncResponse(
         userId,
         devices = deviceMapper.getDevices<BulbDevice>().map { light ->
+
             AlleyDevice(
                 light.id.toString(),
                 "action.devices.types.LIGHT",
                 listOf(
                     "action.devices.traits.OnOff",
                     "action.devices.traits.Brightness",
-                    "action.devices.traits.ColorTemperature",
-                    "action.devices.traits.ColorSpectrum"
+                    "action.devices.traits.ColorSetting"
                 ),
                 AlleyDeviceNames(
                     defaultNames = listOfNotNull(
@@ -203,8 +215,13 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                 ),
                 false,
                 attributes = mapOf(
-                    "temperatureMinK" to JsonPrimitive(2500),
-                    "temperatureMaxK" to JsonPrimitive(9000)
+                    "colorModel" to JsonPrimitive("hsv"),
+                    "colorTemperatureRange" to JsonObject(
+                        mapOf(
+                            "temperatureMinK" to JsonPrimitive(2500),
+                            "temperatureMaxK" to JsonPrimitive(9000)
+                        )
+                    )
                 ),
                 deviceInfo = AlleyDeviceInfo(
                     "TP-Link",
