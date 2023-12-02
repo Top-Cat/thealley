@@ -158,10 +158,10 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                             )
                         } else if (lightState.brightness?.let { it > 0 } == true) {
                             DeviceColor(
-                                    spectrumRGB = Color.HSBtoRGB(
+                                spectrumRGB = Color.HSBtoRGB(
                                     (lightState.hue ?: 0) / 360f,
                                     (lightState.saturation ?: 0) / 100f,
-                                    (lightState.brightness ?: 0) / 100f
+                                    lightState.brightness / 100f
                                 )
                             )
                         } else {
@@ -186,7 +186,6 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
     suspend fun syncRequest(userId: String, intent: SyncIntent) = SyncResponse(
         userId,
         devices = deviceMapper.getDevices<BulbDevice>().map { light ->
-
             AlleyDevice(
                 light.id.toString(),
                 "action.devices.types.LIGHT",

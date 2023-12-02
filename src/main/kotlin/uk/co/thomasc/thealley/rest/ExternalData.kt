@@ -34,7 +34,16 @@ interface GoogleHomeMayFail {
 sealed interface GoogleHomePayload : GoogleHomeMayFail
 
 @Serializable
-data class AlleyDevice(val id: String, val type: String, val traits: List<String>, val name: AlleyDeviceNames, val willReportState: Boolean, val deviceInfo: AlleyDeviceInfo? = null, val attributes: Map<String, JsonElement>? = null, val customData: JsonElement? = null)
+data class AlleyDevice(
+    val id: String,
+    val type: String,
+    val traits: List<String>,
+    val name: AlleyDeviceNames,
+    val willReportState: Boolean,
+    val deviceInfo: AlleyDeviceInfo? = null,
+    val attributes: Map<String, JsonElement>? = null,
+    val customData: JsonElement? = null
+)
 
 @Serializable
 data class AlleyDeviceNames(val defaultNames: List<String>? = null, val name: String? = null, val nicknames: List<String>? = null)
@@ -86,7 +95,13 @@ data class QueryResponse(
 ) : GoogleHomePayload
 
 @Serializable
-data class DeviceState(val online: Boolean, val on: Boolean? = null, val brightness: Int? = null, val color: DeviceColor? = null, val openState: List<DeviceBlindState>? = null)
+data class DeviceState(
+    val online: Boolean,
+    val on: Boolean? = null,
+    val brightness: Int? = null,
+    val color: DeviceColor? = null,
+    val openState: List<DeviceBlindState>? = null
+)
 
 @Serializable
 data class DeviceBlindState(val openPercent: Int, val openDirection: DeviceBlindStateEnum)
