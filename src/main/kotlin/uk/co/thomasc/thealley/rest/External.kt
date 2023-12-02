@@ -10,6 +10,7 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -283,7 +284,8 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                 is ExecuteIntent -> executeRequest(obj.requestId, intent)
                 is DisconnectIntent -> DisconnectResponse(obj.requestId)
             }.let {
-                logger.info { "Responding - $it" }
+                val txt2 = alleyJson.encodeToString(it)
+                logger.info { "Responding - $txt2" }
                 call.respond(
                     GoogleHomeRes(
                         obj.requestId,
