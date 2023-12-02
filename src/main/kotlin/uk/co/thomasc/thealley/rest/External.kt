@@ -165,7 +165,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                     DeviceState(
                         true,
                         light.getPowerState(),
-                        lightState.brightness,
+                        lightState.brightness ?: 0,
                         if (lightState.temperature?.let { it > 0 } == true) {
                             DeviceColorState(
                                 temperature = lightState.temperature
