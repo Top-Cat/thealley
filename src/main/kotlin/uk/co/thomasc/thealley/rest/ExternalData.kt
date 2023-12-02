@@ -45,7 +45,7 @@ data class AlleyDeviceInfo(val manufacturer: String, val model: String, val hwVe
 @Serializable
 @SerialName("action.devices.SYNC")
 data class SyncIntent(
-    override val context: JsonElement
+    override val context: JsonElement? = null
 ) : GoogleHomeIntent
 
 @Serializable
@@ -79,7 +79,7 @@ data class DeviceColor(val name: String? = null, val spectrumRGB: Int? = null, v
 @SerialName("action.devices.EXECUTE")
 data class ExecuteIntent(
     val payload: ExecuteIntentPayload,
-    override val context: JsonElement?
+    override val context: JsonElement? = null
 ) : GoogleHomeIntent
 
 @Serializable
