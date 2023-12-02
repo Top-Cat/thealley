@@ -136,9 +136,9 @@ data class DeviceColorCommand(
 
 @Serializable
 data class DeviceColorHSV(
-    val hue: Int,
+    val hue: Float,
     val saturation: Float,
-    val brightness: Float
+    val value: Float
 )
 
 @Serializable

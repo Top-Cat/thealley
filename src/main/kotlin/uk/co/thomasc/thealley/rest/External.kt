@@ -94,8 +94,8 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                                         bulbN.setComplexState(
                                             bus,
                                             IAlleyLight.LightState(
-                                                (color.brightness * 100).toInt(),
-                                                color.hue,
+                                                (color.value * 100).toInt(),
+                                                color.hue.toInt(),
                                                 (color.saturation * 100).toInt()
                                             )
                                         )
@@ -173,7 +173,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                         } else {
                             DeviceColorState(
                                 spectrumHsv = DeviceColorHSV(
-                                    lightState.hue ?: 0,
+                                    lightState.hue?.toFloat() ?: 0f,
                                     (lightState.saturation ?: 0) / 100f,
                                     (lightState.brightness ?: 0) / 100f
                                 )
