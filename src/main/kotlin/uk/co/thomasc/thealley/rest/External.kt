@@ -269,7 +269,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         checkOauth(alleyTokenStore) {
             val txt = call.receiveText()
             logger.info { "Received google home request - $txt" }
-            //val obj = call.receive<GoogleHomeReq>()
+            // val obj = call.receive<GoogleHomeReq>()
             val obj = alleyJson.decodeFromString<GoogleHomeReq>(txt)
             val intent = obj.inputs.first()
 
