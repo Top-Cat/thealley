@@ -4,13 +4,12 @@ import io.ktor.server.application.call
 import io.ktor.server.locations.Location
 import io.ktor.server.locations.get
 import io.ktor.server.locations.post
-import io.ktor.server.request.receiveText
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.newFixedThreadPoolContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -18,7 +17,6 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import mu.KLogging
 import uk.co.thomasc.thealley.checkOauth
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
@@ -42,11 +40,7 @@ class ExternalRoute {
 
 val threadPool = newFixedThreadPoolContext(10, "ExternalRoute")
 
-object ExternalLogger : KLogging()
-
 fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, alleyTokenStore: AlleyTokenStore) {
-    val logger = ExternalLogger.logger
-
     suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices
@@ -271,10 +265,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
 
     post<ExternalRoute.GoogleHome> {
         checkOauth(alleyTokenStore) { userId ->
-            val txt = call.receiveText()
-            logger.info { "Received google home request - $txt" }
-            // val obj = call.receive<GoogleHomeReq>()
-            val obj = alleyJson.decodeFromString<GoogleHomeReq>(txt)
+            val obj = call.receive<GoogleHomeReq>()
             val intent = obj.inputs.first()
 
             when (intent) {
@@ -290,13 +281,12 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                     is SyncResponse -> alleyJson.encodeToJsonElement(it)
                 }
             }.let {
-                val res = GoogleHomeRes(
-                    obj.requestId,
-                    it
+                call.respond(
+                    GoogleHomeRes(
+                        obj.requestId,
+                        it
+                    )
                 )
-                val txt2 = alleyJson.encodeToString(res)
-                logger.info { "Responding - $txt2" }
-                call.respond(res)
             }
         }
     }
