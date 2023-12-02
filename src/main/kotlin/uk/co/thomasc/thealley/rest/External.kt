@@ -152,18 +152,20 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                         true,
                         light.getPowerState(),
                         lightState.brightness,
-                        if (lightState.temperature != null && lightState.temperature > 0) {
+                        if (lightState.temperature?.let { it > 0 } == true) {
                             DeviceColor(
                                 temperature = lightState.temperature
                             )
-                        } else {
+                        } else if (lightState.brightness?.let { it > 0 } == true) {
                             DeviceColor(
-                                spectrumRGB = Color.HSBtoRGB(
+                                    spectrumRGB = Color.HSBtoRGB(
                                     (lightState.hue ?: 0) / 360f,
                                     (lightState.saturation ?: 0) / 100f,
                                     (lightState.brightness ?: 0) / 100f
                                 )
                             )
+                        } else {
+                            null
                         }
                     )
                 }
