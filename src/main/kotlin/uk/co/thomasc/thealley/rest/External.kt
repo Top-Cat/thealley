@@ -45,7 +45,8 @@ object ExternalLogger : KLogging()
 fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, alleyTokenStore: AlleyTokenStore) {
     val logger = ExternalLogger.logger
 
-    suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
+    suspend fun executeRequest(requestId: String, intent: ExecuteIntent) = ExecuteResponse(
+        requestId,
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices
         }.map { // Execute commands
@@ -145,7 +146,8 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         }
     )
 
-    suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
+    suspend fun queryRequest(requestId: String, intent: QueryIntent) = QueryResponse(
+        requestId,
         intent.payload.devices.mapNotNull {
             deviceMapper.getDevice(it.deviceId)
         }.associate { light ->
@@ -172,11 +174,12 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                     )
                 }
                 is RelayDevice -> DeviceState(true, light.getPowerState())
-                // TODO: Support blinds
-                /*is Blind -> DeviceState(
+                is BlindDevice -> DeviceState(
                     true,
-                    openState = light.getState()?.let { s -> listOf(DeviceBlindState(s, DeviceBlindStateEnum.UP)) }
-                )*/
+                    openState = light.getLightState().brightness?.let { s ->
+                        listOf(DeviceBlindState(s, if (s > 0) DeviceBlindStateEnum.UP else DeviceBlindStateEnum.DOWN))
+                    }
+                )
                 else -> null
             } ?: DeviceState(false)
 
@@ -184,7 +187,8 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         }
     )
 
-    suspend fun syncRequest(intent: SyncIntent) = SyncResponse(
+    suspend fun syncRequest(requestId: String, intent: SyncIntent) = SyncResponse(
+        requestId,
         devices = deviceMapper.getDevices<BulbDevice>().map { light ->
 
             AlleyDevice(
@@ -274,9 +278,10 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
             val intent = obj.inputs.first()
 
             when (intent) {
-                is SyncIntent -> syncRequest(intent)
-                is QueryIntent -> queryRequest(intent)
-                is ExecuteIntent -> executeRequest(intent)
+                is SyncIntent -> syncRequest(obj.requestId, intent)
+                is QueryIntent -> queryRequest(obj.requestId, intent)
+                is ExecuteIntent -> executeRequest(obj.requestId, intent)
+                is DisconnectIntent -> DisconnectResponse(obj.requestId)
             }.let {
                 logger.info { "Responding - $it" }
                 call.respond(
