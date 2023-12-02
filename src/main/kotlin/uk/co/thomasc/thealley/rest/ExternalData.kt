@@ -6,6 +6,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
@@ -23,7 +24,7 @@ data class GoogleHomeDevice(val id: String, val customData: JsonElement? = null)
 }
 
 @Serializable
-data class GoogleHomeRes(val requestId: String, val payload: GoogleHomePayload)
+data class GoogleHomeRes(val requestId: String, val payload: JsonElement)
 
 interface GoogleHomeMayFail {
     val errorCode: String?

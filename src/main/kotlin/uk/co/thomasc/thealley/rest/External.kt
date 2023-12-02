@@ -15,7 +15,9 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import mu.KLogging
 import uk.co.thomasc.thealley.checkOauth
@@ -281,6 +283,13 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                 is QueryIntent -> queryRequest(intent)
                 is ExecuteIntent -> executeRequest(intent)
                 is DisconnectIntent -> DisconnectResponse()
+            }.let {
+                when (it) { // Bypass polymorphic serialiser that adds "type" property
+                    is DisconnectResponse -> alleyJson.encodeToJsonElement(it)
+                    is ExecuteResponse -> alleyJson.encodeToJsonElement(it)
+                    is QueryResponse -> alleyJson.encodeToJsonElement(it)
+                    is SyncResponse -> alleyJson.encodeToJsonElement(it)
+                }
             }.let {
                 val res = GoogleHomeRes(
                     obj.requestId,
