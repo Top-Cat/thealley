@@ -33,6 +33,8 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
                 val to = now.minus(1.hours)
 
                 val newReadings = if (from < to) {
+                    logger.info { "Getting readings from '$from' to '$to'" }
+
                     bright
                         .getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, to)
                         .readings
@@ -47,7 +49,7 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
                 val next = Instant.fromEpochSeconds(nextHalfHour(now) + Random.Default.nextInt(120))
                 val newTotal = state.meterTotal + consumption
 
-                logger.info { "Got ${newReadings.size} new readings, Latest = $latest, Total = $newTotal" }
+                logger.info { "Got ${newReadings.size} new readings ${newReadings.map { it.consumption }}, Latest = $latest, Total = $newTotal" }
                 updateState(state.copy(nextCatchup = next, latestReading = latest, meterTotal = newTotal))
                 if (newReadings.isNotEmpty()) bus.emit(BrightEvent(newTotal, latest))
             }
