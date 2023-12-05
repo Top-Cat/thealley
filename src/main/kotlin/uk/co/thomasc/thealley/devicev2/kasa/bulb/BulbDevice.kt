@@ -20,11 +20,42 @@ import uk.co.thomasc.thealley.devicev2.system.sun.SunRiseEvent
 import uk.co.thomasc.thealley.devicev2.system.sun.SunSetEvent
 import uk.co.thomasc.thealley.devicev2.types.BulbConfig
 import uk.co.thomasc.thealley.devicev2.xiaomi.aq2.MotionEvent
+import uk.co.thomasc.thealley.google.DeviceType
+import uk.co.thomasc.thealley.google.trait.BrightnessTrait
+import uk.co.thomasc.thealley.google.trait.ColorSettingTrait
+import uk.co.thomasc.thealley.google.trait.IColorState
+import uk.co.thomasc.thealley.google.trait.OnOffTrait
 
 class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: IStateUpdater<BulbState>) :
     KasaDevice<BulbData, BulbDevice, BulbConfig, BulbState>(id, config, state, stateStore), IAlleyLight {
 
     override suspend fun init(bus: AlleyEventBus) {
+        registerGoogleHomeDevice(
+            DeviceType.LIGHT,
+            OnOffTrait(
+                getOnOff = ::getPowerState,
+                setOnOff = {
+                    setPowerState(bus, it)
+                }
+            ),
+            BrightnessTrait(
+                getBrightness = {
+                    getLightState().brightness ?: 0
+                },
+                setBrightness = { b ->
+                    setComplexState(bus, IAlleyLight.LightState(b))
+                }
+            ),
+            ColorSettingTrait(
+                getColor = {
+                    IColorState.fromLightState(getLightState())
+                },
+                setColor = {
+                    it.setComplexState(bus, ::setComplexState)
+                }
+            )
+        )
+
         bus.handle<SunRiseEvent> {
             updateState(state.copy(daytime = true))
         }
@@ -59,7 +90,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
     }
 
     private suspend fun onWithNightScaling(now: Instant, transitionTime: Int = 500) =
-        setComplexState(
+        setComplexStateInt(
             IAlleyLight.LightState(
                 NightBrightnessCalc.getBrightnessFor(now)
             ),
@@ -96,10 +127,10 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
     override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) = setLightState(BulbUpdate(value))
 
     override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
-        setComplexState(lightState, transitionTime)
+        setComplexStateInt(lightState, transitionTime)
     }
 
-    private suspend fun setComplexState(lightState: IAlleyLight.LightState, transitionTime: Int?) {
+    private suspend fun setComplexStateInt(lightState: IAlleyLight.LightState, transitionTime: Int?) {
         setLightState(
             lightState.temperature?.let {
                 BulbUpdate(transitionTime, true, null, null, null, lightState.brightness, lightState.temperature)

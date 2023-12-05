@@ -19,6 +19,8 @@ import uk.co.thomasc.thealley.devicev2.IStateUpdater
 import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devicev2.types.RelayConfig
+import uk.co.thomasc.thealley.google.DeviceType
+import uk.co.thomasc.thealley.google.trait.OnOffTrait
 import kotlin.time.Duration.Companion.seconds
 
 class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: IStateUpdater<RelayState>) :
@@ -69,6 +71,16 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
     }
 
     override suspend fun init(bus: AlleyEventBus) {
+        registerGoogleHomeDevice(
+            DeviceType.LIGHT,
+            OnOffTrait(
+                getOnOff = ::getPowerState,
+                setOnOff = {
+                    setPowerState(bus, it)
+                }
+            )
+        )
+
         bus.handle<MqttMessageEvent> { ev ->
             Regex("([^/,]+)/([^/,]+)(?:/([^/,]+))?").find(ev.topic)?.also {
                 val (_, host, prop, _) = it.groupValues

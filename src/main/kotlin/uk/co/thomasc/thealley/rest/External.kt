@@ -10,25 +10,24 @@ import io.ktor.server.routing.Route
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.newFixedThreadPoolContext
-import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import uk.co.thomasc.thealley.checkOauth
 import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
 import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devicev2.AlleyEventBus
-import uk.co.thomasc.thealley.devicev2.IAlleyLight
-import uk.co.thomasc.thealley.devicev2.kasa.bulb.BulbDevice
-import uk.co.thomasc.thealley.devicev2.relay.RelayDevice
-import uk.co.thomasc.thealley.devicev2.system.scene.SceneDevice
-import uk.co.thomasc.thealley.devicev2.xiaomi.blind.BlindDevice
-import java.awt.Color
+import uk.co.thomasc.thealley.google.command.ActivateSceneCommand
+import uk.co.thomasc.thealley.google.command.ColorAbsoluteCommand
+import uk.co.thomasc.thealley.google.command.IBrightnessCommand
+import uk.co.thomasc.thealley.google.command.OnOffCommand
+import uk.co.thomasc.thealley.google.command.OpenCloseCommand
+import uk.co.thomasc.thealley.google.trait.BrightnessTrait
+import uk.co.thomasc.thealley.google.trait.ColorSettingTrait
+import uk.co.thomasc.thealley.google.trait.OnOffTrait
+import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
+import uk.co.thomasc.thealley.google.trait.SceneTrait
 
 @Location("/external")
 class ExternalRoute {
@@ -50,84 +49,24 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                 it.second.map { device ->
                     async(threadPool) {
                         device to it.first.execution.map { ex ->
-                            val bulbN = deviceMapper.getDevice(device.deviceId) as? IAlleyLight
-                            when (ex.command) {
-                                "action.devices.commands.ActivateScene" -> {
-                                    deviceMapper.getDevice<SceneDevice>(device.deviceId)?.let {
-                                        if (ex.params["deactivate"]?.jsonPrimitive?.booleanOrNull != true) {
-                                            it.off(bus)
-                                        } else {
-                                            it.execute(bus)
-                                        }
-                                    }
+                            val dev = deviceMapper.getDevice(device.deviceId)
+                            val type = dev?.ghType
+                            val traits = dev?.ghTraits
 
-                                    ExecuteStatus.SUCCESS
-                                }
-                                "action.devices.commands.OnOff" -> bulbN?.let {
-                                    it.setPowerState(bus, ex.params["on"]?.jsonPrimitive?.booleanOrNull ?: false)
-
-                                    ExecuteStatus.SUCCESS
-                                }
-                                "action.devices.commands.BrightnessAbsolute" -> bulbN?.let {
-                                    bulbN.setComplexState(bus, IAlleyLight.LightState(ex.params["brightness"]?.jsonPrimitive?.intOrNull))
-
-                                    ExecuteStatus.SUCCESS
-                                }
-                                "action.devices.commands.OpenClose" -> bulbN?.let {
-                                    bulbN.setComplexState(bus, IAlleyLight.LightState(ex.params["openPercent"]?.jsonPrimitive?.intOrNull))
-
-                                    ExecuteStatus.SUCCESS
-                                }
-                                "action.devices.commands.ColorAbsolute" -> bulbN?.let {
-                                    val colorObj = ex.params["color"]?.let {
-                                        alleyJson.decodeFromJsonElement<DeviceColorCommand>(it)
-                                    }
-
-                                    if (colorObj?.temperature != null) {
-                                        bulbN.setComplexState(
-                                            bus,
-                                            IAlleyLight.LightState(temperature = colorObj.temperature)
-                                        )
-                                        ExecuteStatus.SUCCESS
-                                    } else if (colorObj?.spectrumHsv != null) {
-                                        val color = colorObj.spectrumHsv
-                                        bulbN.setComplexState(
-                                            bus,
-                                            IAlleyLight.LightState(
-                                                (color.value * 100).toInt(),
-                                                color.hue.toInt(),
-                                                (color.saturation * 100).toInt()
-                                            )
-                                        )
-
-                                        ExecuteStatus.SUCCESS
-                                    } else if (colorObj?.spectrumRgb != null) {
-                                        val colorHex = colorObj.spectrumRgb
-                                        val color = Color.RGBtoHSB(
-                                            (colorHex shr 16) and 255,
-                                            (colorHex shr 8) and 255,
-                                            colorHex and 255,
-                                            null
-                                        )
-
-                                        bulbN.setComplexState(
-                                            bus,
-                                            IAlleyLight.LightState(
-                                                (color[2] * 100).toInt(),
-                                                (color[0] * 360).toInt(),
-                                                (color[1] * 100).toInt()
-                                            )
-                                        )
-
-                                        // TODO: Check values were set?
-
-                                        ExecuteStatus.SUCCESS
-                                    } else {
-                                        ExecuteStatus.ERROR
+                            if (type != null && traits != null) {
+                                traits.firstNotNullOfOrNull { trait ->
+                                    when {
+                                        trait is BrightnessTrait && ex is IBrightnessCommand<*> -> trait.handleCommand(ex)
+                                        trait is ColorSettingTrait && ex is ColorAbsoluteCommand -> trait.handleCommand(ex)
+                                        trait is OnOffTrait && ex is OnOffCommand -> trait.handleCommand(ex)
+                                        trait is OpenCloseTrait && ex is OpenCloseCommand -> trait.handleCommand(ex)
+                                        trait is SceneTrait && ex is ActivateSceneCommand -> trait.handleCommand(ex)
+                                        else -> null
                                     }
                                 }
-                                else -> ExecuteStatus.ERROR
-                            }
+                            } else {
+                                null
+                            } ?: ExecuteStatus.ERROR
                         }
                     }
                 }
@@ -159,119 +98,50 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         intent.payload.devices.mapNotNull {
             deviceMapper.getDevice(it.deviceId)
         }.associate { light ->
+            val type = light.ghType
+            val traits = light.ghTraits
 
-            suspend fun getState() = when (light) {
-                is BulbDevice -> light.getLightState().let { lightState ->
-                    DeviceState(
-                        true,
-                        light.getPowerState(),
-                        lightState.brightness ?: 0,
-                        if (lightState.temperature?.let { it > 0 } == true) {
-                            DeviceColorState(
-                                temperature = lightState.temperature
-                            )
-                        } else {
-                            DeviceColorState(
-                                spectrumHsv = DeviceColorHSV(
-                                    lightState.hue?.toFloat() ?: 0f,
-                                    (lightState.saturation ?: 0) / 100f,
-                                    (lightState.brightness ?: 0) / 100f
-                                )
-                            )
-                        }
+            val state = if (type != null && traits != null) {
+                traits.fold(
+                    mapOf<String, JsonElement>(
+                        "online" to JsonPrimitive(true),
+                        "status" to JsonPrimitive(QueryStatus.SUCCESS.name)
                     )
+                ) { a, b ->
+                    a.plus(b.getState())
                 }
-                is RelayDevice -> DeviceState(true, light.getPowerState())
-                is BlindDevice -> DeviceState(
-                    true,
-                    openState = light.getLightState().brightness?.let { s ->
-                        listOf(DeviceBlindState(s, if (s > 0) DeviceBlindStateEnum.UP else DeviceBlindStateEnum.DOWN))
-                    }
+            } else {
+                mapOf(
+                    "online" to JsonPrimitive(false),
+                    "status" to JsonPrimitive(QueryStatus.ERROR.name),
+                    "errorCode" to JsonPrimitive("deviceOffline")
                 )
-                else -> null
-            } ?: DeviceState(false)
+            }
 
-            light.id.toString() to getState()
+            light.id.toString() to JsonObject(state)
         }
     )
 
     suspend fun syncRequest(userId: String, intent: SyncIntent) = SyncResponse(
         userId,
-        devices = deviceMapper.getDevices<BulbDevice>().map { light ->
+        devices = deviceMapper.getDevices().mapNotNull {
+            val type = it.ghType
+            val traits = it.ghTraits
 
-            AlleyDevice(
-                light.id.toString(),
-                "action.devices.types.LIGHT",
-                listOf(
-                    "action.devices.traits.OnOff",
-                    "action.devices.traits.Brightness",
-                    "action.devices.traits.ColorSetting"
-                ),
-                AlleyDeviceNames(
-                    defaultNames = listOfNotNull(
-                        light.getModel()
-                    ),
-                    name = light.config.name
-                ),
-                false,
-                attributes = mapOf(
-                    "colorModel" to JsonPrimitive("hsv"),
-                    "colorTemperatureRange" to JsonObject(
-                        mapOf(
-                            "temperatureMinK" to JsonPrimitive(2500),
-                            "temperatureMaxK" to JsonPrimitive(9000)
-                        )
-                    )
-                ),
-                deviceInfo = AlleyDeviceInfo(
-                    "TP-Link",
-                    light.getModel() ?: "",
-                    light.getHwVer() ?: "",
-                    light.getSwVer() ?: ""
+            if (type != null && traits != null) {
+                AlleyDevice(
+                    it.id.toString(),
+                    type.typeName,
+                    traits.map { t -> t.name }.toSet(),
+                    AlleyDeviceNames(name = it.config.name),
+                    false,
+                    attributes = traits.fold(mapOf()) { a, b ->
+                        a.plus(b.getAttributes())
+                    }
                 )
-            )
-        } + deviceMapper.getDevices<RelayDevice>().map {
-            AlleyDevice(
-                it.id.toString(),
-                "action.devices.types.LIGHT",
-                listOf(
-                    "action.devices.traits.OnOff"
-                ),
-                AlleyDeviceNames(
-                    name = it.config.name
-                ),
-                false
-            )
-        } + deviceMapper.getDevices<BlindDevice>().map {
-            AlleyDevice(
-                it.id.toString(),
-                "action.devices.types.BLINDS",
-                listOf(
-                    "action.devices.traits.OpenClose"
-                ),
-                AlleyDeviceNames(
-                    name = it.config.name
-                ),
-                false,
-                attributes = mapOf(
-                    "openDirection" to JsonArray(DeviceBlindStateEnum.entries.map { e -> JsonPrimitive(e.toString()) })
-                )
-            )
-        } + deviceMapper.getDevices<SceneDevice>().map {
-            AlleyDevice(
-                "scene-${it.id}",
-                "action.devices.types.SCENE",
-                listOf(
-                    "action.devices.traits.Scene"
-                ),
-                AlleyDeviceNames(
-                    name = "scene-${it.id}"
-                ),
-                false,
-                attributes = mapOf(
-                    "sceneReversible" to JsonPrimitive(true)
-                )
-            )
+            } else {
+                null
+            }
         }
     )
 
@@ -291,14 +161,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
                 is QueryIntent -> queryRequest(intent)
                 is ExecuteIntent -> executeRequest(intent)
                 is DisconnectIntent -> DisconnectResponse()
-            }.let {
-                when (it) { // Bypass polymorphic serialiser that adds "type" property
-                    is DisconnectResponse -> alleyJson.encodeToJsonElement(it)
-                    is ExecuteResponse -> alleyJson.encodeToJsonElement(it)
-                    is QueryResponse -> alleyJson.encodeToJsonElement(it)
-                    is SyncResponse -> alleyJson.encodeToJsonElement(it)
-                }
-            }.let {
+            }.encodeToJson(alleyJson).let {
                 call.respond(
                     GoogleHomeRes(
                         obj.requestId,

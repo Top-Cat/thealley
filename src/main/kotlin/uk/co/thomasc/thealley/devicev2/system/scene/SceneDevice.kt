@@ -8,6 +8,8 @@ import uk.co.thomasc.thealley.devicev2.IAlleyLight
 import uk.co.thomasc.thealley.devicev2.IAlleyRevocable
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
 import uk.co.thomasc.thealley.devicev2.types.SceneConfig
+import uk.co.thomasc.thealley.google.DeviceType
+import uk.co.thomasc.thealley.google.trait.SceneTrait
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -66,6 +68,15 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
     }
 
     override suspend fun init(bus: AlleyEventBus) {
+        registerGoogleHomeDevice(
+            DeviceType.SCENE,
+            SceneTrait(
+                executeScene = {
+                    execute(bus)
+                }
+            )
+        )
+
         bus.handle<SceneEvent> { ev ->
             if (ev.scene != id) return@handle
 

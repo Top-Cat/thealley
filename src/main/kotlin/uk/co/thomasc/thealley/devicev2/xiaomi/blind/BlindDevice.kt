@@ -9,11 +9,26 @@ import uk.co.thomasc.thealley.devicev2.IStateUpdater
 import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devicev2.types.BlindConfig
+import uk.co.thomasc.thealley.google.DeviceType
+import uk.co.thomasc.thealley.google.trait.IBlindState
+import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
 
 class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: IStateUpdater<BlindState>) :
     AlleyDevice<BlindDevice, BlindConfig, BlindState>(id, config, state, stateStore), IAlleyLight {
 
     override suspend fun init(bus: AlleyEventBus) {
+        registerGoogleHomeDevice(
+            DeviceType.BLIND,
+            OpenCloseTrait(
+                getPosition = {
+                    IBlindState.SingleDirection(state.position ?: 0)
+                },
+                setPosition = {
+                    setPosition(bus, it)
+                }
+            )
+        )
+
         bus.handle<MqttMessageEvent> { ev ->
             val host = ev.topic.substring(0, ev.topic.indexOf("/"))
             if (host != "zigbee") return@handle

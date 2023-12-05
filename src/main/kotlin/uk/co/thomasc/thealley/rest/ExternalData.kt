@@ -5,8 +5,13 @@ package uk.co.thomasc.thealley.rest
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import uk.co.thomasc.thealley.client.alleyJson
+import uk.co.thomasc.thealley.google.command.IGoogleHomeCommandBase
 
 @Serializable
 data class GoogleHomeReq(val requestId: String, val inputs: List<GoogleHomeIntent>)
@@ -31,13 +36,15 @@ interface GoogleHomeMayFail {
 }
 
 @Serializable
-sealed interface GoogleHomePayload : GoogleHomeMayFail
+sealed interface GoogleHomePayload : GoogleHomeMayFail {
+    fun encodeToJson(json: Json): JsonElement
+}
 
 @Serializable
 data class AlleyDevice(
     val id: String,
     val type: String,
-    val traits: List<String>,
+    val traits: Set<String>,
     val name: AlleyDeviceNames,
     val willReportState: Boolean,
     val deviceInfo: AlleyDeviceInfo? = null,
@@ -67,7 +74,9 @@ data class DisconnectIntent(
 data class DisconnectResponse(
     override val errorCode: String? = null,
     override val debugString: String? = null
-) : GoogleHomePayload
+) : GoogleHomePayload {
+    override fun encodeToJson(json: Json) = alleyJson.encodeToJsonElement(this)
+}
 
 @Serializable
 data class SyncResponse(
@@ -75,7 +84,9 @@ data class SyncResponse(
     override val errorCode: String? = null,
     override val debugString: String? = null,
     val devices: List<AlleyDevice>
-) : GoogleHomePayload
+) : GoogleHomePayload {
+    override fun encodeToJson(json: Json) = alleyJson.encodeToJsonElement(this)
+}
 
 @Serializable
 @SerialName("action.devices.QUERY")
@@ -89,10 +100,12 @@ data class QueryIntentPayload(val devices: List<GoogleHomeDevice>)
 
 @Serializable
 data class QueryResponse(
-    val devices: Map<String, DeviceState>,
+    val devices: Map<String, JsonObject>,
     override val errorCode: String? = null,
     override val debugString: String? = null
-) : GoogleHomePayload
+) : GoogleHomePayload {
+    override fun encodeToJson(json: Json) = alleyJson.encodeToJsonElement(this)
+}
 
 @Serializable
 data class DeviceState(
@@ -152,17 +165,16 @@ data class ExecuteIntent(
 data class ExecuteIntentPayload(val commands: List<ExecuteIntentCommand>)
 
 @Serializable
-data class ExecuteIntentCommand(val devices: List<GoogleHomeDevice>, val execution: List<ExecuteIntentExecution>)
-
-@Serializable
-data class ExecuteIntentExecution(val command: String, val params: Map<String, JsonElement>)
+data class ExecuteIntentCommand(val devices: List<GoogleHomeDevice>, val execution: List<IGoogleHomeCommandBase>)
 
 @Serializable
 data class ExecuteResponse(
     val commands: List<ExecuteResponseCommand>,
     override val errorCode: String? = null,
     override val debugString: String? = null
-) : GoogleHomePayload
+) : GoogleHomePayload {
+    override fun encodeToJson(json: Json) = alleyJson.encodeToJsonElement(this)
+}
 
 @Serializable
 data class ExecuteResponseCommand(val ids: List<String>, val status: ExecuteStatus, val states: DeviceState? = null, override val errorCode: String? = null, override val debugString: String? = null) : GoogleHomeMayFail
@@ -172,4 +184,8 @@ enum class ExecuteStatus {
     PENDING,
     OFFLINE,
     ERROR
+}
+
+enum class QueryStatus {
+    SUCCESS, OFFLINE, EXCEPTIONS, ERROR
 }
