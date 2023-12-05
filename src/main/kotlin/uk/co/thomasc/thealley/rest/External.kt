@@ -40,8 +40,8 @@ class ExternalRoute {
 
 val threadPool = newFixedThreadPoolContext(10, "ExternalRoute")
 
-fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, alleyTokenStore: AlleyTokenStore) {
-    suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
+class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
+    private suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices
         }.map { // Execute commands
@@ -94,7 +94,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         }
     )
 
-    suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
+    private suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
         intent.payload.devices.mapNotNull {
             deviceMapper.getDevice(it.deviceId)
         }.associate { light ->
@@ -122,7 +122,7 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         }
     )
 
-    suspend fun syncRequest(userId: String, intent: SyncIntent) = SyncResponse(
+    private suspend fun syncRequest(userId: String, intent: SyncIntent) = SyncResponse(
         userId,
         devices = deviceMapper.getDevices().mapNotNull {
             val type = it.ghType
@@ -145,30 +145,30 @@ fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, all
         }
     )
 
+    suspend fun handleRequest(userId: String, req: GoogleHomeReq) =
+        GoogleHomeRes(
+            req.requestId,
+            when (val intent = req.inputs.first()) {
+                is SyncIntent -> syncRequest(userId, intent)
+                is QueryIntent -> queryRequest(intent)
+                is ExecuteIntent -> executeRequest(intent)
+                is DisconnectIntent -> DisconnectResponse()
+            }.encodeToJson(alleyJson)
+        )
+}
+
+fun Route.externalRoute(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, alleyTokenStore: AlleyTokenStore) {
     get<ExternalRoute.Test> {
         checkOauth(alleyTokenStore) {
             call.respond("Hi")
         }
     }
 
+    val externalHandler = ExternalHandler(deviceMapper)
     post<ExternalRoute.GoogleHome> {
         checkOauth(alleyTokenStore) { userId ->
             val obj = call.receive<GoogleHomeReq>()
-            val intent = obj.inputs.first()
-
-            when (intent) {
-                is SyncIntent -> syncRequest(userId, intent)
-                is QueryIntent -> queryRequest(intent)
-                is ExecuteIntent -> executeRequest(intent)
-                is DisconnectIntent -> DisconnectResponse()
-            }.encodeToJson(alleyJson).let {
-                call.respond(
-                    GoogleHomeRes(
-                        obj.requestId,
-                        it
-                    )
-                )
-            }
+            call.respond(externalHandler.handleRequest(userId, obj))
         }
     }
 }
