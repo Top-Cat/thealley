@@ -8,8 +8,9 @@ import uk.co.thomasc.thealley.rest.ExecuteStatus
 class SceneTrait(
     private val sceneReversible: Boolean = false,
     private val executeScene: suspend (Boolean) -> Unit
-) : IGoogleHomeTrait<ActivateSceneCommand> {
+) : GoogleHomeTrait<ActivateSceneCommand>() {
     override val name = "action.devices.traits.Scene"
+    override val klazz = ActivateSceneCommand::class
 
     override suspend fun getAttributes() = mapOf(
         "sceneReversible" to JsonPrimitive(sceneReversible)

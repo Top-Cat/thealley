@@ -18,16 +18,6 @@ import uk.co.thomasc.thealley.client.alleyJson
 import uk.co.thomasc.thealley.config.AlleyTokenStore
 import uk.co.thomasc.thealley.devicev2.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devicev2.AlleyEventBus
-import uk.co.thomasc.thealley.google.command.ActivateSceneCommand
-import uk.co.thomasc.thealley.google.command.ColorAbsoluteCommand
-import uk.co.thomasc.thealley.google.command.IBrightnessCommand
-import uk.co.thomasc.thealley.google.command.OnOffCommand
-import uk.co.thomasc.thealley.google.command.OpenCloseCommand
-import uk.co.thomasc.thealley.google.trait.BrightnessTrait
-import uk.co.thomasc.thealley.google.trait.ColorSettingTrait
-import uk.co.thomasc.thealley.google.trait.OnOffTrait
-import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
-import uk.co.thomasc.thealley.google.trait.SceneTrait
 
 @Location("/external")
 class ExternalRoute {
@@ -55,14 +45,7 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
 
                             if (type != null && traits != null) {
                                 traits.firstNotNullOfOrNull { trait ->
-                                    when {
-                                        trait is BrightnessTrait && ex is IBrightnessCommand<*> -> trait.handleCommand(ex)
-                                        trait is ColorSettingTrait && ex is ColorAbsoluteCommand -> trait.handleCommand(ex)
-                                        trait is OnOffTrait && ex is OnOffCommand -> trait.handleCommand(ex)
-                                        trait is OpenCloseTrait && ex is OpenCloseCommand -> trait.handleCommand(ex)
-                                        trait is SceneTrait && ex is ActivateSceneCommand -> trait.handleCommand(ex)
-                                        else -> null
-                                    }
+                                    trait.handleUnsafe(ex)
                                 }
                             } else {
                                 null

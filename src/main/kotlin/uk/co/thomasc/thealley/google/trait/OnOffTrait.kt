@@ -9,8 +9,9 @@ class OnOffTrait(
     private val queryOnlyOnOff: Boolean = false,
     private val getOnOff: suspend () -> Boolean,
     private val setOnOff: suspend (Boolean) -> Unit
-) : IGoogleHomeTrait<OnOffCommand> {
+) : GoogleHomeTrait<OnOffCommand>() {
     override val name = "action.devices.traits.OnOff"
+    override val klazz = OnOffCommand::class
 
     override suspend fun getAttributes() = mapOf(
         "commandOnlyOnOff" to JsonPrimitive(commandOnlyOnOff),

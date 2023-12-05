@@ -3,7 +3,7 @@ package uk.co.thomasc.thealley.devicev2
 import uk.co.thomasc.thealley.devicev2.types.IAlleyConfig
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
-import uk.co.thomasc.thealley.google.trait.IGoogleHomeTrait
+import uk.co.thomasc.thealley.google.trait.GoogleHomeTrait
 import java.io.Closeable
 import kotlin.reflect.KClass
 
@@ -21,14 +21,14 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
     }
 
     private var googleHomeType: DeviceType? = null
-    private var googleHomeTraits: Set<IGoogleHomeTrait<*>>? = null
+    private var googleHomeTraits: Set<GoogleHomeTrait<*>>? = null
 
     val ghType
         get() = googleHomeType
     val ghTraits
         get() = googleHomeTraits
 
-    fun registerGoogleHomeDevice(type: DeviceType, vararg traits: IGoogleHomeTrait<*>) {
+    fun registerGoogleHomeDevice(type: DeviceType, vararg traits: GoogleHomeTrait<*>) {
         type.requiredTraits.firstOrNull { required -> !traits.any { trait -> required.isInstance(trait) } }?.let {
             throw MissingTraitException(it)
         }
@@ -42,4 +42,4 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
     }
 }
 
-class MissingTraitException(kClass: KClass<out IGoogleHomeTrait<out IGoogleHomeCommand<*>>>) : Exception("Missing required trait: ${kClass.simpleName}")
+class MissingTraitException(kClass: KClass<out GoogleHomeTrait<out IGoogleHomeCommand<*>>>) : Exception("Missing required trait: ${kClass.simpleName}")

@@ -12,8 +12,9 @@ class BrightnessTrait(
     private val setBrightness: suspend (Int) -> Unit,
     private val setBrightnessPercentage: (suspend (Int) -> Unit)? = null,
     private val setBrightnessWeight: (suspend (Int) -> Unit)? = null
-) : IGoogleHomeTrait<IBrightnessCommand<*>> {
+) : GoogleHomeTrait<IBrightnessCommand<*>>() {
     override val name = "action.devices.traits.Brightness"
+    override val klazz = IBrightnessCommand::class
 
     override suspend fun getAttributes() = mapOf(
         "commandOnlyBrightness" to JsonPrimitive(commandOnlyBrightness)

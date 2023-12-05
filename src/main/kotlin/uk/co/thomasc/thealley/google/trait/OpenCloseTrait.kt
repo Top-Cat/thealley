@@ -1,6 +1,5 @@
 package uk.co.thomasc.thealley.google.trait
 
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
@@ -19,12 +18,13 @@ class OpenCloseTrait(
     private val getPosition: suspend () -> IBlindState,
     private val setPosition: suspend (Int) -> Unit,
     private val setPositionRelative: (suspend (Int) -> Unit)? = null
-) : IGoogleHomeTrait<IOpenCloseCommand<*>> {
+) : GoogleHomeTrait<IOpenCloseCommand<*>>() {
     enum class Direction {
         UP, DOWN, LEFT, RIGHT, IN, OUT
     }
 
     override val name = "action.devices.traits.OpenClose"
+    override val klazz = IOpenCloseCommand::class
 
     override suspend fun getAttributes() = mapOf(
         "discreteOnlyOpenClose" to JsonPrimitive(discreteOnlyOpenClose),
@@ -53,15 +53,4 @@ class OpenCloseTrait(
 
         return ExecuteStatus.SUCCESS
     }
-}
-
-sealed interface IBlindState {
-    @Serializable
-    data class SingleDirection(val openPercent: Int) : IBlindState
-
-    @Serializable
-    data class MultipleDirections(val openState: List<DirectionInfo>) : IBlindState
-
-    @Serializable
-    data class DirectionInfo(val openPercent: Int, val openDirection: OpenCloseTrait.Direction)
 }
