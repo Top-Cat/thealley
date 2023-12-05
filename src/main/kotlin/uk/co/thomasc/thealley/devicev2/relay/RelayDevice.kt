@@ -16,9 +16,14 @@ import uk.co.thomasc.thealley.devicev2.AlleyEventBus
 import uk.co.thomasc.thealley.devicev2.IAlleyLight
 import uk.co.thomasc.thealley.devicev2.IAlleyStats
 import uk.co.thomasc.thealley.devicev2.IStateUpdater
+import uk.co.thomasc.thealley.devicev2.TickEvent
 import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devicev2.system.mqtt.MqttSendEvent
+import uk.co.thomasc.thealley.devicev2.system.sun.NightBrightnessCalc
+import uk.co.thomasc.thealley.devicev2.system.sun.SunRiseEvent
+import uk.co.thomasc.thealley.devicev2.system.sun.SunSetEvent
 import uk.co.thomasc.thealley.devicev2.types.RelayConfig
+import uk.co.thomasc.thealley.devicev2.xiaomi.aq2.MotionEvent
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
 import kotlin.time.Duration.Companion.seconds
@@ -70,6 +75,12 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
         // TODO: revoke override so rules can change light state
     }
 
+    private suspend fun onWithNightScaling(bus: AlleyEventBus, now: Instant) =
+        setPowerState(
+            bus,
+            NightBrightnessCalc.getBrightnessFor(now) > 50
+        )
+
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
@@ -98,12 +109,38 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
                 }
             }
         }
-        /*bus.handle<SunRiseEvent> {
-            setLightState(bus, 0)
+
+        bus.handle<SunRiseEvent> {
+            updateState(state.copy(daytime = true))
         }
         bus.handle<SunSetEvent> {
-            setLightState(bus, 1)
-        }*/
+            val now = Clock.System.now()
+            val off = state.lastMotion?.plus(config.timeout)?.let {
+                if (it > now) {
+                    onWithNightScaling(bus, now)
+                    it
+                } else {
+                    null
+                }
+            }
+            updateState(state.copy(daytime = false, offAt = off))
+        }
+        bus.handle<TickEvent> {
+            val now = Clock.System.now()
+            if (state.offAt?.let { now > it } == true) {
+                setPowerState(bus, false)
+                updateState(state.copy(offAt = null))
+            }
+        }
+        bus.handle<MotionEvent> { ev ->
+            val now = Clock.System.now()
+            if (state.ignoreMotionUntil?.let { it > now } == true || !config.sensors.contains(ev.id)) return@handle
+
+            updateState(state.copy(lastMotion = now, offAt = now.plus(config.timeout)))
+            if (!state.daytime) {
+                onWithNightScaling(bus, now)
+            }
+        }
     }
 
     companion object : KLogging()
