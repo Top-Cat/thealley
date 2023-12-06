@@ -10,6 +10,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import mu.KLogging
+import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IAlleyLight
@@ -50,7 +51,7 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
     override suspend fun getPowerState() = mutex.withLock {
         if (Clock.System.now().minus(20.seconds) > lastRequest) {
             try {
-                uk.co.thomasc.thealley.client.get("http://${config.host}.light.kirkstall.top-cat.me/api/relay/0?apikey=${config.apiKey}") {
+                client.get("http://${config.host}.light.kirkstall.top-cat.me/api/relay/0?apikey=${config.apiKey}") {
                     accept(ContentType.Any)
                 }.body<Int>() > 0
             } catch (e: Exception) {

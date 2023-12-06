@@ -19,6 +19,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import mu.KLogging
+import uk.co.thomasc.thealley.client
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -27,7 +28,7 @@ class Bright(private val email: String, private val pass: String) {
     private var token: BrightToken? = null
 
     private suspend fun getToken() =
-        uk.co.thomasc.thealley.client.post("https://api.glowmarkt.com/api/v0-1/auth") {
+        client.post("https://api.glowmarkt.com/api/v0-1/auth") {
             contentType(ContentType.Application.Json)
             header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
             setBody(BrightCredentials(email, pass))
@@ -45,7 +46,7 @@ class Bright(private val email: String, private val pass: String) {
     }
 
     private val resources = GlobalScope.async(start = CoroutineStart.LAZY) {
-        uk.co.thomasc.thealley.client.get("https://api.glowmarkt.com/api/v0-1/virtualentity") {
+        client.get("https://api.glowmarkt.com/api/v0-1/virtualentity") {
             contentType(ContentType.Application.Json)
             header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
             header("token", tokenForGet())
@@ -59,7 +60,7 @@ class Bright(private val email: String, private val pass: String) {
     suspend fun catchup(type: BrightResourceType): BrightResourceCatchup {
         val resourceId = resources.await().first { it.type == type }.resourceId
 
-        return uk.co.thomasc.thealley.client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/catchup") {
+        return client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/catchup") {
             contentType(ContentType.Application.Json)
             header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
             header("token", tokenForGet())
@@ -73,7 +74,7 @@ class Bright(private val email: String, private val pass: String) {
         val toLocal = to?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
             ?: LocalDateTime.now().withSecond(59).withMinute(59).withHour(23)
 
-        return uk.co.thomasc.thealley.client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/readings") {
+        return client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/readings") {
             contentType(ContentType.Application.Json)
             header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
             header("token", tokenForGet())
