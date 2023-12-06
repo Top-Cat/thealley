@@ -30,29 +30,35 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
                 }
 
                 val from = state.latestReading.plus(1.hours)
-                val to = now.minus(1.hours)
 
-                val newReadings = if (from < to) {
-                    logger.info { "Getting readings from '$from' to '$to'" }
+                // Download 2 days of readings
+                val readings = if (from < now) {
+                    logger.info { "Getting readings from '$from' to '$now'" }
 
                     bright
-                        .getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, to)
+                        .getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, now)
                         .readings
                         .filter { it.consumption != null }
-                        .dropLast(1) // Last value could be the current bucket
                 } else {
                     listOf()
                 }
 
-                val consumption = newReadings.mapNotNull { it.m3 }.sum()
-                val latest = newReadings.maxOfOrNull { it.time } ?: state.latestReading
-                val next = Instant.fromEpochSeconds(nextHalfHour(now) + Random.Default.nextInt(120))
-                val newTotal = state.meterTotal + consumption
+                val (oldReadings, last2Days) = readings.partition { it.time < now.minus(48.hours) }
 
-                logger.info { "Got ${newReadings.size} new readings, Latest = $latest, Total = $newTotal" }
-                logger.info { newReadings.toString() }
+                // Add readings older than 2 days to state
+                val latest = oldReadings.maxOfOrNull { it.time } ?: state.latestReading
+                val newTotal = state.meterTotal + oldReadings.mapNotNull { it.m3 }.sum()
+
+                // Add all reading to temporary value
+                val mostRecentBucket = readings.maxOfOrNull { it.time } ?: state.latestReading
+                val tempTotal = newTotal + last2Days.mapNotNull { it.m3 }.sum()
+
+                val next = Instant.fromEpochSeconds(nextHalfHour(now) + Random.Default.nextInt(120))
+
+                logger.info { "Got ${readings.size} readings, Latest = $latest, Total = $newTotal, TempTotal = $tempTotal" }
+                logger.info { readings.toString() }
                 updateState(state.copy(nextCatchup = next, latestReading = latest, meterTotal = newTotal))
-                if (newReadings.isNotEmpty()) bus.emit(BrightEvent(newTotal, latest))
+                bus.emit(BrightEvent(tempTotal, mostRecentBucket))
             }
         }
     }
