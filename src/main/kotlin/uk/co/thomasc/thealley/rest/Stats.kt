@@ -132,18 +132,15 @@ fun Route.statsRoute(devices: AlleyDeviceMapper) {
             if (!tado.config.updateReadings) {
                 val zones = tado.getHome().getZoneStates()
 
-                TadoResponse(
-                    tado.getHomeId(),
-                    zones.zoneStates.map { zone ->
-                        TransformedZoneState(
-                            zone.key,
-                            zone.value.tadoMode.ordinal,
-                            zone.value.setting,
-                            zone.value.activityDataPoints,
-                            zone.value.sensorDataPoints
-                        )
-                    }
-                )
+                zones.zoneStates.map { zone ->
+                    TransformedZoneState(
+                        zone.key,
+                        zone.value.tadoMode.ordinal,
+                        zone.value.setting,
+                        zone.value.activityDataPoints,
+                        zone.value.sensorDataPoints
+                    )
+                }
             } else {
                 null
             }
