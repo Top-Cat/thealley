@@ -4,7 +4,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import uk.co.thomasc.thealley.google.command.BrightnessAbsoluteCommand
 import uk.co.thomasc.thealley.google.command.BrightnessRelativeCommand
 import uk.co.thomasc.thealley.google.command.IBrightnessCommand
-import uk.co.thomasc.thealley.rest.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.ExecuteStatus
 
 class BrightnessTrait(
     private val commandOnlyBrightness: Boolean = false,

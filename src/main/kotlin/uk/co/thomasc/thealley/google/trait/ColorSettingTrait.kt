@@ -3,10 +3,10 @@ package uk.co.thomasc.thealley.google.trait
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
-import uk.co.thomasc.thealley.client.alleyJson
+import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.google.command.ColorAbsoluteCommand
 import uk.co.thomasc.thealley.google.command.IColorCommandState
-import uk.co.thomasc.thealley.rest.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.ExecuteStatus
 
 class ColorSettingTrait(
     private val commandOnlyColorSetting: Boolean = false,

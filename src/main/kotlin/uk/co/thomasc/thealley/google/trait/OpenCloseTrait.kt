@@ -4,11 +4,11 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import uk.co.thomasc.thealley.client.alleyJson
+import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.google.command.IOpenCloseCommand
 import uk.co.thomasc.thealley.google.command.OpenCloseCommand
 import uk.co.thomasc.thealley.google.command.OpenCloseRelativeCommand
-import uk.co.thomasc.thealley.rest.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.ExecuteStatus
 
 class OpenCloseTrait(
     private val discreteOnlyOpenClose: Boolean = false,

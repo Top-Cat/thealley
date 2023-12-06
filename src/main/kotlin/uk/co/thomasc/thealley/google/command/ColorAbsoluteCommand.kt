@@ -2,9 +2,9 @@ package uk.co.thomasc.thealley.google.command
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import uk.co.thomasc.thealley.devicev2.AlleyEventBus
-import uk.co.thomasc.thealley.devicev2.IAlleyLight
-import uk.co.thomasc.thealley.rest.DeviceColorCommand
+import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.web.google.DeviceColorCommand
 import java.awt.Color
 
 @Serializable

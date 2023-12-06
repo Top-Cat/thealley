@@ -51,15 +51,15 @@ import nl.myndocs.oauth2.ktor.feature.Oauth2ServerFeature
 import nl.myndocs.oauth2.ktor.feature.request.KtorCallContext
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
-import uk.co.thomasc.thealley.client.alleyJson
-import uk.co.thomasc.thealley.config.AlleyTokenStore
-import uk.co.thomasc.thealley.config.clients
-import uk.co.thomasc.thealley.devicev2.newDevices
+import uk.co.thomasc.thealley.oauth.AlleyTokenStore
+import uk.co.thomasc.thealley.devices.newDevices
+import uk.co.thomasc.thealley.oauth.ClientProperties
 import uk.co.thomasc.thealley.repo.UserRepository
-import uk.co.thomasc.thealley.rest.controlRoute
-import uk.co.thomasc.thealley.rest.externalRoute
-import uk.co.thomasc.thealley.rest.statsRoute
-import uk.co.thomasc.thealley.web.mainRoute
+import uk.co.thomasc.thealley.web.ApiRoute
+import uk.co.thomasc.thealley.web.ControlRoute
+import uk.co.thomasc.thealley.web.ExternalRoute
+import uk.co.thomasc.thealley.web.MainRoute
+import uk.co.thomasc.thealley.web.StatsRoute
 import javax.sql.DataSource
 import kotlin.collections.set
 
@@ -88,9 +88,7 @@ fun setupDB(): DataSource {
 }
 
 fun Application.setup() {
-    val clients = clients()
     val (bus, devices) = newDevices()
-
     val userRepository = UserRepository()
 
     install(ContentNegotiation) {
@@ -136,6 +134,7 @@ fun Application.setup() {
     }
 
     val alleyClientSvc = InMemoryClient().also { imc ->
+        val clients = ClientProperties.fromApplication(this)
         clients.clients.forEach {
             imc.client {
                 clientId = it.clientId
@@ -203,10 +202,13 @@ fun Application.setup() {
     }
 
     routing {
-        // apiRoute(api, sceneController)
-        statsRoute(devices)
-        controlRoute(bus, devices)
-        mainRoute(devices)
+        val routes = listOf(
+            ApiRoute(),
+            StatsRoute(),
+            ControlRoute(),
+            MainRoute(),
+            ExternalRoute(alleyTokenStore)
+        )
 
         authenticate("oauth-login") {
             post("/external/login") {
@@ -217,7 +219,11 @@ fun Application.setup() {
             }
         }
 
-        externalRoute(bus, devices, alleyTokenStore)
+        routes.forEach {
+            with(it) {
+                setup(bus, devices)
+            }
+        }
 
         staticResources("/static", "static")
     }

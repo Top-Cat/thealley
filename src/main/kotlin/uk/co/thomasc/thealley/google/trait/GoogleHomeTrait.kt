@@ -3,7 +3,7 @@ package uk.co.thomasc.thealley.google.trait
 import kotlinx.serialization.json.JsonElement
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommandBase
-import uk.co.thomasc.thealley.rest.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.ExecuteStatus
 import kotlin.reflect.KClass
 
 sealed class GoogleHomeTrait<T : IGoogleHomeCommand<*>> {

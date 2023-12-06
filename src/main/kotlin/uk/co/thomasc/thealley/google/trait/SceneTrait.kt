@@ -3,7 +3,7 @@ package uk.co.thomasc.thealley.google.trait
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import uk.co.thomasc.thealley.google.command.ActivateSceneCommand
-import uk.co.thomasc.thealley.rest.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.ExecuteStatus
 
 class SceneTrait(
     private val sceneReversible: Boolean = false,

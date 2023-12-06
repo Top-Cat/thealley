@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.google.trait
 
 import kotlinx.serialization.Serializable
-import uk.co.thomasc.thealley.devicev2.IAlleyLight
+import uk.co.thomasc.thealley.devices.IAlleyLight
 
 sealed interface IColorState {
     @Serializable

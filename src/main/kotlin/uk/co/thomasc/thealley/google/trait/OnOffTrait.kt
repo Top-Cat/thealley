@@ -2,7 +2,7 @@ package uk.co.thomasc.thealley.google.trait
 
 import kotlinx.serialization.json.JsonPrimitive
 import uk.co.thomasc.thealley.google.command.OnOffCommand
-import uk.co.thomasc.thealley.rest.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.ExecuteStatus
 
 class OnOffTrait(
     private val commandOnlyOnOff: Boolean = false,

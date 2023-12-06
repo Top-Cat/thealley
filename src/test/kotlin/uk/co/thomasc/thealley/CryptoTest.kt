@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley
 
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
+import uk.co.thomasc.thealley.devices.kasa.KasaCrypto
 import java.util.Base64
 import kotlin.test.assertEquals
 
@@ -59,7 +60,7 @@ class CryptoTest {
     @TestFactory
     fun decrypt(): Collection<DynamicTest> = payloads.map {
         DynamicTest.dynamicTest("it should decrypt ${it.key} payload") {
-            val buf = uk.co.thomasc.thealley.decrypt(
+            val buf = KasaCrypto.decrypt(
                 Base64.getDecoder().decode(it.value.withoutHeader)
             )
 
@@ -72,7 +73,7 @@ class CryptoTest {
     @TestFactory
     fun decryptWithHeader(): Collection<DynamicTest> = payloads.map {
         DynamicTest.dynamicTest("it should decrypt ${it.key} payload") {
-            val buf = uk.co.thomasc.thealley.decryptWithHeader(
+            val buf = KasaCrypto.decryptWithHeader(
                 Base64.getDecoder().decode(it.value.withHeader)
             )
 
@@ -85,7 +86,7 @@ class CryptoTest {
     @TestFactory
     fun encrypt(): Collection<DynamicTest> = payloads.map {
         DynamicTest.dynamicTest("it should encrypt ${it.key} payload") {
-            val buf = uk.co.thomasc.thealley.encrypt(
+            val buf = KasaCrypto.encrypt(
                 it.value.json.toByteArray()
             )
 
@@ -98,7 +99,7 @@ class CryptoTest {
     @TestFactory
     fun encryptWithHeader(): Collection<DynamicTest> = payloads.map {
         DynamicTest.dynamicTest("it should encrypt ${it.key} payload") {
-            val buf = uk.co.thomasc.thealley.encryptWithHeader(
+            val buf = KasaCrypto.encryptWithHeader(
                 it.value.json.toByteArray()
             )
 
