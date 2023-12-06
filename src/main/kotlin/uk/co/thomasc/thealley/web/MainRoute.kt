@@ -17,7 +17,7 @@ class MainRoute : IAlleyRoute {
     data class Home(val api: MainRoute)
 
     override fun Route.setup(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper) {
-        get<Home>{
+        get<Home> {
             call.respond(
                 MustacheContent(
                     "home.mustache",

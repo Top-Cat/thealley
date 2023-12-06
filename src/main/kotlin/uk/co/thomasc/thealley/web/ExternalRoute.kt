@@ -8,9 +8,9 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import uk.co.thomasc.thealley.checkOauth
-import uk.co.thomasc.thealley.oauth.AlleyTokenStore
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.oauth.AlleyTokenStore
 import uk.co.thomasc.thealley.web.google.GoogleHomeReq
 
 @Location("/external")
