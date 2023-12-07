@@ -34,7 +34,7 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
     private suspend fun connect() {
         logger.info { "Connecting to $host:$port" }
 
-        packetChannel = Channel(10)
+        packetChannel = Channel(0)
         conn = aSocket(KasaDevice.selector).tcp().connect(host, port).apply {
             inputChannel = openReadChannel()
             outputChannel = openWriteChannel(true)
@@ -80,7 +80,7 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
 
             Packet(content).typed()?.let { typed ->
                 logger.debug { "Received $typed" }
-                packetChannel.send(typed)
+                packetChannel.trySend(typed)
             }
         }
     }
@@ -91,7 +91,7 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
             send(p.toPacket()) as? T
         }
 
-    suspend fun send(p: Packet): IOnkyoResponse? {
+    suspend fun send(p: Packet): IOnkyoResponse {
         val buff = ByteBuffer.wrap(p.bytes())
         outputChannel.writeFully(buff)
         return receive()
