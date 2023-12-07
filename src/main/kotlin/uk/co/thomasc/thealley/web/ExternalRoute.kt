@@ -13,23 +13,25 @@ import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.oauth.AlleyTokenStore
 import uk.co.thomasc.thealley.web.google.GoogleHomeReq
 
-@Location("/external")
 class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute {
-    @Location("/googlehome")
-    data class GoogleHome(val api: ExternalRoute)
+    @Location("/external")
+    class Routes {
+        @Location("/googlehome")
+        data class GoogleHome(val api: Routes)
 
-    @Location("/test")
-    data class Test(val api: ExternalRoute)
+        @Location("/test")
+        data class Test(val api: Routes)
+    }
 
     override fun Route.setup(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper) {
-        get<Test> {
+        val externalHandler = ExternalHandler(deviceMapper)
+        get<Routes.Test> {
             checkOauth(alleyTokenStore) {
                 call.respond("Hi")
             }
         }
 
-        val externalHandler = ExternalHandler(deviceMapper)
-        post<GoogleHome> {
+        post<Routes.GoogleHome> {
             checkOauth(alleyTokenStore) { userId ->
                 val obj = call.receive<GoogleHomeReq>()
                 call.respond(externalHandler.handleRequest(userId, obj))

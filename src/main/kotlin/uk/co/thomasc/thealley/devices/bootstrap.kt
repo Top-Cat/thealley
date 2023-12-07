@@ -75,9 +75,9 @@ class StateUpdaterFactory(private val json: Json, private val id: Int) {
 }
 
 private class StateUpdaterImpl<U>(val json: Json, val serializer: KSerializer<U>, val id: Int) : IStateUpdater<U> {
-    override suspend fun saveState(s: U) {
+    override suspend fun saveState(newState: U) {
         val localId = id
-        val encoded = json.encodeToString(serializer, s)
+        val encoded = json.encodeToString(serializer, newState)
         logger.info { "Update state for $localId - $encoded" }
 
         newSuspendedTransaction {

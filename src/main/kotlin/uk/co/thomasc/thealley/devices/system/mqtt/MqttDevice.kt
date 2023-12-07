@@ -23,7 +23,7 @@ class MqttDevice(id: Int, config: MqttConfig, state: EmptyState, stateStore: ISt
         maxInflight = 50
         isAutomaticReconnect = true
     }
-    private val client = MqttClient("tcp://${config.host}:1883", config.clientId)
+    private val client = MqttClient("tcp://${config.host}:1883", config.clientId + suffix)
 
     override suspend fun init(bus: AlleyEventBus) {
         client.setCallback(object : MqttCallbackExtended {
@@ -57,5 +57,7 @@ class MqttDevice(id: Int, config: MqttConfig, state: EmptyState, stateStore: ISt
         }
     }
 
-    companion object : KLogging()
+    companion object : KLogging() {
+        val suffix = System.getenv("MQTT_SUFFIX") ?: ""
+    }
 }

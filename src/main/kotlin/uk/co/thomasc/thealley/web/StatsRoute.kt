@@ -39,7 +39,7 @@ class StatsRoute : IAlleyRoute {
     @Location("/tado-multi")
     data class TadoMulti(val api: StatsRoute)
 
-    suspend inline fun <reified T : AlleyDevice<*, *, *>, U> getStats(devices: AlleyDeviceMapper, crossinline block: suspend (T) -> U, concurrency: Int = 10) =
+    private suspend inline fun <reified T : AlleyDevice<*, *, *>, U> getStats(devices: AlleyDeviceMapper, crossinline block: suspend (T) -> U, concurrency: Int = 10) =
         devices.getDevices<T>().asFlow().flatMapMerge(concurrency) { device ->
             flow {
                 emit(
@@ -63,13 +63,13 @@ class StatsRoute : IAlleyRoute {
         )
     })
 
-    override fun Route.setup(bus: AlleyEventBus, devices: AlleyDeviceMapper) {
+    override fun Route.setup(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper) {
         get<Plug> {
-            call.respond(getPlugs(devices))
+            call.respond(getPlugs(deviceMapper))
         }
 
         get<Bulb> {
-            getStats(devices, { bulb: BulbDevice ->
+            getStats(deviceMapper, { bulb: BulbDevice ->
                 val power = bulb.getPowerUsage()
 
                 BulbResponse(
@@ -85,7 +85,7 @@ class StatsRoute : IAlleyRoute {
         }
 
         get<Relay> {
-            getStats(devices, { relay: RelayDevice ->
+            getStats(deviceMapper, { relay: RelayDevice ->
                 RelayResponse(
                     relay.config.host,
                     if (relay.getPowerState()) 1 else 0,
@@ -97,7 +97,7 @@ class StatsRoute : IAlleyRoute {
         }
 
         get<Tado> {
-            getStats(devices, { tado: TadoDevice ->
+            getStats(deviceMapper, { tado: TadoDevice ->
                 if (!tado.config.updateReadings) {
                     val zones = tado.getHome().getZoneStates()
 
@@ -119,7 +119,7 @@ class StatsRoute : IAlleyRoute {
         }
 
         get<TadoMulti> {
-            getStats(devices, { tado: TadoDevice ->
+            getStats(deviceMapper, { tado: TadoDevice ->
                 val zones = tado.getHome().getZoneStates()
 
                 TadoResponse(
