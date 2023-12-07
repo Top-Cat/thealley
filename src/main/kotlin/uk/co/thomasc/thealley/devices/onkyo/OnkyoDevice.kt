@@ -25,9 +25,9 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
 
     private val conn = OnkyoConnection(config.host)
 
-    private suspend fun getPowerState() = conn.send<PowerPacket>(PowerPacket())?.command == PowerPacket.PowerCommand.On
+    private suspend fun getPowerState() = conn.sendAndWait<PowerPacket>(PowerPacket())?.command == PowerPacket.PowerCommand.On
 
-    private suspend fun setPowerState(state: Boolean) = conn.send<PowerPacket>(
+    private suspend fun setPowerState(state: Boolean) = conn.sendAndWait<PowerPacket>(
         PowerPacket(if (state) PowerPacket.PowerCommand.On else PowerPacket.PowerCommand.Off)
     )
 
@@ -39,7 +39,7 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
             InputSelectorTrait(
                 orderedInputs = true,
                 getInputs = {
-                    (conn.send<ReceiverInformationPacket>(ReceiverInformationPacket())?.command as? ReceiverInformationPacket.Command.Data)?.data?.let {
+                    (conn.sendAndWait<ReceiverInformationPacket>(ReceiverInformationPacket())?.command as? ReceiverInformationPacket.Command.Data)?.data?.let {
                         it.device.selectorList.list.map { selector ->
                             InputSelectorInput(
                                 selector.id,
@@ -57,16 +57,16 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                 },
                 getCurrentInput = {
                     // TODO: Handle failure
-                    (conn.send<InputPacket>(InputPacket())?.command as? InputPacket.InputCommand.Input)?.id ?: ""
+                    (conn.sendAndWait<InputPacket>(InputPacket())?.command as? InputPacket.InputCommand.Input)?.id ?: ""
                 },
                 nextInput = {
-                    conn.send<InputPacket>(InputPacket(InputPacket.InputCommand.Down))
+                    conn.sendAndWait<InputPacket>(InputPacket(InputPacket.InputCommand.Down))
                 },
                 previousInput = {
-                    conn.send<InputPacket>(InputPacket(InputPacket.InputCommand.Up))
+                    conn.sendAndWait<InputPacket>(InputPacket(InputPacket.InputCommand.Up))
                 },
                 setInput = { inputName ->
-                    conn.send<InputPacket>(InputPacket(InputPacket.InputCommand.Input(inputName)))
+                    conn.send(InputPacket(InputPacket.InputCommand.Input(inputName)))
                 }
             ),
             MediaStateTrait(
@@ -84,17 +84,17 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                 volumeCanMuteAndUnmute = true,
                 levelStepSize = 5,
                 isMuted = {
-                    conn.send<MutingPacket>(MutingPacket())?.command == MutingPacket.MutingCommand.On
+                    conn.sendAndWait<MutingPacket>(MutingPacket())?.command == MutingPacket.MutingCommand.On
                 },
                 mute = { mute ->
-                    conn.send<MutingPacket>(MutingPacket(if (mute) MutingPacket.MutingCommand.On else MutingPacket.MutingCommand.Off))
+                    conn.send(MutingPacket(if (mute) MutingPacket.MutingCommand.On else MutingPacket.MutingCommand.Off))
                 },
                 getVolume = {
                     // TODO: Throw error if failure?
-                    (conn.send<MasterVolumePacket>(MasterVolumePacket())?.command as? MasterVolumePacket.VolumeCommand.Level)?.level ?: 0
+                    (conn.sendAndWait<MasterVolumePacket>(MasterVolumePacket())?.command as? MasterVolumePacket.VolumeCommand.Level)?.level ?: 0
                 },
                 setVolume = { vol ->
-                    conn.send<MasterVolumePacket>(MasterVolumePacket(MasterVolumePacket.VolumeCommand.Level(vol)))
+                    conn.send(MasterVolumePacket(MasterVolumePacket.VolumeCommand.Level(vol)))
                 },
                 setVolumeRelative = { rel ->
                     val command = when {
@@ -103,7 +103,7 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                         rel > 0 -> MasterVolumePacket.VolumeCommand.Up1
                         else -> MasterVolumePacket.VolumeCommand.Down1
                     }
-                    conn.send<MasterVolumePacket>(MasterVolumePacket(command))
+                    conn.send(MasterVolumePacket(command))
                 }
             )
         )

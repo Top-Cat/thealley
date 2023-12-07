@@ -8,7 +8,6 @@ import io.ktor.network.sockets.openWriteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.core.Closeable
-import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -85,15 +84,20 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
         }
     }
 
-    suspend inline fun <reified T : IOnkyoResponse> send(p: IOnkyoResponse): T? {
+    suspend fun send(p: IOnkyoResponse) {
+        logger.info { "Sending $p" }
+        send(p.toPacket(), false)
+    }
+
+    suspend inline fun <reified T : IOnkyoResponse> sendAndWait(p: IOnkyoResponse): T? {
         logger.info { "Sending $p" }
         return send(p.toPacket()) as? T
     }
 
-    suspend fun send(p: Packet): IOnkyoResponse {
+    suspend fun send(p: Packet, receive: Boolean = true): IOnkyoResponse? {
         val buff = ByteBuffer.wrap(p.bytes())
         outputChannel.writeFully(buff)
-        return receive()
+        return if (receive) receive() else null
     }
 
     private suspend fun receive() = packetChannel.receive().also {
