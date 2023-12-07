@@ -21,7 +21,7 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
     private lateinit var conn: Socket
     private lateinit var inputChannel: ByteReadChannel
     private lateinit var outputChannel: ByteWriteChannel
-    private val packetChannel = Channel<Packet>(10)
+    private val packetChannel = Channel<IOnkyoResponse>(10)
 
     suspend fun init() {
         // I like big buffers and I cannot lie. Can't work out how to make this non-global
@@ -76,22 +76,27 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
                 localBuff.get(content)
             }
 
-            packetChannel.send(Packet(content))
+            Packet(content).typed()?.let { typed ->
+                logger.info { "Received $typed" }
+                packetChannel.send(typed)
+            }
         }
     }
 
     suspend fun <T : IOnkyoResponse> send(p: IOnkyoResponse): T? {
-        logger.info { "Sending ${p::class.simpleName}" }
-        return send(p.toPacket()).typed() as? T
+        logger.info { "Sending $p" }
+        return send(p.toPacket()) as? T
     }
 
-    suspend fun send(p: Packet): Packet {
+    private suspend fun send(p: Packet): IOnkyoResponse {
         val buff = ByteBuffer.wrap(p.bytes())
         outputChannel.writeFully(buff)
         return receive()
     }
 
-    suspend fun receive() = packetChannel.receive()
+    private suspend fun receive() = packetChannel.receive().also {
+        logger.info { "Handling $it" }
+    }
 
     override fun close() {
         conn.close()
