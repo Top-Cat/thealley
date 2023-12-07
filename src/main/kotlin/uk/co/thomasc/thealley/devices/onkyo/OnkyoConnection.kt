@@ -21,7 +21,7 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
     private lateinit var conn: Socket
     private lateinit var inputChannel: ByteReadChannel
     private lateinit var outputChannel: ByteWriteChannel
-    private val packetChannel = Channel<IOnkyoResponse>(10)
+    private lateinit var packetChannel: Channel<IOnkyoResponse>
 
     suspend fun init() {
         // I like big buffers and I cannot lie. Can't work out how to make this non-global
@@ -33,6 +33,7 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
     private suspend fun connect() {
         logger.info { "Connecting to $host:$port" }
 
+        packetChannel = Channel(10)
         conn = aSocket(KasaDevice.selector).tcp().connect(host, port).apply {
             inputChannel = openReadChannel()
             outputChannel = openWriteChannel(true)
@@ -42,7 +43,9 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
             try {
                 receiveLoop()
             } catch (e: Exception) {
+                logger.warn(e) { "Failure reading packet, reconnecting" }
                 conn.close()
+                packetChannel.close(e)
                 connect()
             }
         }
@@ -83,12 +86,12 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
         }
     }
 
-    suspend fun <T : IOnkyoResponse> send(p: IOnkyoResponse): T? {
+    suspend inline fun <reified T : IOnkyoResponse> send(p: IOnkyoResponse): T? {
         logger.info { "Sending $p" }
         return send(p.toPacket()) as? T
     }
 
-    private suspend fun send(p: Packet): IOnkyoResponse {
+    suspend fun send(p: Packet): IOnkyoResponse {
         val buff = ByteBuffer.wrap(p.bytes())
         outputChannel.writeFully(buff)
         return receive()

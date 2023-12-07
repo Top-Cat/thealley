@@ -25,10 +25,10 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
 
     private val conn = OnkyoConnection(config.host)
 
-    private suspend fun getPowerState() = conn.send<PowerPacket>(PowerPacket())?.command == PowerPacket.PowerCommand.ON
+    private suspend fun getPowerState() = conn.send<PowerPacket>(PowerPacket())?.command == PowerPacket.PowerCommand.On
 
     private suspend fun setPowerState(state: Boolean) = conn.send<PowerPacket>(
-        PowerPacket(if (state) PowerPacket.PowerCommand.ON else PowerPacket.PowerCommand.OFF)
+        PowerPacket(if (state) PowerPacket.PowerCommand.On else PowerPacket.PowerCommand.Off)
     )
 
     override suspend fun init(bus: AlleyEventBus) {
@@ -84,10 +84,10 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                 volumeCanMuteAndUnmute = true,
                 levelStepSize = 5,
                 isMuted = {
-                    conn.send<MutingPacket>(MutingPacket())?.command == MutingPacket.MutingCommand.ON
+                    conn.send<MutingPacket>(MutingPacket())?.command == MutingPacket.MutingCommand.On
                 },
                 mute = { mute ->
-                    conn.send<MutingPacket>(MutingPacket(if (mute) MutingPacket.MutingCommand.ON else MutingPacket.MutingCommand.OFF))
+                    conn.send<MutingPacket>(MutingPacket(if (mute) MutingPacket.MutingCommand.On else MutingPacket.MutingCommand.Off))
                 },
                 getVolume = {
                     // TODO: Throw error if failure?
