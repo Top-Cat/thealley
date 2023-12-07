@@ -11,6 +11,7 @@ import io.ktor.utils.io.core.Closeable
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import mu.KLogging
 import uk.co.thomasc.thealley.devices.kasa.KasaDevice
 import uk.co.thomasc.thealley.devices.onkyo.packet.IOnkyoResponse
 import java.nio.ByteBuffer
@@ -25,14 +26,29 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
     suspend fun init() {
         // I like big buffers and I cannot lie. Can't work out how to make this non-global
         System.setProperty("io.ktor.utils.io.BufferSize", "10240")
+
+        connect()
+    }
+
+    private suspend fun connect() {
+        logger.info { "Connecting to $host:$port" }
+
         conn = aSocket(KasaDevice.selector).tcp().connect(host, port).apply {
             inputChannel = openReadChannel()
             outputChannel = openWriteChannel(true)
         }
 
         GlobalScope.launch {
-            receiveLoop()
+            try {
+                receiveLoop()
+            } catch (e: Exception) {
+                conn.close()
+                connect()
+            }
         }
+
+        // Consume art packet
+        receive()
     }
 
     private suspend fun receiveLoop() {
@@ -64,7 +80,10 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
         }
     }
 
-    suspend fun <T : IOnkyoResponse> send(p: IOnkyoResponse): T? = send(p.toPacket()).typed() as? T
+    suspend fun <T : IOnkyoResponse> send(p: IOnkyoResponse): T? {
+        logger.info { "Sending ${p::class.simpleName}" }
+        return send(p.toPacket()).typed() as? T
+    }
 
     suspend fun send(p: Packet): Packet {
         val buff = ByteBuffer.wrap(p.bytes())
@@ -77,4 +96,6 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
     override fun close() {
         conn.close()
     }
+
+    companion object : KLogging()
 }

@@ -33,7 +33,6 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
 
     override suspend fun init(bus: AlleyEventBus) {
         conn.init()
-        conn.receive() // Album art is sent immediately?
 
         registerGoogleHomeDevice(
             DeviceType.AUDIO_VIDEO_RECEIVER,
