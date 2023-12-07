@@ -86,7 +86,7 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
     }
 
     suspend inline fun <reified T : IOnkyoResponse> send(p: IOnkyoResponse): T? =
-        withTimeoutOrNull(100) {
+        withTimeoutOrNull(600) {
             logger.debug { "Sending $p" }
             send(p.toPacket()) as? T
         }
