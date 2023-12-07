@@ -11,6 +11,7 @@ import io.ktor.utils.io.core.Closeable
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.kasa.KasaDevice
 import uk.co.thomasc.thealley.devices.onkyo.packet.IOnkyoResponse
@@ -78,30 +79,26 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
             val content = read(contentLength)
 
             Packet(content).typed()?.let { typed ->
-                logger.info { "Received $typed" }
+                logger.debug { "Received $typed" }
                 packetChannel.send(typed)
             }
         }
     }
 
-    suspend fun send(p: IOnkyoResponse) {
-        logger.info { "Sending $p" }
-        send(p.toPacket(), false)
-    }
+    suspend inline fun <reified T : IOnkyoResponse> send(p: IOnkyoResponse): T? =
+        withTimeoutOrNull(100) {
+            logger.debug { "Sending $p" }
+            send(p.toPacket()) as? T
+        }
 
-    suspend inline fun <reified T : IOnkyoResponse> sendAndWait(p: IOnkyoResponse): T? {
-        logger.info { "Sending $p" }
-        return send(p.toPacket()) as? T
-    }
-
-    suspend fun send(p: Packet, receive: Boolean = true): IOnkyoResponse? {
+    suspend fun send(p: Packet): IOnkyoResponse? {
         val buff = ByteBuffer.wrap(p.bytes())
         outputChannel.writeFully(buff)
-        return if (receive) receive() else null
+        return receive()
     }
 
     private suspend fun receive() = packetChannel.receive().also {
-        logger.info { "Handling $it" }
+        logger.debug { "Handling $it" }
     }
 
     override fun close() {
