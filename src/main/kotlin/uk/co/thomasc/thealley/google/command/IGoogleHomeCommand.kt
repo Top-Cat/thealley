@@ -14,3 +14,11 @@ sealed interface IGoogleHomeCommandBase {
 sealed interface IGoogleHomeCommand<out T : Any> : IGoogleHomeCommandBase {
     override val params: T
 }
+
+@Serializable
+data object NoCommands : IGoogleHomeCommand<NoParams> {
+    override val params = NoParams
+}
+
+@Serializable
+object NoParams
