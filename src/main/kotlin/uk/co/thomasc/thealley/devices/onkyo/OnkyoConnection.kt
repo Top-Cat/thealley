@@ -8,6 +8,7 @@ import io.ktor.network.sockets.openWriteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.core.Closeable
+import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -54,14 +55,18 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
         receive()
     }
 
+    private suspend fun read(bytes: Int) =
+        ByteArray(bytes).also {
+            val localBuff = ByteBuffer.wrap(it)
+            while (localBuff.position() < localBuff.limit()) {
+                inputChannel.readAvailable(localBuff)
+            }
+        }
+
     private suspend fun receiveLoop() {
         while (!conn.isClosed) {
-            inputChannel.read(4) { localBuff ->
-                val magic = ByteArray(4)
-                localBuff.get(magic)
-
-                magic.toString(Charset.defaultCharset()) == "ISCP" || throw OnkyoParseException("Bad magic")
-            }
+            val magic = read(4).toString(Charset.defaultCharset())
+            magic == "ISCP" || throw OnkyoParseException("Bad magic")
 
             val headerLength = inputChannel.readInt()
             val contentLength = inputChannel.readInt()
@@ -69,15 +74,9 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
             val version = inputChannel.readByte()
             version == 1.toByte() || throw OnkyoParseException("Bad version")
 
-            val remainingHeader = headerLength - 13
-            inputChannel.read(remainingHeader) { localBuff ->
-                localBuff.position(localBuff.position() + remainingHeader)
-            }
+            read(headerLength - 13)
 
-            val content = ByteArray(contentLength)
-            inputChannel.read(contentLength) { localBuff ->
-                localBuff.get(content)
-            }
+            val content = read(contentLength)
 
             Packet(content).typed()?.let { typed ->
                 logger.info { "Received $typed" }

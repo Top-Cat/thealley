@@ -16,7 +16,7 @@ enum class DeviceType(val typeName: String, val requiredTraits: Set<KClass<out G
         "action.devices.types.AUDIO_VIDEO_RECEIVER",
         setOf(InputSelectorTrait::class, MediaStateTrait::class, OnOffTrait::class, TransportControlTrait::class, VolumeTrait::class)
     ),
-    BLIND("action.devices.types.BLIND", setOf(OpenCloseTrait::class)),
+    BLINDS("action.devices.types.BLINDS", setOf(OpenCloseTrait::class)),
     LIGHT("action.devices.types.LIGHT", setOf(OnOffTrait::class)),
     SCENE("action.devices.types.SCENE", setOf(SceneTrait::class))
 }

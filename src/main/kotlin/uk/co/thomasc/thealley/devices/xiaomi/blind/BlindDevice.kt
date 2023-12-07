@@ -18,7 +18,7 @@ class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: I
 
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
-            DeviceType.BLIND,
+            DeviceType.BLINDS,
             OpenCloseTrait(
                 getPosition = {
                     IBlindState.SingleDirection(state.position ?: 0)
