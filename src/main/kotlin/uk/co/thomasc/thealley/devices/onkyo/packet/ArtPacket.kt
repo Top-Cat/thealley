@@ -37,7 +37,6 @@ data class ArtPacket(val command: ArtCommand = ArtCommand.Status) : IOnkyoRespon
     enum class ArtFlag(val c: Char) {
         Start('0'), Next('1'), End('2'), UNUSED('-');
 
-
         companion object {
             private val lookup = entries.associateBy { it.c }
             fun fromChar(c: Char) = lookup[c] ?: UNUSED

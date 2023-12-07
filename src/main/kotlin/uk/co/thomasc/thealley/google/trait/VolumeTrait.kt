@@ -17,7 +17,7 @@ class VolumeTrait(
     private val isMuted: suspend () -> Boolean,
     private val mute: suspend (Boolean) -> Unit,
     private val setVolume: suspend (Int) -> Unit,
-    private val setVolumeRelative: (suspend (Int) -> Unit)? = null,
+    private val setVolumeRelative: (suspend (Int) -> Unit)? = null
 ) : GoogleHomeTrait<IVolumeCommand<*>>() {
     override val name = "action.devices.traits.Volume"
     override val klazz = IVolumeCommand::class

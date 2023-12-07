@@ -5,4 +5,3 @@ import nl.adaptivity.xmlutil.serialization.XmlElement
 
 @Serializable
 data class ReceiverInformation(val status: String, @XmlElement(true) val device: Device)
-

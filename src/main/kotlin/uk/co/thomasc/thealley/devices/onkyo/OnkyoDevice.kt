@@ -31,7 +31,6 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
         PowerPacket(if (state) PowerPacket.PowerCommand.ON else PowerPacket.PowerCommand.OFF)
     )
 
-
     override suspend fun init(bus: AlleyEventBus) {
         conn.init()
         conn.receive() // Album art is sent immediately?
