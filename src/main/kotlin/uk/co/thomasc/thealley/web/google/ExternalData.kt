@@ -191,7 +191,8 @@ sealed interface ExecuteStatus {
         }
     }
     data object STATE : ExecuteStatus {
-        override val name = throw IllegalStateException("Can't return state as a status")
+        override val name
+            get() = throw IllegalStateException("Can't return state as a status")
         override fun combine(other: ExecuteStatus) = other
     }
     data object PENDING : ExecuteStatus {
