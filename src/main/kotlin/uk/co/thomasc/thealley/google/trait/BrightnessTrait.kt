@@ -1,17 +1,22 @@
 package uk.co.thomasc.thealley.google.trait
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
+import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.google.command.BrightnessAbsoluteCommand
 import uk.co.thomasc.thealley.google.command.BrightnessRelativeCommand
 import uk.co.thomasc.thealley.google.command.IBrightnessCommand
 import uk.co.thomasc.thealley.web.google.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 
 class BrightnessTrait(
     private val commandOnlyBrightness: Boolean = false,
     private val getBrightness: suspend () -> Int,
     private val setBrightness: suspend (Int) -> Unit,
-    private val setBrightnessPercentage: (suspend (Int) -> Unit)? = null,
-    private val setBrightnessWeight: (suspend (Int) -> Unit)? = null
+    private val setBrightnessPercentage: (suspend (Int) -> Int)? = null,
+    private val setBrightnessWeight: (suspend (Int) -> Int)? = null
 ) : GoogleHomeTrait<IBrightnessCommand<*>>() {
     override val name = "action.devices.traits.Brightness"
     override val klazz = IBrightnessCommand::class
@@ -20,24 +25,39 @@ class BrightnessTrait(
         "commandOnlyBrightness" to JsonPrimitive(commandOnlyBrightness)
     )
 
-    override suspend fun getState() = mapOf(
-        "brightness" to JsonPrimitive(getBrightness())
-    )
+    @Serializable
+    data class BrightnessState(val brightness: Int)
 
-    override suspend fun handleCommand(cmd: IBrightnessCommand<*>): ExecuteStatus {
+    private fun mapFor(state: BrightnessState) = alleyJson.encodeToJsonElement(state).jsonObject
+
+    override suspend fun getState() = mapFor(BrightnessState(getBrightness()))
+
+    override suspend fun handleCommand(cmd: IBrightnessCommand<*>) =
         when (cmd) {
-            is BrightnessAbsoluteCommand -> setBrightness(cmd.params.brightness)
+            is BrightnessAbsoluteCommand -> {
+                setBrightness(cmd.params.brightness)
+                ExecuteStatus.SUCCESS(
+                    mapFor(BrightnessState(cmd.params.brightness))
+                )
+            }
             is BrightnessRelativeCommand -> {
                 if (cmd.params.brightnessRelativePercent != null) {
-                    setBrightnessPercentage?.invoke(cmd.params.brightnessRelativePercent)
+                    setBrightnessPercentage?.let {
+                        val newBrightness = it(cmd.params.brightnessRelativePercent)
+                        ExecuteStatus.SUCCESS(
+                            mapFor(BrightnessState(newBrightness))
+                        )
+                    } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.FunctionNotSupported)
                 } else if (cmd.params.brightnessRelativeWeight != null) {
-                    setBrightnessWeight?.invoke(cmd.params.brightnessRelativeWeight)
+                    setBrightnessWeight?.let {
+                        val newBrightness = it(cmd.params.brightnessRelativeWeight)
+                        ExecuteStatus.SUCCESS(
+                            mapFor(BrightnessState(newBrightness))
+                        )
+                    } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.FunctionNotSupported)
                 } else {
                     throw IllegalArgumentException("Either percent of weight must be set")
                 }
             }
         }
-
-        return ExecuteStatus.SUCCESS()
-    }
 }

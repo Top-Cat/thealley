@@ -41,17 +41,20 @@ class ColorSettingTrait(
         }
     }
 
-    override suspend fun getState() = mapOf(
-        "color" to when (val color = getColor()) {
+    private fun stateFor(color: IColorState) = mapOf(
+        "color" to when (color) {
             is IColorState.Rgb -> alleyJson.encodeToJsonElement(color)
             is IColorState.Temperature -> alleyJson.encodeToJsonElement(color)
             is IColorState.Hsv -> alleyJson.encodeToJsonElement(color)
         }
     )
 
+
+    override suspend fun getState() = stateFor(getColor())
+
     override suspend fun handleCommand(cmd: ColorAbsoluteCommand): ExecuteStatus {
         setColor(cmd.params.state)
 
-        return ExecuteStatus.SUCCESS()
+        return ExecuteStatus.SUCCESS(stateFor(cmd.params.state.toState()))
     }
 }

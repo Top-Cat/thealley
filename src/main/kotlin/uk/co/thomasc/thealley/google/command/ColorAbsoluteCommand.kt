@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.google.trait.IColorState
 import uk.co.thomasc.thealley.web.google.DeviceColorCommand
 import java.awt.Color
 
@@ -26,12 +27,15 @@ data class ColorAbsoluteCommand(override val params: Params) : IGoogleHomeComman
 sealed interface IColorCommandState {
     val name: String?
     suspend fun setComplexState(bus: AlleyEventBus, block: suspend (AlleyEventBus, IAlleyLight.LightState, Int?) -> Unit)
+    fun toState(): IColorState
 
     @Serializable
     data class Temperature(override val name: String? = null, val temperature: Int) : IColorCommandState {
         override suspend fun setComplexState(bus: AlleyEventBus, block: suspend (AlleyEventBus, IAlleyLight.LightState, Int?) -> Unit) {
             block(bus, IAlleyLight.LightState(temperature = temperature), null)
         }
+
+        override fun toState() = IColorState.Temperature(temperature)
     }
 
     @Serializable
@@ -53,6 +57,8 @@ sealed interface IColorCommandState {
                 null
             )
         }
+
+        override fun toState() = IColorState.Rgb(spectrumRGB)
     }
 
     @Serializable
@@ -71,5 +77,7 @@ sealed interface IColorCommandState {
                 null
             )
         }
+
+        override fun toState() = IColorState.Hsv(IColorState.Hsv.Spectrum(spectrumHsv.hue, spectrumHsv.saturation, spectrumHsv.value))
     }
 }
