@@ -29,7 +29,7 @@ class MediaStateTrait(
         } ?: it
     }
 
-    override suspend fun handleCommand(cmd: NoCommands) = ExecuteStatus.SUCCESS
+    override suspend fun handleCommand(cmd: NoCommands) = ExecuteStatus.SUCCESS()
 
     enum class ActivityState {
         INACTIVE, STANDBY, ACTIVE

@@ -3,8 +3,14 @@
 package uk.co.thomasc.thealley.web.google
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.JsonElement
@@ -31,7 +37,7 @@ data class GoogleHomeDevice(val id: String, val customData: JsonElement? = null)
 data class GoogleHomeRes(val requestId: String, val payload: JsonElement)
 
 interface GoogleHomeMayFail {
-    val errorCode: String?
+    val errorCode: GoogleHomeErrorCode?
     val debugString: String?
 }
 
@@ -72,7 +78,7 @@ data class DisconnectIntent(
 
 @Serializable
 data class DisconnectResponse(
-    override val errorCode: String? = null,
+    override val errorCode: GoogleHomeErrorCode? = null,
     override val debugString: String? = null
 ) : GoogleHomePayload {
     override fun encodeToJson(json: Json) = alleyJson.encodeToJsonElement(this)
@@ -81,7 +87,7 @@ data class DisconnectResponse(
 @Serializable
 data class SyncResponse(
     val agentUserId: String,
-    override val errorCode: String? = null,
+    override val errorCode: GoogleHomeErrorCode? = null,
     override val debugString: String? = null,
     val devices: List<AlleyDevice>
 ) : GoogleHomePayload {
@@ -101,20 +107,11 @@ data class QueryIntentPayload(val devices: List<GoogleHomeDevice>)
 @Serializable
 data class QueryResponse(
     val devices: Map<String, JsonObject>,
-    override val errorCode: String? = null,
+    override val errorCode: GoogleHomeErrorCode? = null,
     override val debugString: String? = null
 ) : GoogleHomePayload {
     override fun encodeToJson(json: Json) = alleyJson.encodeToJsonElement(this)
 }
-
-@Serializable
-data class DeviceState(
-    val online: Boolean,
-    val on: Boolean? = null,
-    val brightness: Int? = null,
-    val color: DeviceColorState? = null,
-    val openState: List<DeviceBlindState>? = null
-)
 
 @Serializable
 data class DeviceBlindState(val openPercent: Int, val openDirection: DeviceBlindStateEnum)
@@ -170,21 +167,65 @@ data class ExecuteIntentCommand(val devices: List<GoogleHomeDevice>, val executi
 @Serializable
 data class ExecuteResponse(
     val commands: List<ExecuteResponseCommand>,
-    override val errorCode: String? = null,
+    override val errorCode: GoogleHomeErrorCode? = null,
     override val debugString: String? = null
 ) : GoogleHomePayload {
     override fun encodeToJson(json: Json) = alleyJson.encodeToJsonElement(this)
 }
 
 @Serializable
-data class ExecuteResponseCommand(val ids: List<String>, val status: ExecuteStatus, val states: DeviceState? = null, override val errorCode: String? = null, override val debugString: String? = null) :
-    GoogleHomeMayFail
+data class ExecuteResponseCommand(
+    val ids: List<String>,
+    val status: String,
+    val states: JsonObject? = null,
+    override val errorCode: GoogleHomeErrorCode? = null,
+    override val debugString: String? = null
+) : GoogleHomeMayFail
 
-enum class ExecuteStatus {
-    SUCCESS,
-    PENDING,
-    OFFLINE,
-    ERROR
+sealed interface ExecuteStatus {
+    val name: String
+    fun combine(other: ExecuteStatus): ExecuteStatus
+    data class SUCCESS(val state: Map<String, JsonElement> = mapOf()) : ExecuteStatus {
+        override val name = "SUCCESS"
+        override fun combine(other: ExecuteStatus) = when (other) {
+            is ERROR -> other
+            OFFLINE -> other
+            PENDING -> this
+            is SUCCESS -> SUCCESS(
+                state.plus(other.state)
+            )
+        }
+    }
+    data object PENDING : ExecuteStatus {
+        override val name = "PENDING"
+        override fun combine(other: ExecuteStatus) = other
+    }
+    data object OFFLINE : ExecuteStatus {
+        override val name = "OFFLINE"
+        override fun combine(other: ExecuteStatus) = if (other is ERROR) other else this
+    }
+
+    data class ERROR(val errorCode: GoogleHomeErrorCode) : ExecuteStatus {
+        override val name = "ERROR"
+        override fun combine(other: ExecuteStatus) = this
+    }
+}
+
+enum class GoogleHomeErrorCode {
+    @SerialName("alreadyAtMax")
+    AlreadyAtMax,
+
+    @SerialName("deviceNotFound")
+    DeviceNotFound,
+
+    @SerialName("deviceOffline")
+    DeviceOffline,
+
+    @SerialName("deviceTurnedOff")
+    DeviceTurnedOff,
+
+    @SerialName("functionNotSupported")
+    FunctionNotSupported
 }
 
 enum class QueryStatus {

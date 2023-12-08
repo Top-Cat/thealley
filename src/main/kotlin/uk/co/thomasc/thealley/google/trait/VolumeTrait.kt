@@ -6,6 +6,7 @@ import uk.co.thomasc.thealley.google.command.MuteCommand
 import uk.co.thomasc.thealley.google.command.SetVolumeCommand
 import uk.co.thomasc.thealley.google.command.VolumeRelativeCommand
 import uk.co.thomasc.thealley.web.google.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 
 class VolumeTrait(
     private val volumeMaxLevel: Int,
@@ -15,9 +16,9 @@ class VolumeTrait(
     private val commandOnlyVolume: Boolean = false,
     private val getVolume: suspend () -> Int,
     private val isMuted: suspend () -> Boolean,
-    private val mute: suspend (Boolean) -> Unit,
-    private val setVolume: suspend (Int) -> Unit,
-    private val setVolumeRelative: (suspend (Int) -> Unit)? = null
+    private val mute: suspend (Boolean) -> Boolean?,
+    private val setVolume: suspend (Int) -> Int?,
+    private val setVolumeRelative: (suspend (Int) -> Int?)? = null
 ) : GoogleHomeTrait<IVolumeCommand<*>>() {
     override val name = "action.devices.traits.Volume"
     override val klazz = IVolumeCommand::class
@@ -35,13 +36,48 @@ class VolumeTrait(
         "isMuted" to JsonPrimitive(isMuted())
     )
 
-    override suspend fun handleCommand(cmd: IVolumeCommand<*>): ExecuteStatus {
+    override suspend fun handleCommand(cmd: IVolumeCommand<*>) =
         when (cmd) {
-            is MuteCommand -> mute(cmd.params.mute)
-            is SetVolumeCommand -> setVolume(cmd.params.volumeLevel)
-            is VolumeRelativeCommand -> setVolumeRelative?.invoke(cmd.params.relativeSteps)
-        }
+            is MuteCommand -> {
+                val isMuted = mute(cmd.params.mute)
 
-        return ExecuteStatus.SUCCESS
-    }
+                if (isMuted == null) {
+                    ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceTurnedOff)
+                } else {
+                    ExecuteStatus.SUCCESS(
+                        mapOf(
+                            "isMuted" to JsonPrimitive(isMuted)
+                        )
+                    )
+                }
+            }
+            is SetVolumeCommand -> {
+                val newVolume = setVolume(cmd.params.volumeLevel)
+
+                if (newVolume == null) {
+                    ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceTurnedOff)
+                } else {
+                    ExecuteStatus.SUCCESS(
+                        mapOf(
+                            "currentVolume" to JsonPrimitive(newVolume)
+                        )
+                    )
+                }
+            }
+            is VolumeRelativeCommand -> {
+                setVolumeRelative?.let {
+                    val newVolume = it(cmd.params.relativeSteps)
+
+                    if (newVolume == null) {
+                        ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceTurnedOff)
+                    } else {
+                        ExecuteStatus.SUCCESS(
+                            mapOf(
+                                "currentVolume" to JsonPrimitive(newVolume)
+                            )
+                        )
+                    }
+                } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.FunctionNotSupported)
+            }
+        }
 }

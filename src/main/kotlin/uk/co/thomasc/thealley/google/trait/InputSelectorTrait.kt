@@ -38,6 +38,6 @@ class InputSelectorTrait(
             is PreviousInputCommand -> previousInput?.invoke()
         }
 
-        return ExecuteStatus.SUCCESS
+        return ExecuteStatus.SUCCESS()
     }
 }

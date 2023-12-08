@@ -4,6 +4,7 @@ import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
 import uk.co.thomasc.thealley.google.trait.GoogleHomeTrait
 import uk.co.thomasc.thealley.google.trait.InputSelectorTrait
 import uk.co.thomasc.thealley.google.trait.MediaStateTrait
+import uk.co.thomasc.thealley.google.trait.NetworkControlTrait
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
 import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
 import uk.co.thomasc.thealley.google.trait.SceneTrait
@@ -18,5 +19,6 @@ enum class DeviceType(val typeName: String, val requiredTraits: Set<KClass<out G
     ),
     BLINDS("action.devices.types.BLINDS", setOf(OpenCloseTrait::class)),
     LIGHT("action.devices.types.LIGHT", setOf(OnOffTrait::class)),
+    NETWORK("action.devices.types.NETWORK", setOf(NetworkControlTrait::class)),
     SCENE("action.devices.types.SCENE", setOf(SceneTrait::class))
 }

@@ -51,6 +51,6 @@ class OpenCloseTrait(
             is OpenCloseRelativeCommand -> setPositionRelative?.invoke(cmd.params.openRelativePercent)
         }
 
-        return ExecuteStatus.SUCCESS
+        return ExecuteStatus.SUCCESS()
     }
 }

@@ -39,8 +39,10 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
             InputSelectorTrait(
                 orderedInputs = true,
                 getInputs = {
-                    (conn.send<ReceiverInformationPacket>(ReceiverInformationPacket())?.command as? ReceiverInformationPacket.Command.Data)?.data?.let {
-                        it.device.selectorList.list.map { selector ->
+                    (conn.send<ReceiverInformationPacket>(ReceiverInformationPacket())?.command as? ReceiverInformationPacket.Command.Data)?.data?.let { data ->
+                        data.device.selectorList.list.filter { selector ->
+                            selector.value && selector.id != "80"
+                        }.map { selector ->
                             InputSelectorInput(
                                 selector.id,
                                 listOf(
@@ -87,26 +89,26 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                     conn.send<MutingPacket>(MutingPacket())?.command == MutingPacket.MutingCommand.On
                 },
                 mute = { mute ->
-                    // TODO: null = failure
-                    conn.send<MutingPacket>(MutingPacket(if (mute) MutingPacket.MutingCommand.On else MutingPacket.MutingCommand.Off))
+                    val res = conn.send<MutingPacket>(MutingPacket(if (mute) MutingPacket.MutingCommand.On else MutingPacket.MutingCommand.Off))
+                    res?.command == MutingPacket.MutingCommand.On
                 },
                 getVolume = {
                     // TODO: Throw error if failure?
                     (conn.send<MasterVolumePacket>(MasterVolumePacket())?.command as? MasterVolumePacket.VolumeCommand.Level)?.level ?: 0
                 },
                 setVolume = { vol ->
-                    // TODO: null = failure
-                    conn.send<MasterVolumePacket>(MasterVolumePacket(MasterVolumePacket.VolumeCommand.Level(vol)))
+                    val res = conn.send<MasterVolumePacket>(MasterVolumePacket(MasterVolumePacket.VolumeCommand.Level(vol)))
+                    (res?.command as? MasterVolumePacket.VolumeCommand.Level)?.level
                 },
                 setVolumeRelative = { rel ->
-                    // TODO: null = failure
                     val command = when {
                         rel > 2 -> MasterVolumePacket.VolumeCommand.Up
                         rel < -2 -> MasterVolumePacket.VolumeCommand.Down
                         rel > 0 -> MasterVolumePacket.VolumeCommand.Up1
                         else -> MasterVolumePacket.VolumeCommand.Down1
                     }
-                    conn.send<MasterVolumePacket>(MasterVolumePacket(command))
+                    val res = conn.send<MasterVolumePacket>(MasterVolumePacket(command))
+                    (res?.command as? MasterVolumePacket.VolumeCommand.Level)?.level
                 }
             )
         )

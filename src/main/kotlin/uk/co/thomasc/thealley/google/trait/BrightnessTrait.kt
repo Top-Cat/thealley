@@ -38,6 +38,6 @@ class BrightnessTrait(
             }
         }
 
-        return ExecuteStatus.SUCCESS
+        return ExecuteStatus.SUCCESS()
     }
 }

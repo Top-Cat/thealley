@@ -21,6 +21,6 @@ class SceneTrait(
     override suspend fun handleCommand(cmd: ActivateSceneCommand): ExecuteStatus {
         executeScene(cmd.params.deactivate)
 
-        return ExecuteStatus.SUCCESS
+        return ExecuteStatus.SUCCESS()
     }
 }

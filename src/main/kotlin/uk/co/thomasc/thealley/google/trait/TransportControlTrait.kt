@@ -56,7 +56,7 @@ class TransportControlTrait(
             is MediaShuffleCommand -> shuffle?.invoke()
         }
 
-        return ExecuteStatus.SUCCESS
+        return ExecuteStatus.SUCCESS()
     }
 
     enum class ControlCommand {

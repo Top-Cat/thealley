@@ -8,7 +8,7 @@ class OnOffTrait(
     private val commandOnlyOnOff: Boolean = false,
     private val queryOnlyOnOff: Boolean = false,
     private val getOnOff: suspend () -> Boolean,
-    private val setOnOff: suspend (Boolean) -> Unit
+    private val setOnOff: suspend (Boolean) -> Boolean
 ) : GoogleHomeTrait<OnOffCommand>() {
     override val name = "action.devices.traits.OnOff"
     override val klazz = OnOffCommand::class
@@ -25,6 +25,10 @@ class OnOffTrait(
     override suspend fun handleCommand(cmd: OnOffCommand): ExecuteStatus {
         setOnOff(cmd.params.on)
 
-        return ExecuteStatus.SUCCESS
+        return ExecuteStatus.SUCCESS(
+            mapOf(
+                "on" to JsonPrimitive(cmd.params.on)
+            )
+        )
     }
 }

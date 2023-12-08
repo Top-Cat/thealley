@@ -52,6 +52,6 @@ class ColorSettingTrait(
     override suspend fun handleCommand(cmd: ColorAbsoluteCommand): ExecuteStatus {
         setColor(cmd.params.state)
 
-        return ExecuteStatus.SUCCESS
+        return ExecuteStatus.SUCCESS()
     }
 }

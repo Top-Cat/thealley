@@ -16,6 +16,7 @@ import uk.co.thomasc.thealley.web.google.ExecuteIntent
 import uk.co.thomasc.thealley.web.google.ExecuteResponse
 import uk.co.thomasc.thealley.web.google.ExecuteResponseCommand
 import uk.co.thomasc.thealley.web.google.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 import uk.co.thomasc.thealley.web.google.GoogleHomeReq
 import uk.co.thomasc.thealley.web.google.GoogleHomeRes
 import uk.co.thomasc.thealley.web.google.QueryIntent
@@ -25,6 +26,8 @@ import uk.co.thomasc.thealley.web.google.SyncIntent
 import uk.co.thomasc.thealley.web.google.SyncResponse
 
 class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
+    private val defaultStatus = ExecuteStatus.SUCCESS(mapOf("online" to JsonPrimitive(true)))
+
     private suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices
@@ -43,7 +46,7 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
                                 }
                             } else {
                                 null
-                            } ?: ExecuteStatus.ERROR
+                            } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceNotFound)
                         }
                     }
                 }
@@ -53,20 +56,16 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
             cmd.map { localDevices ->
                 val devices = localDevices.await()
 
-                devices.first to devices.second.fold(ExecuteStatus.SUCCESS) { acc, v ->
-                    if (v == ExecuteStatus.OFFLINE || acc == ExecuteStatus.OFFLINE) {
-                        ExecuteStatus.OFFLINE
-                    } else if (v == ExecuteStatus.ERROR) {
-                        ExecuteStatus.ERROR
-                    } else {
-                        acc
-                    }
+                devices.first to devices.second.fold<ExecuteStatus, ExecuteStatus>(defaultStatus) { acc, v ->
+                    acc.combine(v)
                 }
             }
-        }.groupBy({ it.second }, { it.first }).map {
+        }.groupBy({ it.second }, { it.first }).map { (status, devices) ->
             ExecuteResponseCommand(
-                it.value.map { device -> device.id },
-                it.key
+                devices.map { device -> device.id },
+                status.name,
+                if (status is ExecuteStatus.SUCCESS) JsonObject(status.state) else null,
+                if (status is ExecuteStatus.ERROR) status.errorCode else null
             )
         }
     )
@@ -99,7 +98,7 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
         }
     )
 
-    private suspend fun syncRequest(userId: String, intent: SyncIntent) = SyncResponse(
+    private suspend fun syncRequest(userId: String) = SyncResponse(
         userId,
         devices = deviceMapper.getDevices().mapNotNull {
             val type = it.ghType
@@ -126,7 +125,7 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
         GoogleHomeRes(
             req.requestId,
             when (val intent = req.inputs.first()) {
-                is SyncIntent -> syncRequest(userId, intent)
+                is SyncIntent -> syncRequest(userId)
                 is QueryIntent -> queryRequest(intent)
                 is ExecuteIntent -> executeRequest(intent)
                 is DisconnectIntent -> DisconnectResponse()
