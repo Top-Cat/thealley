@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommandBase
@@ -179,21 +180,30 @@ data class ExecuteResponseCommand(
 sealed interface ExecuteStatus {
     val name: String
     fun combine(other: ExecuteStatus): ExecuteStatus
-    data class SUCCESS(val state: Map<String, JsonElement> = mapOf()) : ExecuteStatus {
+    interface WithState : ExecuteStatus {
+        val state: Map<String, JsonElement>
+    }
+    data class SUCCESS(override val state: Map<String, JsonElement> = mapOf()) : WithState {
         override val name = "SUCCESS"
         override fun combine(other: ExecuteStatus) = when (other) {
             is ERROR -> other
             OFFLINE -> other
             PENDING, STATE -> this
-            is SUCCESS -> SUCCESS(
+            is WithState -> SUCCESS(
                 state.plus(other.state)
             )
         }
     }
-    data object STATE : ExecuteStatus {
+    data object DEFAULT : WithState {
+        override val state: Map<String, JsonElement> = mapOf("online" to JsonPrimitive(true))
         override val name
             get() = throw IllegalStateException("Can't return state as a status")
         override fun combine(other: ExecuteStatus) = other
+    }
+    data object STATE : ExecuteStatus {
+        override val name
+            get() = throw IllegalStateException("Can't return state as a status")
+        override fun combine(other: ExecuteStatus) = if (other is DEFAULT) this else other
     }
     data object PENDING : ExecuteStatus {
         override val name = "PENDING"

@@ -26,17 +26,15 @@ import uk.co.thomasc.thealley.web.google.SyncIntent
 import uk.co.thomasc.thealley.web.google.SyncResponse
 
 class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
-    private val defaultStatus = ExecuteStatus.SUCCESS(mapOf("online" to JsonPrimitive(true)))
+    private val defaultStatus = ExecuteStatus.DEFAULT
 
     // TODO: Split this up to make more readable
     private suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
-        intent.payload.commands.map { cmd -> // Fetch Devices
-            cmd to cmd.devices
-        }.map { // Execute commands
+        intent.payload.commands.map { cmd -> // Execute commands
             coroutineScope {
-                it.second.map { device ->
+                cmd.devices.map { device ->
                     async(threadPool) {
-                        device to it.first.execution.map { ex ->
+                        device to cmd.execution.map { ex ->
                             val dev = deviceMapper.getDevice(device.deviceId)
                             val type = dev?.ghType
                             val traits = dev?.ghTraits
@@ -62,7 +60,7 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
                     acc.combine(v)
                 }.let {
                     if (it == ExecuteStatus.STATE) {
-                        dev?.let { ExecuteStatus.SUCCESS(getState(dev)) } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceNotFound)
+                        dev?.let { ExecuteStatus.SUCCESS(getState(dev, false)) } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceNotFound)
                     } else {
                         it
                     }
@@ -80,7 +78,7 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
         }
     )
 
-    private suspend fun getState(device: uk.co.thomasc.thealley.devices.AlleyDevice<*, *, *>): Map<String, JsonElement> {
+    private suspend fun getState(device: uk.co.thomasc.thealley.devices.AlleyDevice<*, *, *>, queryStatus: Boolean = true): Map<String, JsonElement> {
         val type = device.ghType
         val traits = device.ghTraits
 
@@ -89,7 +87,7 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
                 mapOf<String, JsonElement>(
                     "online" to JsonPrimitive(true),
                     "status" to JsonPrimitive(QueryStatus.SUCCESS.name)
-                )
+                ).filter { queryStatus || it.key == "online" }
             ) { a, b ->
                 a.plus(b.getState())
             }
@@ -98,7 +96,7 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
                 "online" to JsonPrimitive(false),
                 "status" to JsonPrimitive(QueryStatus.ERROR.name),
                 "errorCode" to JsonPrimitive("deviceOffline")
-            )
+            ).filter { queryStatus || it.key == "online" }
         }
     }
 
