@@ -28,6 +28,7 @@ import uk.co.thomasc.thealley.web.google.SyncResponse
 class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
     private val defaultStatus = ExecuteStatus.SUCCESS(mapOf("online" to JsonPrimitive(true)))
 
+    // TODO: Split this up to make more readable
     private suspend fun executeRequest(intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> // Fetch Devices
             cmd to cmd.devices
@@ -55,10 +56,19 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
             // Commands -> Devices -> Executions
             cmd.map { localDevices ->
                 val devices = localDevices.await()
+                val dev = deviceMapper.getDevice(devices.first.deviceId)
 
-                devices.first to devices.second.fold<ExecuteStatus, ExecuteStatus>(defaultStatus) { acc, v ->
+                val status = devices.second.fold<ExecuteStatus, ExecuteStatus>(defaultStatus) { acc, v ->
                     acc.combine(v)
+                }.let {
+                    if (it == ExecuteStatus.STATE) {
+                        dev?.let { ExecuteStatus.SUCCESS(getState(dev)) } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceNotFound)
+                    } else {
+                        it
+                    }
                 }
+
+                devices.first to status
             }
         }.groupBy({ it.second }, { it.first }).map { (status, devices) ->
             ExecuteResponseCommand(
@@ -70,31 +80,33 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
         }
     )
 
+    private suspend fun getState(device: uk.co.thomasc.thealley.devices.AlleyDevice<*, *, *>): Map<String, JsonElement> {
+        val type = device.ghType
+        val traits = device.ghTraits
+
+        return if (type != null && traits != null) {
+            traits.fold(
+                mapOf<String, JsonElement>(
+                    "online" to JsonPrimitive(true),
+                    "status" to JsonPrimitive(QueryStatus.SUCCESS.name)
+                )
+            ) { a, b ->
+                a.plus(b.getState())
+            }
+        } else {
+            mapOf(
+                "online" to JsonPrimitive(false),
+                "status" to JsonPrimitive(QueryStatus.ERROR.name),
+                "errorCode" to JsonPrimitive("deviceOffline")
+            )
+        }
+    }
+
     private suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
         intent.payload.devices.mapNotNull {
             deviceMapper.getDevice(it.deviceId)
-        }.associate { light ->
-            val type = light.ghType
-            val traits = light.ghTraits
-
-            val state = if (type != null && traits != null) {
-                traits.fold(
-                    mapOf<String, JsonElement>(
-                        "online" to JsonPrimitive(true),
-                        "status" to JsonPrimitive(QueryStatus.SUCCESS.name)
-                    )
-                ) { a, b ->
-                    a.plus(b.getState())
-                }
-            } else {
-                mapOf(
-                    "online" to JsonPrimitive(false),
-                    "status" to JsonPrimitive(QueryStatus.ERROR.name),
-                    "errorCode" to JsonPrimitive("deviceOffline")
-                )
-            }
-
-            light.id.toString() to JsonObject(state)
+        }.associate {
+            it.id.toString() to JsonObject(getState(it))
         }
     )
 

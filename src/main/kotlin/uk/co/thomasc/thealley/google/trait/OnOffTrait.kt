@@ -25,10 +25,6 @@ class OnOffTrait(
     override suspend fun handleCommand(cmd: OnOffCommand): ExecuteStatus {
         setOnOff(cmd.params.on)
 
-        return ExecuteStatus.SUCCESS(
-            mapOf(
-                "on" to JsonPrimitive(cmd.params.on)
-            )
-        )
+        return ExecuteStatus.STATE
     }
 }
