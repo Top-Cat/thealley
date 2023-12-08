@@ -49,7 +49,6 @@ class ColorSettingTrait(
         }
     )
 
-
     override suspend fun getState() = stateFor(getColor())
 
     override suspend fun handleCommand(cmd: ColorAbsoluteCommand): ExecuteStatus {
