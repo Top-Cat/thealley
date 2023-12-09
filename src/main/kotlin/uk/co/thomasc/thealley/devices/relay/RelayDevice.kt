@@ -4,12 +4,11 @@ import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.http.ContentType
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import mu.KLogging
+import uk.co.thomasc.thealley.cached
 import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
@@ -26,14 +25,17 @@ import uk.co.thomasc.thealley.devices.types.RelayConfig
 import uk.co.thomasc.thealley.devices.xiaomi.aq2.MotionEvent
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.minutes
 
 class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: IStateUpdater<RelayState>) :
     AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyLight, IAlleyStats {
 
     override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()
-    private var lastRequest = Instant.DISTANT_PAST
-    private val mutex = Mutex()
+    private var powerState by cached(1.minutes) {
+        client.get("http://${config.host}.light.kirkstall.top-cat.me/api/relay/0?apikey=${config.apiKey}") {
+            accept(ContentType.Any)
+        }.body<Int>() > 0
+    }
 
     private suspend fun setLightState(bus: AlleyEventBus, state: Int) {
         bus.emit(MqttSendEvent("${config.host}/relay/0/set", "$state"))
@@ -48,21 +50,9 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
         }
     }
 
-    override suspend fun getPowerState() = mutex.withLock {
-        if (Clock.System.now().minus(20.seconds) > lastRequest) {
-            try {
-                client.get("http://${config.host}.light.kirkstall.top-cat.me/api/relay/0?apikey=${config.apiKey}") {
-                    accept(ContentType.Any)
-                }.body<Int>() > 0
-            } catch (e: Exception) {
-                false
-            }.also {
-                updateState(state.copy(on = it))
-            }
-        }
-
-        lastRequest = Clock.System.now()
-        state.on
+    override suspend fun getPowerState(): Boolean {
+        updateState(state.copy(on = powerState))
+        return state.on
     }
 
     override suspend fun togglePowerState(bus: AlleyEventBus) = setLightState(bus, 2)
@@ -98,7 +88,10 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
 
                 if (host == config.host) {
                     when (prop) {
-                        "relay" -> updateState(state.copy(on = ev.payload == "1"))
+                        "relay" -> {
+                            powerState = ev.payload == "1"
+                            updateState(state.copy(on = ev.payload == "1"))
+                        }
                         "button" -> togglePowerState(bus)
                         else -> props[prop] = try {
                             JsonPrimitive(ev.payload.toDouble())

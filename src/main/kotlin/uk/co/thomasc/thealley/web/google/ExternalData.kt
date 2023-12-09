@@ -188,7 +188,7 @@ sealed interface ExecuteStatus {
         override fun combine(other: ExecuteStatus) = when (other) {
             is ERROR -> other
             OFFLINE -> other
-            PENDING, STATE -> this
+            PENDING -> this
             is WithState -> SUCCESS(
                 state.plus(other.state)
             )
@@ -199,11 +199,6 @@ sealed interface ExecuteStatus {
         override val name
             get() = throw IllegalStateException("Can't return state as a status")
         override fun combine(other: ExecuteStatus) = other
-    }
-    data object STATE : ExecuteStatus {
-        override val name
-            get() = throw IllegalStateException("Can't return state as a status")
-        override fun combine(other: ExecuteStatus) = if (other is DEFAULT) this else other
     }
     data object PENDING : ExecuteStatus {
         override val name = "PENDING"

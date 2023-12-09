@@ -1,6 +1,7 @@
 package uk.co.thomasc.thealley.devices.onkyo
 
 import mu.KLogging
+import uk.co.thomasc.thealley.cached
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.EmptyState
@@ -19,6 +20,7 @@ import uk.co.thomasc.thealley.google.trait.MediaStateTrait
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
 import uk.co.thomasc.thealley.google.trait.TransportControlTrait
 import uk.co.thomasc.thealley.google.trait.VolumeTrait
+import kotlin.time.Duration.Companion.hours
 
 class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<OnkyoDevice, OnkyoConfig, EmptyState>(id, config, state, stateStore) {
@@ -31,6 +33,11 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
         PowerPacket(if (state) PowerPacket.PowerCommand.On else PowerPacket.PowerCommand.Off)
     )
 
+    private val information by cached(1.hours) {
+        val cmd = conn.send<ReceiverInformationPacket>(ReceiverInformationPacket())?.command
+        if (cmd is ReceiverInformationPacket.Command.Data) cmd.data else null
+    }
+
     override suspend fun init(bus: AlleyEventBus) {
         conn.init()
 
@@ -39,23 +46,21 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
             InputSelectorTrait(
                 orderedInputs = true,
                 getInputs = {
-                    (conn.send<ReceiverInformationPacket>(ReceiverInformationPacket())?.command as? ReceiverInformationPacket.Command.Data)?.data?.let { data ->
-                        data.device.selectorList.list.filter { selector ->
-                            selector.value && selector.id != "80"
-                        }.map { selector ->
-                            InputSelectorInput(
-                                selector.id,
-                                listOf(
-                                    InputSelectorInput.LocalizedName(
-                                        GoogleHomeLang.ENGLISH,
-                                        listOf(
-                                            selector.name
-                                        )
+                    information.device.selectorList.list.filter { selector ->
+                        selector.value && selector.id != "80"
+                    }.map { selector ->
+                        InputSelectorInput(
+                            selector.id,
+                            listOf(
+                                InputSelectorInput.LocalizedName(
+                                    GoogleHomeLang.ENGLISH,
+                                    listOf(
+                                        selector.name
                                     )
                                 )
                             )
-                        }
-                    } ?: listOf()
+                        )
+                    }
                 },
                 getCurrentInput = {
                     // TODO: Handle failure

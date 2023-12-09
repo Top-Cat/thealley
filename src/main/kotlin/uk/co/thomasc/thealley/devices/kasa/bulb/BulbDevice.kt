@@ -97,11 +97,11 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
             transitionTime
         )
 
-    suspend fun getName() = getData<BulbResponse, BulbData>()?.alias
-    override suspend fun getLightState() = getData<BulbResponse, BulbData>()?.lightState.let {
+    suspend fun getName() = getData<BulbResponse>()?.alias
+    override suspend fun getLightState() = getData<BulbResponse>()?.lightState.let {
         IAlleyLight.LightState(it?.brightness, it?.hue, it?.saturation, it?.temperature)
     }
-    suspend fun getSignalStrength() = getData<BulbResponse, BulbData>()?.rssi
+    suspend fun getSignalStrength() = getData<BulbResponse>()?.rssi
     suspend fun getPowerUsage() = getPower().power
 
     private suspend fun setLightState(state: BulbUpdate) {
@@ -140,7 +140,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
         )
     }
 
-    override suspend fun getPowerState() = getData<BulbResponse, BulbData>()?.lightState?.isOn() == true
+    override suspend fun getPowerState() = getData<BulbResponse>()?.lightState?.isOn() == true
 
     override suspend fun togglePowerState(bus: AlleyEventBus) =
         setPowerState(bus, !getPowerState())
@@ -153,9 +153,9 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
         updateState(state.copy(ignoreMotionUntil = null))
     }
 
-    suspend fun getModel() = getData<BulbResponse, BulbData>()?.model
-    suspend fun getHwVer() = getData<BulbResponse, BulbData>()?.hwVer
-    suspend fun getSwVer() = getData<BulbResponse, BulbData>()?.swVer
+    suspend fun getModel() = getData<BulbResponse>()?.model
+    suspend fun getHwVer() = getData<BulbResponse>()?.hwVer
+    suspend fun getSwVer() = getData<BulbResponse>()?.swVer
 
     companion object : KLogging()
 }

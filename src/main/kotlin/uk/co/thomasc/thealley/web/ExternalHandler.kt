@@ -52,27 +52,30 @@ class ExternalHandler(private val deviceMapper: AlleyDeviceMapper) {
             }
         }.flatMap { cmd -> // Collate results
             // Commands -> Devices -> Executions
-            cmd.map { localDevices ->
-                val devices = localDevices.await()
-                val dev = deviceMapper.getDevice(devices.first.deviceId)
-
-                val status = devices.second.fold<ExecuteStatus, ExecuteStatus>(defaultStatus) { acc, v ->
+            cmd.map { localDevices -> // Wait for execution
+                localDevices.await()
+            }.map { (device, results) -> // Combine execution results
+                device to results.fold<ExecuteStatus, ExecuteStatus>(defaultStatus) { acc, v ->
                     acc.combine(v)
-                }.let {
-                    if (it == ExecuteStatus.STATE) {
-                        dev?.let { ExecuteStatus.SUCCESS(getState(dev, false)) } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceNotFound)
-                    } else {
-                        it
-                    }
                 }
+            }.map { (device, result) -> // Get state for successful executions
+                val dev = deviceMapper.getDevice(device.deviceId)
 
-                devices.first to status
+                device to if (result is ExecuteStatus.SUCCESS) {
+                    /*coroutineScope {
+                        dev?.let { result to async(threadPool) { getState(dev, false) } } ?: (ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceNotFound) to null)
+                    }*/
+                    result to result.state
+                } else {
+                    result to null
+                }
             }
-        }.groupBy({ it.second }, { it.first }).map { (status, devices) ->
+        }.groupBy({ it.second }, { it.first }).map { (f, devices) ->
+            val (status, states) = f
             ExecuteResponseCommand(
                 devices.map { device -> device.id },
                 status.name,
-                if (status is ExecuteStatus.SUCCESS) JsonObject(status.state) else null,
+                if (status is ExecuteStatus.SUCCESS && states != null) JsonObject(states) else null,
                 if (status is ExecuteStatus.ERROR) status.errorCode else null
             )
         }

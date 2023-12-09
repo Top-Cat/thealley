@@ -27,41 +27,41 @@ import uk.co.thomasc.thealley.devices.types.IKasaConfig
 import java.net.SocketException
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.minutes
 
-abstract class KasaDevice<X, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKasaState>(id: Int, config: U, state: V, stateStore: IStateUpdater<V>) :
+abstract class KasaDevice<X : KasaData, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKasaState>(id: Int, config: U, state: V, stateStore: IStateUpdater<V>) :
     AlleyDevice<T, U, V>(id, config, state, stateStore) {
 
     protected var deviceData: X? = null
-    private var lastRequest = Instant.DISTANT_PAST
+    private var nextRequest = Instant.DISTANT_PAST
     private val mutex = Mutex()
 
     protected suspend fun <Y> makeRequest(block: suspend () -> Y) = mutex.withLock {
         block().also {
-            lastRequest = Clock.System.now()
+            nextRequest = Clock.System.now().plus(cacheDuration)
         }
     }
 
-    protected suspend inline fun <reified T : KasaResponse<U>, U : KasaData> getData() = getData(serializer<T>())
+    protected suspend inline fun <reified T : KasaResponse<X>> getData() = getData(serializer<T>())
 
-    protected suspend fun <T : KasaResponse<U>, U> getData(serializer: KSerializer<T>) = mutex.withLock {
-        if (Clock.System.now().minus(20.seconds) > lastRequest) {
-            (getSysInfo(serializer, 3000) as? X)?.apply {
-                deviceData = this
+    protected suspend fun <T : KasaResponse<X>> getData(serializer: KSerializer<T>) = mutex.withLock {
+        if (nextRequest < Clock.System.now()) {
+            getSysInfo(serializer, 3000)?.apply {
+                deviceData = system.sysInfo
             }
+            nextRequest = Clock.System.now().plus(cacheDuration)
         }
 
-        lastRequest = Clock.System.now()
         deviceData
     }
 
     protected suspend inline fun <reified T> send(obj: T) = send(alleyJsonUgly.encodeToString(obj), timeout = 500)
     protected suspend fun send(json: String) = send(json, timeout = 500)
 
-    private suspend inline fun <reified T : KasaResponse<U>, U> getSysInfo(timeout: Long = 500): T? =
+    private suspend inline fun <reified T : KasaResponse<X>> getSysInfo(timeout: Long = 500): T? =
         getSysInfo(serializer<T>(), timeout)
 
-    private suspend fun <T : KasaResponse<U>, U> getSysInfo(serializer: KSerializer<T>, timeout: Long = 500): T? =
+    private suspend fun <T : KasaResponse<X>> getSysInfo(serializer: KSerializer<T>, timeout: Long = 500): T? =
         this.send("{\"system\":{\"get_sysinfo\":{}}}", timeout = timeout)?.let {
             parseSysInfo(serializer, it)
         }
@@ -116,6 +116,7 @@ abstract class KasaDevice<X, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKas
         }
 
     companion object : KLogging() {
+        private val cacheDuration = 1.minutes
         val threadPool = newFixedThreadPoolContext(4, "KasaDevice")
         val selector = ActorSelectorManager(Dispatchers.IO)
     }

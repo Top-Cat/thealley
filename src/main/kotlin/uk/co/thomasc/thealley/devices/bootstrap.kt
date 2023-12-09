@@ -23,7 +23,7 @@ private class AlleyEventBusImpl : AlleyEventBus() {
     val channel = Channel<suspend () -> Unit>(50)
     val listeners = mutableMapOf<KClass<out IAlleyEvent>, MutableList<EventHandler<*>>>()
 
-    init {
+    fun start() {
         repeat(10) {
             GlobalScope.launch(threadPool) {
                 while (true) {
@@ -122,6 +122,8 @@ fun newDevices(): Pair<AlleyEventBus, AlleyDeviceMapper> {
                 deviceList.forEach {
                     initDevice(it, bus)
                 }
+
+                bus.start()
 
                 while (true) {
                     delay(10 * 1000)
