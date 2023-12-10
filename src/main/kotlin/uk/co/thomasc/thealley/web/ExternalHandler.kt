@@ -60,7 +60,7 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
 
                 sendFollowUp(
                     FollowUpResponse(
-                    "top_cat",
+                        "top_cat",
                         requestId = UUID.randomUUID().toString(),
                         payload = FollowUpPayload(
                             FollowUpDevices(
