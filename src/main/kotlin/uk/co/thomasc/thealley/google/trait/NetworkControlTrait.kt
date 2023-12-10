@@ -11,7 +11,13 @@ import uk.co.thomasc.thealley.google.command.EnableDisableNetworkProfileCommand
 import uk.co.thomasc.thealley.google.command.GetGuestNetworkPasswordCommand
 import uk.co.thomasc.thealley.google.command.INetworkControlCommand
 import uk.co.thomasc.thealley.google.command.TestNetworkSpeedCommand
+import uk.co.thomasc.thealley.google.followup.FollowUpFailure
+import uk.co.thomasc.thealley.google.followup.IFollowUpHandler
+import uk.co.thomasc.thealley.google.followup.NetworkDownloadSpeedMbps
+import uk.co.thomasc.thealley.google.followup.NetworkSpeedMbps
+import uk.co.thomasc.thealley.google.followup.NetworkUploadSpeedMbps
 import uk.co.thomasc.thealley.web.google.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 
 class NetworkControlTrait(
     private val attributes: NetworkControlAttributes = NetworkControlAttributes(),
@@ -89,7 +95,7 @@ class NetworkControlTrait(
 
     override suspend fun getState() = alleyJson.encodeToJsonElement(getNetworkState()).jsonObject
 
-    override suspend fun handleCommand(cmd: INetworkControlCommand<*>) =
+    override suspend fun handleCommand(cmd: INetworkControlCommand<*>, followUp: IFollowUpHandler) =
         when (cmd) {
             is EnableDisableGuestNetworkCommand -> {
                 setGuestNetwork?.invoke(cmd.params.enable)
@@ -107,7 +113,14 @@ class NetworkControlTrait(
                 )
             }
             is TestNetworkSpeedCommand -> {
-                // TODO: Speed tests?
+                val result = when {
+                    cmd.params.testDownloadSpeed && cmd.params.testUploadSpeed -> NetworkSpeedMbps(100f, 100f)
+                    cmd.params.testDownloadSpeed -> NetworkDownloadSpeedMbps(100f)
+                    cmd.params.testUploadSpeed -> NetworkUploadSpeedMbps(100f)
+                    else -> FollowUpFailure(GoogleHomeErrorCode.NetworkSpeedTestInProgress)
+                }
+                followUp.invoke(result)
+
                 ExecuteStatus.PENDING
             }
         }

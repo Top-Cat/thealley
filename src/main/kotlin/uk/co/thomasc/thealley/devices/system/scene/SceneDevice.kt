@@ -70,6 +70,7 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.SCENE,
+            false,
             SceneTrait(
                 executeScene = {
                     execute(bus)

@@ -5,6 +5,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import mu.KLogging
@@ -120,7 +121,9 @@ fun newDevices(): Pair<AlleyEventBus, AlleyDeviceMapper> {
                 }
 
                 deviceList.forEach {
-                    initDevice(it, bus)
+                    withTimeout(1000) {
+                        initDevice(it, bus)
+                    }
                 }
 
                 bus.start()

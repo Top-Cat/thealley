@@ -32,6 +32,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

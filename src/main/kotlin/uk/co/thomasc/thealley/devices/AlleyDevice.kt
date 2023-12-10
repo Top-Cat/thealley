@@ -20,26 +20,24 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
         }
     }
 
-    private var googleHomeType: DeviceType? = null
-    private var googleHomeTraits: Set<GoogleHomeTrait<*>>? = null
+    private var googleHome: GoogleHomeInfo? = null
 
-    val ghType
-        get() = googleHomeType
-    val ghTraits
-        get() = googleHomeTraits
+    val gh
+        get() = googleHome
 
-    fun registerGoogleHomeDevice(type: DeviceType, vararg traits: GoogleHomeTrait<*>) {
+    fun registerGoogleHomeDevice(type: DeviceType, willReportState: Boolean, vararg traits: GoogleHomeTrait<*>) {
         type.requiredTraits.firstOrNull { required -> !traits.any { trait -> required.isInstance(trait) } }?.let {
             throw MissingTraitException(it)
         }
 
-        googleHomeType = type
-        googleHomeTraits = traits.toSet()
+        googleHome = GoogleHomeInfo(type, traits.toSet(), willReportState)
     }
 
     override fun close() {
         // Do nothing by default
     }
 }
+
+data class GoogleHomeInfo(val type: DeviceType, val traits: Set<GoogleHomeTrait<*>>, val willReportState: Boolean = false)
 
 class MissingTraitException(kClass: KClass<out GoogleHomeTrait<out IGoogleHomeCommand<*>>>) : Exception("Missing required trait: ${kClass.simpleName}")

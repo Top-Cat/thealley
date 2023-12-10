@@ -56,6 +56,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
     implementation("com.luckycatlabs:SunriseSunsetCalculator:1.2")
     implementation("at.topc.tado:tado-kt:1.0.16")
+    implementation("com.google.auth:google-auth-library-oauth2-http:1.19.0")
 
     // DB & Migrations
     implementation("mysql:mysql-connector-java:8.0.33")

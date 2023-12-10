@@ -229,7 +229,10 @@ enum class GoogleHomeErrorCode {
     DeviceTurnedOff,
 
     @SerialName("functionNotSupported")
-    FunctionNotSupported
+    FunctionNotSupported,
+
+    @SerialName("networkSpeedTestInProgress")
+    NetworkSpeedTestInProgress
 }
 
 enum class QueryStatus {

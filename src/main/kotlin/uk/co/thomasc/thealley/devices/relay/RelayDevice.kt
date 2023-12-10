@@ -15,6 +15,7 @@ import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IAlleyLight
 import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.ReportStateEvent
 import uk.co.thomasc.thealley.devices.TickEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
@@ -74,6 +75,7 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {
@@ -91,6 +93,7 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
                         "relay" -> {
                             powerState = ev.payload == "1"
                             updateState(state.copy(on = ev.payload == "1"))
+                            bus.emit(ReportStateEvent(this))
                         }
                         "button" -> togglePowerState(bus)
                         else -> props[prop] = try {

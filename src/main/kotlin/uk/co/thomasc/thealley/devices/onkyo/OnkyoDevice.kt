@@ -43,6 +43,7 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
 
         registerGoogleHomeDevice(
             DeviceType.AUDIO_VIDEO_RECEIVER,
+            false,
             InputSelectorTrait(
                 orderedInputs = true,
                 getInputs = {

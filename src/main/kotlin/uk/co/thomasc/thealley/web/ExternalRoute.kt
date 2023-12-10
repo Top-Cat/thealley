@@ -24,7 +24,7 @@ class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute 
     }
 
     override fun Route.setup(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper) {
-        val externalHandler = ExternalHandler(deviceMapper)
+        val externalHandler = ExternalHandler(bus, deviceMapper)
         get<Routes.Test> {
             checkOauth(alleyTokenStore) {
                 call.respond("Hi")

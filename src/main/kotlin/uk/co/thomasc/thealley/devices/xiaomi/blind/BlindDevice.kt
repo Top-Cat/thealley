@@ -1,5 +1,7 @@
 package uk.co.thomasc.thealley.devices.xiaomi.blind
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import mu.KLogging
 import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyDevice
@@ -19,6 +21,7 @@ class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: I
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.BLINDS,
+            false,
             OpenCloseTrait(
                 getPosition = {
                     IBlindState.SingleDirection(state.position ?: 0)
@@ -42,7 +45,9 @@ class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: I
         }
 
         // TODO: Run get on interval?
-        bus.emit(MqttSendEvent("zigbee/${config.deviceId}/get", "{\"state\": \"\"}"))
+        GlobalScope.launch {
+            bus.emit(MqttSendEvent("zigbee/${config.deviceId}/get", "{\"state\": \"\"}"))
+        }
     }
 
     private suspend fun sendCommand(bus: AlleyEventBus, cmd: BlindCommand) =

@@ -11,6 +11,14 @@ sealed interface IGoogleHomeCommandBase {
     val params: Any
 }
 
+interface IGoogleHomeFollowUpCommand {
+    val params: IGoogleHomeFollowUpParams
+}
+
+interface IGoogleHomeFollowUpParams {
+    val followUpToken: String
+}
+
 sealed interface IGoogleHomeCommand<out T : Any> : IGoogleHomeCommandBase {
     override val params: T
 }
