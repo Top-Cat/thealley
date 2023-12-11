@@ -92,8 +92,9 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
                     when (prop) {
                         "relay" -> {
                             powerState = ev.payload == "1"
-                            updateState(state.copy(on = ev.payload == "1"))
-                            bus.emit(ReportStateEvent(this))
+                            if (updateState(state.copy(on = ev.payload == "1"))) {
+                                bus.emit(ReportStateEvent(this))
+                            }
                         }
                         "button" -> togglePowerState(bus)
                         else -> props[prop] = try {

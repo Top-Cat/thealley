@@ -13,12 +13,14 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
         get() = currentState
 
     open suspend fun init(bus: AlleyEventBus) { }
-    suspend fun updateState(state: U) {
+    suspend fun updateState(state: U) =
         if (this.currentState != state) {
             stateStore.saveState(state)
             this.currentState = state
+            true
+        } else {
+            false
         }
-    }
 
     private var googleHome: GoogleHomeInfo? = null
 
