@@ -12,6 +12,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import uk.co.thomasc.thealley.alleyJson
+import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommandBase
 
 @Serializable
@@ -44,7 +45,7 @@ sealed interface GoogleHomePayload : GoogleHomeMayFail {
 @Serializable
 data class AlleyDevice(
     val id: String,
-    val type: String,
+    val type: DeviceType,
     val traits: Set<String>,
     val name: AlleyDeviceNames,
     val willReportState: Boolean,

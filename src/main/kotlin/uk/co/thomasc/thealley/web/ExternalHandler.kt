@@ -207,7 +207,7 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
             it.gh?.let { g ->
                 AlleyDevice(
                     it.id.toString(),
-                    g.type.typeName,
+                    g.type,
                     g.traits.map { t -> t.name }.toSet(),
                     AlleyDeviceNames(name = it.config.name),
                     g.willReportState,

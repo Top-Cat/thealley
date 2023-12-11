@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.google
 
+import kotlinx.serialization.SerialName
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
 import uk.co.thomasc.thealley.google.trait.GoogleHomeTrait
 import uk.co.thomasc.thealley.google.trait.InputSelectorTrait
@@ -12,13 +13,19 @@ import uk.co.thomasc.thealley.google.trait.TransportControlTrait
 import uk.co.thomasc.thealley.google.trait.VolumeTrait
 import kotlin.reflect.KClass
 
-enum class DeviceType(val typeName: String, val requiredTraits: Set<KClass<out GoogleHomeTrait<out IGoogleHomeCommand<*>>>>) {
-    AUDIO_VIDEO_RECEIVER(
-        "action.devices.types.AUDIO_VIDEO_RECEIVER",
-        setOf(InputSelectorTrait::class, MediaStateTrait::class, OnOffTrait::class, TransportControlTrait::class, VolumeTrait::class)
-    ),
-    BLINDS("action.devices.types.BLINDS", setOf(OpenCloseTrait::class)),
-    LIGHT("action.devices.types.LIGHT", setOf(OnOffTrait::class)),
-    NETWORK("action.devices.types.NETWORK", setOf(NetworkControlTrait::class)),
-    SCENE("action.devices.types.SCENE", setOf(SceneTrait::class))
+enum class DeviceType(val requiredTraits: Set<KClass<out GoogleHomeTrait<out IGoogleHomeCommand<*>>>>) {
+    @SerialName("action.devices.types.AUDIO_VIDEO_RECEIVER")
+    AUDIO_VIDEO_RECEIVER(setOf(InputSelectorTrait::class, MediaStateTrait::class, OnOffTrait::class, TransportControlTrait::class, VolumeTrait::class)),
+
+    @SerialName("action.devices.types.BLINDS")
+    BLINDS(setOf(OpenCloseTrait::class)),
+
+    @SerialName("action.devices.types.LIGHT")
+    LIGHT(setOf(OnOffTrait::class)),
+
+    @SerialName("action.devices.types.NETWORK")
+    NETWORK(setOf(NetworkControlTrait::class)),
+
+    @SerialName("action.devices.types.SCENE")
+    SCENE(setOf(SceneTrait::class))
 }

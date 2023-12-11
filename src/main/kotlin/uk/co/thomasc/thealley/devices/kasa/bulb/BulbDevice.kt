@@ -7,6 +7,7 @@ import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IAlleyLight
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.ReportStateEvent
 import uk.co.thomasc.thealley.devices.TickEvent
 import uk.co.thomasc.thealley.devices.kasa.KasaDevice
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.BulbData
@@ -32,7 +33,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
-            false,
+            true,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {
@@ -64,7 +65,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
             val now = Clock.System.now()
             val off = state.lastMotion?.plus(config.timeout)?.let {
                 if (it > now) {
-                    onWithNightScaling(now)
+                    onWithNightScaling(bus, now)
                     it
                 } else {
                     null
@@ -75,7 +76,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
         bus.handle<TickEvent> {
             val now = Clock.System.now()
             if (state.offAt?.let { now > it } == true) {
-                setLightState(BulbUpdate(false))
+                setLightState(bus, BulbUpdate(false))
                 updateState(state.copy(offAt = null))
             }
         }
@@ -85,13 +86,14 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
 
             updateState(state.copy(lastMotion = now, offAt = now.plus(config.timeout)))
             if (!state.daytime) {
-                onWithNightScaling(now)
+                onWithNightScaling(bus, now)
             }
         }
     }
 
-    private suspend fun onWithNightScaling(now: Instant, transitionTime: Int = 500) =
-        setComplexStateInt(
+    private suspend fun onWithNightScaling(bus: AlleyEventBus, now: Instant, transitionTime: Int = 500) =
+        setComplexState(
+            bus,
             IAlleyLight.LightState(
                 NightBrightnessCalc.getBrightnessFor(now)
             ),
@@ -105,12 +107,13 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
     suspend fun getSignalStrength() = getData<BulbResponse>()?.rssi
     suspend fun getPowerUsage() = getPower().power
 
-    private suspend fun setLightState(state: BulbUpdate) {
+    private suspend fun setLightState(bus: AlleyEventBus, state: BulbUpdate) {
         val obj = LightingServiceUpdate(LightingService(state))
 
         send(obj)?.let {
             val result = alleyJson.decodeFromString<LightingServiceUpdate>(it)
             deviceData = deviceData?.copy(lightState = result.lightingService.transitionLightState)
+            bus.emit(ReportStateEvent(this))
         }
     }
 
@@ -125,14 +128,11 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
             } ?: BulbRealtimePower(0, 0, -1)
         }
 
-    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) = setLightState(BulbUpdate(value))
+    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) = setLightState(bus, BulbUpdate(value))
 
     override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
-        setComplexStateInt(lightState, transitionTime)
-    }
-
-    private suspend fun setComplexStateInt(lightState: IAlleyLight.LightState, transitionTime: Int?) {
         setLightState(
+            bus,
             lightState.temperature?.let {
                 BulbUpdate(transitionTime, true, null, null, null, lightState.brightness, lightState.temperature)
             } ?: lightState.hue?.let {
