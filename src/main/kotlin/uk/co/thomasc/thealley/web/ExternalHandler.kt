@@ -3,6 +3,7 @@ package uk.co.thomasc.thealley.web
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
@@ -76,18 +77,12 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
         }
     }
 
-    private suspend fun sendFollowUp(body: FollowUpResponse) {
-        logger.debug {
-            val json = alleyJsonUgly.encodeToString(body)
-            "Sending follow up $json"
-        }
-
+    private suspend fun sendFollowUp(body: FollowUpResponse) =
         client.post("https://homegraph.googleapis.com/v1/devices:reportStateAndNotification") {
             bearerAuth(FollowUpAuth.getToken()!!)
             contentType(ContentType.Application.Json)
             setBody(body)
-        }
-    }
+        }.bodyAsText()
 
     private fun handleFollowUp(userId: String, requestId: String, deviceId: String, trait: String, token: String, result: IFollowUp) {
         if (!FollowUpAuth.canFollowUp()) return
@@ -97,24 +92,29 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
             val followUpObject = followUpJson.jsonObject
                 .minus("type")
                 .plus("followUpToken" to JsonPrimitive(token))
-            val eventId = UUID.randomUUID()
 
-            sendFollowUp(
-                FollowUpResponse(
-                    userId,
-                    eventId.toString(),
-                    requestId,
-                    FollowUpPayload(
-                        FollowUpDevices(
-                            mapOf(
-                                deviceId to mapOf(
-                                    trait to FollowUpNotification(0, JsonObject(followUpObject))
-                                )
+            val body = FollowUpResponse(
+                userId,
+                UUID.randomUUID().toString(),
+                requestId,
+                FollowUpPayload(
+                    FollowUpDevices(
+                        mapOf(
+                            deviceId to mapOf(
+                                trait to FollowUpNotification(0, JsonObject(followUpObject))
                             )
                         )
                     )
                 )
             )
+
+            logger.info {
+                val json = alleyJsonUgly.encodeToString(body)
+                "Sending follow up $json"
+            }
+
+            val res = sendFollowUp(body)
+            logger.info { "Response from follow-up:\n$res" }
         }
     }
 

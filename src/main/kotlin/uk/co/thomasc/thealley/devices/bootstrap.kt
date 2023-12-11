@@ -39,7 +39,7 @@ private class AlleyEventBusImpl : AlleyEventBus() {
     }
 
     override suspend fun <T : IAlleyEvent> emit(event: T) {
-        if (event !is MqttMessageEvent && event !is TickEvent) {
+        if (event !is MqttMessageEvent && event !is TickEvent && event !is ReportStateEvent) {
             logger.info { "Emitting event $event" }
         }
 
