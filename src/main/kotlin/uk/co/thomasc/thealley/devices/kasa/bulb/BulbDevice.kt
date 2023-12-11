@@ -42,7 +42,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
             ),
             BrightnessTrait(
                 getBrightness = {
-                    getLightState().brightness ?: 0
+                    getLightPossibleState()?.brightness ?: 0
                 },
                 setBrightness = { b ->
                     setComplexState(bus, IAlleyLight.LightState(b))
@@ -50,7 +50,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
             ),
             ColorSettingTrait(
                 getColor = {
-                    IColorState.fromLightState(getLightState())
+                    IColorState.fromLightState(getLightPossibleState())
                 },
                 setColor = {
                     it.setComplexState(bus, ::setComplexState)
@@ -104,11 +104,14 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
     override suspend fun getLightState() = getData<BulbResponse>()?.lightState.let {
         IAlleyLight.LightState(it?.brightness, it?.hue, it?.saturation, it?.temperature)
     }
+    private suspend fun getLightPossibleState() = getData<BulbResponse>()?.lightState?.let {
+        if (it.isOn()) it else it.dftOnState
+    }
     suspend fun getSignalStrength() = getData<BulbResponse>()?.rssi
     suspend fun getPowerUsage() = getPower().power
 
-    private suspend fun setLightState(bus: AlleyEventBus, state: BulbUpdate) {
-        val obj = LightingServiceUpdate(LightingService(state))
+    private suspend fun setLightState(bus: AlleyEventBus, update: BulbUpdate) {
+        val obj = LightingServiceUpdate(LightingService(update))
 
         send(obj)?.let {
             val result = alleyJson.decodeFromString<LightingServiceUpdate>(it)

@@ -18,6 +18,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import mu.KLogging
 import uk.co.thomasc.thealley.alleyJson
+import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
@@ -76,8 +77,10 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
     }
 
     private suspend fun sendFollowUp(body: FollowUpResponse) {
-        val json = alleyJson.encodeToString(body)
-        logger.info { "Sending follow up $json" }
+        logger.debug {
+            val json = alleyJsonUgly.encodeToString(body)
+            "Sending follow up $json"
+        }
 
         client.post("https://homegraph.googleapis.com/v1/devices:reportStateAndNotification") {
             bearerAuth(FollowUpAuth.getToken()!!)

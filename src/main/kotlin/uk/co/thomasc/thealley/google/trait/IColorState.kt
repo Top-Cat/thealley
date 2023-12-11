@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.google.trait
 
 import kotlinx.serialization.Serializable
-import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.devices.kasa.bulb.data.IBulbState
 
 sealed interface IColorState {
     @Serializable
@@ -22,15 +22,17 @@ sealed interface IColorState {
     }
 
     companion object {
-        fun fromLightState(lightState: IAlleyLight.LightState) =
-            if (lightState.temperature?.let { it > 0 } == true) {
-                Temperature(lightState.temperature)
+        fun fromLightState(lightState: IBulbState?): IColorState {
+            val temp = lightState?.temperature
+            return if (temp?.let { it > 0 } == true) {
+                Temperature(temp)
             } else {
                 Hsv(
-                    lightState.hue?.toFloat() ?: 0f,
-                    (lightState.saturation ?: 0) / 100f,
-                    (lightState.brightness ?: 0) / 100f
+                    lightState?.hue?.toFloat() ?: 0f,
+                    (lightState?.saturation ?: 0) / 100f,
+                    (lightState?.brightness ?: 0) / 100f
                 )
             }
+        }
     }
 }
