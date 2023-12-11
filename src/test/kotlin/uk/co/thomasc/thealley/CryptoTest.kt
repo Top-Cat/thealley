@@ -13,8 +13,7 @@ data class TestPayload(
 )
 
 class CryptoTest {
-
-    val payloads = mapOf(
+    private val payloads = mapOf(
         Pair(
             "setPowerStateOn",
             TestPayload(

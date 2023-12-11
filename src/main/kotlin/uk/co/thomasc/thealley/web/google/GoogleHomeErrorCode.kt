@@ -19,5 +19,8 @@ enum class GoogleHomeErrorCode {
     FunctionNotSupported,
 
     @SerialName("networkSpeedTestInProgress")
-    NetworkSpeedTestInProgress
+    NetworkSpeedTestInProgress,
+
+    @SerialName("transientError")
+    TransientError
 }

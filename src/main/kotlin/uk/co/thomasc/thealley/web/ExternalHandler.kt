@@ -23,6 +23,7 @@ import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.GetStateException
 import uk.co.thomasc.thealley.devices.ReportStateEvent
 import uk.co.thomasc.thealley.google.command.IGoogleHomeFollowUpCommand
 import uk.co.thomasc.thealley.google.followup.FollowUpAuth
@@ -36,9 +37,11 @@ import uk.co.thomasc.thealley.web.google.AlleyDeviceNames
 import uk.co.thomasc.thealley.web.google.DisconnectIntent
 import uk.co.thomasc.thealley.web.google.DisconnectResponse
 import uk.co.thomasc.thealley.web.google.ExecuteIntent
+import uk.co.thomasc.thealley.web.google.ExecuteIntentCommand
 import uk.co.thomasc.thealley.web.google.ExecuteResponse
 import uk.co.thomasc.thealley.web.google.ExecuteResponseCommand
 import uk.co.thomasc.thealley.web.google.ExecuteStatus
+import uk.co.thomasc.thealley.web.google.GoogleHomeDevice
 import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 import uk.co.thomasc.thealley.web.google.GoogleHomeReq
 import uk.co.thomasc.thealley.web.google.GoogleHomeRes
@@ -50,8 +53,6 @@ import uk.co.thomasc.thealley.web.google.SyncResponse
 import java.util.UUID
 
 class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: AlleyDeviceMapper) {
-    private val defaultStatus = ExecuteStatus.DEFAULT
-
     init {
         CoroutineScope(threadPool).launch {
             bus.handle<ReportStateEvent> {
@@ -118,13 +119,23 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
         }
     }
 
-    // TODO: Split this up to make more readable
-    private suspend fun executeRequest(userId: String, requestId: String, intent: ExecuteIntent) = ExecuteResponse(
-        intent.payload.commands.map { cmd -> // Execute commands
-            coroutineScope {
-                cmd.devices.map { device ->
-                    async(threadPool) {
-                        device to cmd.execution.map { ex ->
+    data class ExecutionResult(val device: GoogleHomeDevice, val results: List<ExecuteStatus>) {
+        val result = results.fold<ExecuteStatus, ExecuteStatus>(defaultStatus) { acc, v ->
+            acc.combine(v)
+        }
+
+        companion object {
+            private val defaultStatus = ExecuteStatus.DEFAULT
+        }
+    }
+
+    private suspend fun executeCommand(cmd: ExecuteIntentCommand, userId: String, requestId: String) =
+        coroutineScope {
+            cmd.devices.map { device ->
+                async(threadPool) {
+                    ExecutionResult(
+                        device,
+                        cmd.execution.map { ex ->
                             val dev = deviceMapper.getDevice(device.deviceId)
 
                             dev?.gh?.let { g ->
@@ -146,55 +157,45 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
                                 }
                             } ?: ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceNotFound)
                         }
-                    }
+                    )
                 }
             }
-        }.flatMap { cmd -> // Collate results
-            // Commands -> Devices -> Executions
-            cmd.map { localDevices -> // Wait for execution
-                localDevices.await()
-            }.map { (device, results) -> // Combine execution results
-                device to results.fold<ExecuteStatus, ExecuteStatus>(defaultStatus) { acc, v ->
-                    acc.combine(v)
-                }
-            }.map { (device, result) -> // Get state for successful executions
-                // val dev = deviceMapper.getDevice(device.deviceId)
-
-                device to if (result is ExecuteStatus.SUCCESS) {
-                    /*coroutineScope {
-                        dev?.let { result to async(threadPool) { getState(dev, false) } } ?: (ExecuteStatus.ERROR(GoogleHomeErrorCode.DeviceNotFound) to null)
-                    }*/
-                    result to result.state
-                } else {
-                    result to null
-                }
-            }
-        }.groupBy({ it.second }, { it.first }).map { (f, devices) ->
-            val (status, states) = f
-            ExecuteResponseCommand(
-                devices.map { device -> device.id },
-                status.name,
-                if (status is ExecuteStatus.SUCCESS && states != null) JsonObject(states) else null,
-                if (status is ExecuteStatus.ERROR) status.errorCode else null
-            )
         }
+
+    private suspend fun executeRequest(userId: String, requestId: String, intent: ExecuteIntent) = ExecuteResponse(
+        intent.payload.commands.map { cmd -> executeCommand(cmd, userId, requestId) }
+            .flatMap { cmd -> // Collate results
+                cmd.map { localDevices -> localDevices.await() }
+            }
+            .groupBy({ it.result }, { it.device }).map { (status, devices) ->
+                ExecuteResponseCommand(
+                    devices.map { device -> device.id },
+                    status.name,
+                    if (status is ExecuteStatus.SUCCESS) JsonObject(status.state) else null,
+                    if (status is ExecuteStatus.ERROR) status.errorCode else null
+                )
+            }
     )
 
     private suspend fun getState(device: uk.co.thomasc.thealley.devices.AlleyDevice<*, *, *>, defaultKeys: Set<String> = setOf("online", "status", "errorCode")) =
-        device.gh?.let { g ->
-            g.traits.fold(
-                mapOf<String, JsonElement>(
-                    "online" to JsonPrimitive(true),
-                    "status" to JsonPrimitive(QueryStatus.SUCCESS.name)
-                ).filter { defaultKeys.contains(it.key) }
-            ) { a, b ->
-                a.plus(b.getState())
-            }
-        } ?: mapOf(
-            "online" to JsonPrimitive(false),
-            "status" to JsonPrimitive(QueryStatus.ERROR.name),
-            "errorCode" to JsonPrimitive("deviceOffline")
-        ).filter { defaultKeys.contains(it.key) }
+        try {
+            device.gh?.let { g ->
+                g.traits.fold(
+                    mapOf<String, JsonElement>(
+                        "online" to JsonPrimitive(true),
+                        "status" to JsonPrimitive(QueryStatus.SUCCESS.name)
+                    ).filter { defaultKeys.contains(it.key) }
+                ) { a, b ->
+                    a.plus(b.getState())
+                }
+            } ?: throw GetStateException(GoogleHomeErrorCode.DeviceOffline)
+        } catch (e: GetStateException) {
+            mapOf(
+                "online" to JsonPrimitive(false),
+                "status" to JsonPrimitive(QueryStatus.ERROR.name),
+                "errorCode" to alleyJson.encodeToJsonElement<GoogleHomeErrorCode>(e.errorCode)
+            ).filter { defaultKeys.contains(it.key) }
+        }
 
     private suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
         intent.payload.devices.mapNotNull {

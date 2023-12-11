@@ -5,6 +5,7 @@ import uk.co.thomasc.thealley.cached
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.EmptyState
+import uk.co.thomasc.thealley.devices.GetStateException
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.onkyo.packet.InputPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.MasterVolumePacket
@@ -20,6 +21,7 @@ import uk.co.thomasc.thealley.google.trait.MediaStateTrait
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
 import uk.co.thomasc.thealley.google.trait.TransportControlTrait
 import uk.co.thomasc.thealley.google.trait.VolumeTrait
+import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 import kotlin.time.Duration.Companion.hours
 
 class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
@@ -64,8 +66,8 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                     }
                 },
                 getCurrentInput = {
-                    // TODO: Handle failure
-                    (conn.send<InputPacket>(InputPacket())?.command as? InputPacket.InputCommand.Input)?.id ?: ""
+                    (conn.send<InputPacket>(InputPacket())?.command as? InputPacket.InputCommand.Input)?.id
+                        ?: throw GetStateException(GoogleHomeErrorCode.TransientError)
                 },
                 nextInput = {
                     conn.send<InputPacket>(InputPacket(InputPacket.InputCommand.Down))
@@ -99,8 +101,8 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                     res?.command == MutingPacket.MutingCommand.On
                 },
                 getVolume = {
-                    // TODO: Throw error if failure?
-                    (conn.send<MasterVolumePacket>(MasterVolumePacket())?.command as? MasterVolumePacket.VolumeCommand.Level)?.level ?: 0
+                    (conn.send<MasterVolumePacket>(MasterVolumePacket())?.command as? MasterVolumePacket.VolumeCommand.Level)?.level
+                        ?: throw GetStateException(GoogleHomeErrorCode.TransientError)
                 },
                 setVolume = { vol ->
                     val res = conn.send<MasterVolumePacket>(MasterVolumePacket(MasterVolumePacket.VolumeCommand.Level(vol)))

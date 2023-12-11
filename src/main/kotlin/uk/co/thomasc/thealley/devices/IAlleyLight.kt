@@ -1,6 +1,6 @@
 package uk.co.thomasc.thealley.devices
 
-interface IAlleyLight : IAlleyRevocable {
+interface IAlleyLight {
     suspend fun setPowerState(bus: AlleyEventBus, value: Boolean)
 
     suspend fun getLightState(): LightState

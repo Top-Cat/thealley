@@ -6,6 +6,7 @@ import mu.KLogging
 import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.devices.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.ReportStateEvent
 import uk.co.thomasc.thealley.devices.TickEvent
@@ -28,7 +29,7 @@ import uk.co.thomasc.thealley.google.trait.IColorState
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
 
 class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: IStateUpdater<BulbState>) :
-    KasaDevice<BulbData, BulbDevice, BulbConfig, BulbState>(id, config, state, stateStore), IAlleyLight {
+    KasaDevice<BulbData, BulbDevice, BulbConfig, BulbState>(id, config, state, stateStore), IAlleyLight, IAlleyRevocable {
 
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(

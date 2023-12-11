@@ -13,6 +13,7 @@ import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.devices.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.ReportStateEvent
@@ -29,7 +30,7 @@ import uk.co.thomasc.thealley.google.trait.OnOffTrait
 import kotlin.time.Duration.Companion.minutes
 
 class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: IStateUpdater<RelayState>) :
-    AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyLight, IAlleyStats {
+    AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyLight, IAlleyStats, IAlleyRevocable {
 
     override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()
     private var powerState by cached(1.minutes) {
@@ -59,11 +60,11 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
     override suspend fun togglePowerState(bus: AlleyEventBus) = setLightState(bus, 2)
 
     override suspend fun hold() {
-        // TODO: revoke override so rules can change light state
+        updateState(state.copy(ignoreMotionUntil = Clock.System.now().plus(config.switchTimeout)))
     }
 
     override suspend fun revoke() {
-        // TODO: revoke override so rules can change light state
+        updateState(state.copy(ignoreMotionUntil = null))
     }
 
     private suspend fun onWithNightScaling(bus: AlleyEventBus, now: Instant) =

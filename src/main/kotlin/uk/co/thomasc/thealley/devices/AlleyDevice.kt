@@ -4,6 +4,7 @@ import uk.co.thomasc.thealley.devices.types.IAlleyConfig
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
 import uk.co.thomasc.thealley.google.trait.GoogleHomeTrait
+import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 import java.io.Closeable
 import kotlin.reflect.KClass
 
@@ -43,3 +44,4 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
 data class GoogleHomeInfo(val type: DeviceType, val traits: Set<GoogleHomeTrait<*>>, val willReportState: Boolean = false)
 
 class MissingTraitException(kClass: KClass<out GoogleHomeTrait<out IGoogleHomeCommand<*>>>) : Exception("Missing required trait: ${kClass.simpleName}")
+data class GetStateException(val errorCode: GoogleHomeErrorCode) : Exception("Error getting device state $errorCode")
