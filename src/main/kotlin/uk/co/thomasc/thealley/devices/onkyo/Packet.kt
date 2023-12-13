@@ -1,11 +1,23 @@
 package uk.co.thomasc.thealley.devices.onkyo
 
+import mu.KLogging
 import uk.co.thomasc.thealley.devices.onkyo.packet.ArtPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.AudioPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.IOnkyoResponse
 import uk.co.thomasc.thealley.devices.onkyo.packet.InputPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.MasterVolumePacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.MutingPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetDeviceNamePacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbAlbumNamePacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbArtistNamePacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbControlPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbListInfoPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbListTitleInfoPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbMenuStatusPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbPlayStatusPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTimeInfoPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTitleNamePacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTrackInfoPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.PowerPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.ReceiverInformationPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.VideoPacket
@@ -44,11 +56,25 @@ class Packet(private val messageBytes: ByteArray) {
             "NJA" -> ArtPacket(cmd)
             "IFV" -> VideoPacket(cmd)
             "NRI" -> ReceiverInformationPacket(cmd)
-            else -> null
+            "NTC" -> NetUsbControlPacket(cmd)
+            "NMS" -> NetUsbMenuStatusPacket(cmd)
+            "NTM" -> NetUsbTimeInfoPacket(cmd)
+            "NLS" -> NetUsbListInfoPacket(cmd)
+            "NLT" -> NetUsbListTitleInfoPacket(cmd)
+            "NST" -> NetUsbPlayStatusPacket(cmd)
+            "NTI" -> NetUsbTitleNamePacket(cmd)
+            "NAT" -> NetUsbArtistNamePacket(cmd)
+            "NTR" -> NetUsbTrackInfoPacket(cmd)
+            "NDN" -> NetDeviceNamePacket(cmd)
+            "NAL" -> NetUsbAlbumNamePacket(cmd)
+            else -> {
+                logger.info { "Received unknown packet ${str.trim()}" }
+                null
+            }
         }
     }
 
-    companion object {
+    companion object : KLogging() {
         fun parse(bytes: ByteArray): Packet {
             val buffer = ByteBuffer.wrap(bytes)
             val magic = ByteArray(4)

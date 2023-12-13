@@ -2,7 +2,7 @@ package uk.co.thomasc.thealley.devices
 
 import kotlin.reflect.KClass
 
-fun interface EventHandler<T> {
+fun interface EventHandler<in T : IAlleyEvent> {
     suspend fun invoke(event: T)
 }
 

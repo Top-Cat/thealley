@@ -10,6 +10,9 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.onkyo.packet.InputPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.MasterVolumePacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.MutingPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbControlPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbPlayStatusPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTimeSeekPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.PowerPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.ReceiverInformationPacket
 import uk.co.thomasc.thealley.devices.types.OnkyoConfig
@@ -40,8 +43,21 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
         if (cmd is ReceiverInformationPacket.Command.Data) cmd.data else null
     }
 
+    private var playStatus: NetUsbPlayStatusPacket.Command.Info.PlayStatus? = null
+    private var repeatStatus: NetUsbPlayStatusPacket.Command.Info.RepeatStatus? = null
+
     override suspend fun init(bus: AlleyEventBus) {
         conn.init()
+        conn.handle<NetUsbPlayStatusPacket> {
+            if (it.command is NetUsbPlayStatusPacket.Command.Info) {
+                if (it.command.playStatus != NetUsbPlayStatusPacket.Command.Info.PlayStatus.EOF) {
+                    playStatus = it.command.playStatus
+                }
+                if (it.command.repeatStatus != NetUsbPlayStatusPacket.Command.Info.RepeatStatus.DISABLE) {
+                    repeatStatus = it.command.repeatStatus
+                }
+            }
+        }
 
         registerGoogleHomeDevice(
             DeviceType.AUDIO_VIDEO_RECEIVER,
@@ -87,7 +103,42 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                 setOnOff = ::setPowerState
             ),
             TransportControlTrait(
-                // TODO: This trait
+                transportControlSupportedCommands = listOf(
+                    TransportControlTrait.ControlCommand.PAUSE,
+                    TransportControlTrait.ControlCommand.RESUME,
+                    TransportControlTrait.ControlCommand.NEXT,
+                    TransportControlTrait.ControlCommand.PREVIOUS,
+                    TransportControlTrait.ControlCommand.STOP,
+                    TransportControlTrait.ControlCommand.SEEK_TO_POSITION,
+                    TransportControlTrait.ControlCommand.SET_REPEAT,
+                    TransportControlTrait.ControlCommand.SHUFFLE
+                ),
+                pause = {
+                    conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.Pause))
+                },
+                resume = {
+                    conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.Play))
+                },
+                next = {
+                    conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.TrackUp))
+                },
+                previous = {
+                    conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.TrackDown))
+                    conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.TrackDown))
+                },
+                stop = {
+                    conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.Stop))
+                },
+                seek = { timeMs ->
+                    conn.sendOnly(NetUsbTimeSeekPacket(NetUsbTimeSeekPacket.Command.Time(timeMs / 1000)))
+                },
+                repeat = { isOn, _ ->
+                    val currentlyRepeating = repeatStatus == NetUsbPlayStatusPacket.Command.Info.RepeatStatus.OFF
+                    if (isOn != currentlyRepeating) conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.Repeat))
+                },
+                shuffle = {
+                    conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.Random))
+                }
             ),
             VolumeTrait(
                 volumeMaxLevel = 80,

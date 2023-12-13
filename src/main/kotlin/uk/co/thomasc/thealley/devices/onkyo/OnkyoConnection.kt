@@ -17,18 +17,21 @@ import uk.co.thomasc.thealley.devices.kasa.KasaDevice
 import uk.co.thomasc.thealley.devices.onkyo.packet.IOnkyoResponse
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import kotlin.reflect.KClass
 
 class OnkyoConnection(private val host: String, private val port: Int = 60128) : Closeable {
     private lateinit var conn: Socket
     private lateinit var inputChannel: ByteReadChannel
     private lateinit var outputChannel: ByteWriteChannel
     private lateinit var packetChannel: Channel<IOnkyoResponse>
+    private val handlers = mutableMapOf<KClass<out IOnkyoResponse>, MutableList<OnkyoPacketHandler<*>>>()
 
-    suspend fun init() {
-        // I like big buffers and I cannot lie. Can't work out how to make this non-global
-        System.setProperty("io.ktor.utils.io.BufferSize", "10240")
+    suspend fun init() = connect()
 
-        connect()
+    inline fun <reified T : IOnkyoResponse> handle(block: OnkyoPacketHandler<T>) = handle(T::class, block)
+
+    fun <T : IOnkyoResponse> handle(kClass: KClass<T>, block: OnkyoPacketHandler<T>) {
+        handlers.getOrPut(kClass) { mutableListOf() }.add(block)
     }
 
     private suspend fun connect() {
@@ -50,9 +53,6 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
                 connect()
             }
         }
-
-        // Consume art packet
-        receive()
     }
 
     private suspend fun read(bytes: Int) =
@@ -62,6 +62,9 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
                 inputChannel.readAvailable(localBuff)
             }
         }
+
+    private suspend inline fun <reified T : IOnkyoResponse> emit(packet: T) =
+        handlers[T::class]?.filterIsInstance<OnkyoPacketHandler<T>>()?.forEach { it.invoke(packet) }
 
     private suspend fun receiveLoop() {
         while (!conn.isClosed) {
@@ -80,7 +83,10 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
 
             Packet(content).typed()?.let { typed ->
                 logger.debug { "Received $typed" }
-                packetChannel.trySend(typed)
+                val result = packetChannel.trySend(typed)
+                if (result.isFailure && handlers.containsKey(typed::class)) {
+                    emit(typed)
+                }
             }
         }
     }
@@ -91,9 +97,15 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
             send(p.toPacket()) as? T
         }
 
-    suspend fun send(p: Packet): IOnkyoResponse {
+    suspend fun sendOnly(p: IOnkyoResponse) = sendOnly(p.toPacket())
+
+    suspend fun sendOnly(p: Packet) {
         val buff = ByteBuffer.wrap(p.bytes())
         outputChannel.writeFully(buff)
+    }
+
+    suspend fun send(p: Packet): IOnkyoResponse {
+        sendOnly(p)
         return receive()
     }
 
