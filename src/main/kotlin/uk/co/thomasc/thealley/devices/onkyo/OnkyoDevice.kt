@@ -50,7 +50,7 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                 orderedInputs = true,
                 getInputs = {
                     information.device.selectorList.list.filter { selector ->
-                        selector.value && selector.id != "80"
+                        selector.isEnabled() && selector.id != "80"
                     }.map { selector ->
                         InputSelectorInput(
                             selector.id,

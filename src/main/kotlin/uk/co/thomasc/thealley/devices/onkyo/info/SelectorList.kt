@@ -11,9 +11,11 @@ data class SelectorList(override val count: Int, @XmlElement(true) override val 
     @SerialName("selector")
     data class Selector(
         val id: String,
-        val value: Boolean,
+        val value: Int,
         val name: String,
         val zone: String,
         @SerialName("iconid") val iconId: String? = null
-    )
+    ) {
+        fun isEnabled() = value != 0
+    }
 }

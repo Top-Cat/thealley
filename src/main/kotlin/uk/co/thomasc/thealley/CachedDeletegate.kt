@@ -23,7 +23,7 @@ class CachedDelegate<T>(private val interval: Duration, private val block: suspe
                 }
             }
         }
-        return cachedValue ?: throw Exception("Unable to retrieve uk.co.thomasc.thealley.cached value")
+        return cachedValue ?: throw Exception("Unable to retrieve cached value")
     }
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
