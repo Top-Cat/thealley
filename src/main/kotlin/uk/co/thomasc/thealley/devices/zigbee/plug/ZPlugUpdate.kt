@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.devices.zigbee.plug
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeePowerMonitoring
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateMains
 
@@ -22,5 +23,9 @@ data class ZPlugUpdate(
     @SerialName("child_lock")
     val childLock: ZPlugChildLock,
     @SerialName("indicator_mode")
-    val indicatorMode: ZPlugIndicator
+    val indicatorMode: ZPlugIndicator,
+
+    @SerialName("update_available")
+    val updateAvailable: JsonElement,
+    val update: JsonElement
 ) : ZigbeeUpdateMains, ZigbeePowerMonitoring
