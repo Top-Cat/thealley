@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devices.xiaomi.aq2
+package uk.co.thomasc.thealley.devices.zigbee.aq2
 
 import uk.co.thomasc.thealley.devices.IAlleyEvent
 

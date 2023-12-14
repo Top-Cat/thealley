@@ -4,12 +4,16 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.xiaomi.blind.BlindDevice
-import uk.co.thomasc.thealley.devices.xiaomi.blind.BlindState
+import uk.co.thomasc.thealley.devices.zigbee.blind.BlindDevice
+import uk.co.thomasc.thealley.devices.zigbee.blind.BlindState
 
 @Serializable
 @SerialName("Blind")
-data class BlindConfig(override val name: String, val deviceId: String) : IAlleyConfig {
+data class BlindConfig(
+    override val name: String,
+    val deviceId: String,
+    val prefix: String = "zigbee"
+) : IAlleyConfig {
     override fun deviceConfig() = BlindDeviceConfig(this)
 
     class BlindDeviceConfig(val config: BlindConfig) : IAlleyDeviceConfig<BlindDevice, BlindConfig, BlindState>() {

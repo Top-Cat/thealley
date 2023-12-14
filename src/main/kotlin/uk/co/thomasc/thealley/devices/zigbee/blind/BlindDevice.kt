@@ -1,22 +1,23 @@
-package uk.co.thomasc.thealley.devices.xiaomi.blind
+package uk.co.thomasc.thealley.devices.zigbee.blind
 
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import mu.KLogging
-import uk.co.thomasc.thealley.alleyJson
+import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IAlleyLight
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.BlindConfig
+import uk.co.thomasc.thealley.devices.zigbee.Zigbee2MqttHelper
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.IBlindState
 import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
 
 class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: IStateUpdater<BlindState>) :
     AlleyDevice<BlindDevice, BlindConfig, BlindState>(id, config, state, stateStore), IAlleyLight {
+
+    private lateinit var zigbeeHelper: Zigbee2MqttHelper<BlindMotorUpdate>
 
     override suspend fun init(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
@@ -32,29 +33,23 @@ class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: I
             )
         )
 
-        bus.handle<MqttMessageEvent> { ev ->
-            val host = ev.topic.substring(0, ev.topic.indexOf("/"))
-            if (host != "zigbee") return@handle
-
-            val deviceId = ev.topic.substring(host.length + 1)
-            if (deviceId != config.deviceId) return@handle
-
-            val update = alleyJson.decodeFromString<BlindMotorUpdate>(ev.payload)
-
-            updateState(state.copy(position = update.position))
+        zigbeeHelper = Zigbee2MqttHelper(bus, config.prefix, config.deviceId) { json ->
+            alleyJsonUgly.decodeFromString<BlindMotorUpdate>(json).also {
+                updateState(state.copy(position = it.position))
+            }
         }
 
-        // TODO: Run get on interval?
-        GlobalScope.launch {
-            bus.emit(MqttSendEvent("zigbee/${config.deviceId}/get", "{\"state\": \"\"}"))
+        Zigbee2MqttHelper.scope.launch {
+            val res = zigbeeHelper.get() // Force initial update
+            println(res)
         }
     }
 
     private suspend fun sendCommand(bus: AlleyEventBus, cmd: BlindCommand) =
-        bus.emit(MqttSendEvent("zigbee/${config.deviceId}/set", "{\"state\": \"$cmd\"}"))
+        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", "{\"state\": \"$cmd\"}"))
 
     private suspend fun setPosition(bus: AlleyEventBus, pos: Int) =
-        bus.emit(MqttSendEvent("zigbee/${config.deviceId}/set", "{\"position\": \"$pos\"}"))
+        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", "{\"position\": \"$pos\"}"))
 
     override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) =
         sendCommand(bus, if (value) BlindCommand.OPEN else BlindCommand.CLOSE)

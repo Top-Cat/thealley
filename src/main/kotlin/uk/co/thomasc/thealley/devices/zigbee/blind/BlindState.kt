@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devices.xiaomi.blind
+package uk.co.thomasc.thealley.devices.zigbee.blind
 
 import kotlinx.serialization.Serializable
 

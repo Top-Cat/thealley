@@ -9,6 +9,7 @@ data class DeviceDao(val key: EntityID<Int>) : IntEntity(key) {
 
     val config by DeviceTable.config
     val state by DeviceTable.state
+    val enabled by DeviceTable.enabled
 
     val createdAt by DeviceTable.createdAt
     val updatedAt by DeviceTable.updatedAt

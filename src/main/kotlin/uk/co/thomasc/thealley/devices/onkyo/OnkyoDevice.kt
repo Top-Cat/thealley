@@ -104,14 +104,15 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
             ),
             TransportControlTrait(
                 transportControlSupportedCommands = listOf(
-                    TransportControlTrait.ControlCommand.PAUSE,
+                    // This seems to be broken
+                    /*TransportControlTrait.ControlCommand.PAUSE,
                     TransportControlTrait.ControlCommand.RESUME,
                     TransportControlTrait.ControlCommand.NEXT,
                     TransportControlTrait.ControlCommand.PREVIOUS,
                     TransportControlTrait.ControlCommand.STOP,
                     TransportControlTrait.ControlCommand.SEEK_TO_POSITION,
                     TransportControlTrait.ControlCommand.SET_REPEAT,
-                    TransportControlTrait.ControlCommand.SHUFFLE
+                    TransportControlTrait.ControlCommand.SHUFFLE*/
                 ),
                 pause = {
                     conn.sendOnly(NetUsbControlPacket(NetUsbControlPacket.Command.Pause))

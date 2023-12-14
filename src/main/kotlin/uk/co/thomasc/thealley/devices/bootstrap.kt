@@ -9,7 +9,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import mu.KLogging
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
@@ -104,9 +104,11 @@ fun newDevices(): Pair<AlleyEventBus, AlleyDeviceMapper> {
     }
 
     val devices = transaction {
-        DeviceDao.wrapRows(DeviceTable.selectAll()).map {
-            Triple(it.id.value, it.config, it.state)
-        }
+        DeviceDao.wrapRows(
+            DeviceTable.select {
+                DeviceTable.enabled eq true
+            }
+        ).map { Triple(it.id.value, it.config, it.state) }
     }
 
     val bus = AlleyEventBusImpl()

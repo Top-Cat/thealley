@@ -1,0 +1,38 @@
+package uk.co.thomasc.thealley.devices.system.schedule
+
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import uk.co.thomasc.thealley.devices.AlleyDevice
+import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
+import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.IAlleyRelay
+import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.TickEvent
+import uk.co.thomasc.thealley.devices.types.ScheduleConfig
+
+class ScheduleDevice(id: Int, config: ScheduleConfig, state: ScheduleState, stateStore: IStateUpdater<ScheduleState>, val dev: AlleyDeviceMapper) :
+    AlleyDevice<ScheduleDevice, ScheduleConfig, ScheduleState>(id, config, state, stateStore) {
+
+    private val sortedStates = config.elements.sortedBy { it.time }
+
+    override suspend fun init(bus: AlleyEventBus) {
+        bus.handle<TickEvent> {
+            val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+            val idealState = sortedStates.indexOfLast { it.time < now.time }.let {
+                if (it == -1) sortedStates.lastIndex else it
+            }
+
+            if (state.date != now.date || state.state != idealState) {
+                val newState = sortedStates[idealState]
+                val device = dev.getDevice(config.device)
+
+                if (device is IAlleyRelay) {
+                    device.setPowerState(bus, newState.state)
+                }
+
+                updateState(state.copy(state = idealState, date = now.date))
+            }
+        }
+    }
+}

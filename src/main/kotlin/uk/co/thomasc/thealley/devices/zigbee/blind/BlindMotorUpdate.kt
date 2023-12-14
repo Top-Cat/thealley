@@ -1,8 +1,8 @@
-package uk.co.thomasc.thealley.devices.xiaomi.blind
+package uk.co.thomasc.thealley.devices.zigbee.blind
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import uk.co.thomasc.thealley.devices.xiaomi.ZigbeeUpdate
+import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateBattery
 
 @Serializable
 data class BlindMotorUpdate(
@@ -21,7 +21,7 @@ data class BlindMotorUpdate(
     val running: Boolean? = null,
     val state: BlindUpdateState? = null,
     val update: ZigbeeOTAStatus
-) : ZigbeeUpdate
+) : ZigbeeUpdateBattery
 
 @Serializable
 data class ZigbeeOTAStatus(

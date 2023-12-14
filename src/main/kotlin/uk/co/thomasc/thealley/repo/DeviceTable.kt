@@ -8,6 +8,7 @@ import uk.co.thomasc.thealley.devices.types.IAlleyConfig
 object DeviceTable : IntIdTable("devicev2") {
     val config = json<IAlleyConfig>("config", json = Json)
     val state = text("state")
+    val enabled = bool("enabled")
     val createdAt = timestamp("createdAt")
     val configUpdatedAt = timestamp("configUpdatedAt")
     val updatedAt = timestamp("updatedAt")

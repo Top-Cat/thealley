@@ -16,6 +16,7 @@ import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbListTitleInfoPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbMenuStatusPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbPlayStatusPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTimeInfoPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTimeSeekPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTitleNamePacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTrackInfoPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.PowerPacket
@@ -67,6 +68,7 @@ class Packet(private val messageBytes: ByteArray) {
             "NTR" -> NetUsbTrackInfoPacket(cmd)
             "NDN" -> NetDeviceNamePacket(cmd)
             "NAL" -> NetUsbAlbumNamePacket(cmd)
+            "NTS" -> NetUsbTimeSeekPacket(cmd)
             else -> {
                 logger.info { "Received unknown packet ${str.trim()}" }
                 null

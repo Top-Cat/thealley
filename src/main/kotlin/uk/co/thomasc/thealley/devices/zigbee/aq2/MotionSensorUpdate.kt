@@ -1,8 +1,8 @@
-package uk.co.thomasc.thealley.devices.xiaomi.aq2
+package uk.co.thomasc.thealley.devices.zigbee.aq2
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import uk.co.thomasc.thealley.devices.xiaomi.ZigbeeUpdate
+import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateBattery
 
 @Serializable
 data class MotionSensorUpdate(
@@ -21,4 +21,4 @@ data class MotionSensorUpdate(
     val occupancy: Boolean = false,
     @SerialName("power_outage_count")
     val powerOutageCount: Int = 0
-) : ZigbeeUpdate
+) : ZigbeeUpdateBattery

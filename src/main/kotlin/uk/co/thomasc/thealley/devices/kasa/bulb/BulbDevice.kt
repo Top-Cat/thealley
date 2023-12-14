@@ -21,7 +21,7 @@ import uk.co.thomasc.thealley.devices.system.sun.NightBrightnessCalc
 import uk.co.thomasc.thealley.devices.system.sun.SunRiseEvent
 import uk.co.thomasc.thealley.devices.system.sun.SunSetEvent
 import uk.co.thomasc.thealley.devices.types.BulbConfig
-import uk.co.thomasc.thealley.devices.xiaomi.aq2.MotionEvent
+import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionEvent
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.BrightnessTrait
 import uk.co.thomasc.thealley.google.trait.ColorSettingTrait

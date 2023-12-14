@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.devices.IAlleyRelay
 
 @Serializable
 data class ControlResult(val success: Boolean)
@@ -83,6 +84,10 @@ class ControlRoute : IAlleyRoute {
 
                     stateRequest
                 }
+                is IAlleyRelay -> {
+                    device.setPowerState(bus, stateRequest.state > 50)
+                    BulbState(stateRequest.state > 50)
+                }
                 else -> BulbState(false)
             }.let { bs ->
                 call.respond(bs)
@@ -97,6 +102,7 @@ class ControlRoute : IAlleyRoute {
                     val state = device.getLightState()
                     BulbState(state.brightness ?: 0, state.hue, state.temperature)
                 }
+                is IAlleyRelay -> BulbState(device.getPowerState())
                 else -> BulbState(false)
             }.let { bs ->
                 call.respond(bs)

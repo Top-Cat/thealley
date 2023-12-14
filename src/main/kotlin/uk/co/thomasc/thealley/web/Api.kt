@@ -10,7 +10,7 @@ import io.ktor.server.routing.Route
 import kotlinx.serialization.json.JsonPrimitive
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.xiaomi.aq2.MotionDevice
+import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionDevice
 
 sealed class EventData(open val sensor: String)
 data class MotionData(override val sensor: String) : EventData(sensor)

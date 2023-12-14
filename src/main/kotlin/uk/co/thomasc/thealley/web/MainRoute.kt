@@ -9,7 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.devices.IAlleyRelay
 
 @Location("/")
 class MainRoute : IAlleyRoute {
@@ -22,7 +22,7 @@ class MainRoute : IAlleyRoute {
                 MustacheContent(
                     "home.mustache",
                     mapOf(
-                        "lights" to deviceMapper.getDevices().filterIsInstance<IAlleyLight>()
+                        "lights" to deviceMapper.getDevices().filterIsInstance<IAlleyRelay>()
                     )
                 )
             )

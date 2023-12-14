@@ -12,7 +12,7 @@ import uk.co.thomasc.thealley.cached
 import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.devices.IAlleyRelay
 import uk.co.thomasc.thealley.devices.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.IStateUpdater
@@ -24,13 +24,13 @@ import uk.co.thomasc.thealley.devices.system.sun.NightBrightnessCalc
 import uk.co.thomasc.thealley.devices.system.sun.SunRiseEvent
 import uk.co.thomasc.thealley.devices.system.sun.SunSetEvent
 import uk.co.thomasc.thealley.devices.types.RelayConfig
-import uk.co.thomasc.thealley.devices.xiaomi.aq2.MotionEvent
+import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionEvent
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
 import kotlin.time.Duration.Companion.minutes
 
 class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: IStateUpdater<RelayState>) :
-    AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyLight, IAlleyStats, IAlleyRevocable {
+    AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyRelay, IAlleyStats, IAlleyRevocable {
 
     override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()
     private var powerState by cached(1.minutes) {
@@ -44,13 +44,6 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
     }
 
     override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) = setLightState(bus, if (value) 1 else 0)
-    override suspend fun getLightState() = IAlleyLight.LightState(if (getPowerState()) 100 else 0, 0, 0, 0)
-
-    override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
-        lightState.brightness?.let { b ->
-            setPowerState(bus, b > 50)
-        }
-    }
 
     override suspend fun getPowerState(): Boolean {
         updateState(state.copy(on = powerState))

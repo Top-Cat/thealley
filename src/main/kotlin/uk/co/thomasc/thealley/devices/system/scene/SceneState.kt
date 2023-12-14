@@ -3,4 +3,8 @@ package uk.co.thomasc.thealley.devices.system.scene
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SceneState(val fadeStarted: Long, val startBrightness: Int, val direction: Boolean)
+data class SceneState(
+    val fadeStarted: Long = 0,
+    val startBrightness: Int = 0,
+    val direction: Boolean = false
+)

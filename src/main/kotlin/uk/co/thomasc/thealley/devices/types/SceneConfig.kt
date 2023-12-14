@@ -13,7 +13,7 @@ data class SceneConfig(override val name: String, val parts: List<ScenePart>) : 
     override fun deviceConfig() = SceneDeviceConfig(this)
 
     @Serializable
-    class ScenePart(val lightId: Int, val brightness: Int, val hue: Int?, val saturation: Int?, val temperature: Int?)
+    class ScenePart(val lightId: Int, val brightness: Int, val hue: Int? = null, val saturation: Int? = null, val temperature: Int? = null)
 
     class SceneDeviceConfig(val config: SceneConfig) : IAlleyDeviceConfig<SceneDevice, SceneConfig, SceneState>() {
         override fun create(id: Int, state: SceneState, stateStore: IStateUpdater<SceneState>, dev: AlleyDeviceMapper) = SceneDevice(id, config, state, stateStore, dev)

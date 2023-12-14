@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.xiaomi.aq2.MotionDevice
+import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionDevice
 
 @Serializable
 @SerialName("Motion")
