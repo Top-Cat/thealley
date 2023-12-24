@@ -12,7 +12,13 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.time.Duration.Companion.minutes
 
-class Zigbee2MqttHelper<T : ZigbeeUpdate>(private val bus: AlleyEventBus, private val prefix: String, private val deviceId: String, private val decode: suspend (String) -> T) {
+class Zigbee2MqttHelper<T : ZigbeeUpdate>(
+    private val bus: AlleyEventBus,
+    private val prefix: String,
+    private val deviceId: String,
+    private val decode: suspend (String) -> T,
+    private val callback: suspend () -> Unit = {}
+) {
     private val latch = ReentrantLock()
     private val condition = latch.newCondition()
 
@@ -34,6 +40,7 @@ class Zigbee2MqttHelper<T : ZigbeeUpdate>(private val bus: AlleyEventBus, privat
                 if (device != deviceId) return@handle
 
                 latestUpdate = decode(ev.payload)
+                callback()
                 latch.withLock {
                     condition.signalAll()
                 }

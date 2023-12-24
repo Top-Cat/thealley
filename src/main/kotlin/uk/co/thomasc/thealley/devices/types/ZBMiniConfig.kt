@@ -5,19 +5,19 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.zigbee.plug.ZPlugDevice
+import uk.co.thomasc.thealley.devices.zigbee.zbmini.ZBMiniDevice
 
 @Serializable
-@SerialName("ZPlug")
-data class ZPlugConfig(
+@SerialName("ZBMini")
+data class ZBMiniConfig(
     override val name: String,
     override val deviceId: String,
     override val prefix: String = "zigbee"
 ) : IAlleyConfig, IZigbeeConfig {
-    override fun deviceConfig() = ZPlugDeviceConfig(this)
+    override fun deviceConfig() = ZBMiniDeviceConfig(this)
 
-    class ZPlugDeviceConfig(val config: ZPlugConfig) : IAlleyDeviceConfig<ZPlugDevice, ZPlugConfig, EmptyState>() {
-        override fun create(id: Int, state: EmptyState, stateStore: IStateUpdater<EmptyState>, dev: AlleyDeviceMapper) = ZPlugDevice(id, config, state, stateStore)
+    class ZBMiniDeviceConfig(val config: ZBMiniConfig) : IAlleyDeviceConfig<ZBMiniDevice, ZBMiniConfig, EmptyState>() {
+        override fun create(id: Int, state: EmptyState, stateStore: IStateUpdater<EmptyState>, dev: AlleyDeviceMapper) = ZBMiniDevice(id, config, state, stateStore)
         override fun stateSerializer() = EmptyState.serializer()
     }
 }

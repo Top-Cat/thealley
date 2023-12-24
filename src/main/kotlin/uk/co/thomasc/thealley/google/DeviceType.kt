@@ -26,6 +26,12 @@ enum class DeviceType(val requiredTraits: Set<KClass<out GoogleHomeTrait<out IGo
     @SerialName("action.devices.types.NETWORK")
     NETWORK(setOf(NetworkControlTrait::class)),
 
+    @SerialName("action.devices.types.OUTLET")
+    OUTLET(setOf(OnOffTrait::class)),
+
     @SerialName("action.devices.types.SCENE")
-    SCENE(setOf(SceneTrait::class))
+    SCENE(setOf(SceneTrait::class)),
+
+    @SerialName("action.devices.types.SWITCH")
+    SWITCH(setOf(OnOffTrait::class))
 }

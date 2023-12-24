@@ -9,7 +9,11 @@ import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionDevice
 
 @Serializable
 @SerialName("Motion")
-data class MotionConfig(override val name: String, val deviceId: String) : IAlleyConfig {
+data class MotionConfig(
+    override val name: String,
+    override val deviceId: String,
+    override val prefix: String = "zigbee"
+) : IAlleyConfig, IZigbeeConfig {
     override fun deviceConfig() = MotionDeviceConfig(this)
 
     class MotionDeviceConfig(val config: MotionConfig) : IAlleyDeviceConfig<MotionDevice, MotionConfig, EmptyState>() {

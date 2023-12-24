@@ -11,9 +11,9 @@ import uk.co.thomasc.thealley.devices.zigbee.blind.BlindState
 @SerialName("Blind")
 data class BlindConfig(
     override val name: String,
-    val deviceId: String,
-    val prefix: String = "zigbee"
-) : IAlleyConfig {
+    override val deviceId: String,
+    override val prefix: String = "zigbee"
+) : IAlleyConfig, IZigbeeConfig {
     override fun deviceConfig() = BlindDeviceConfig(this)
 
     class BlindDeviceConfig(val config: BlindConfig) : IAlleyDeviceConfig<BlindDevice, BlindConfig, BlindState>() {
