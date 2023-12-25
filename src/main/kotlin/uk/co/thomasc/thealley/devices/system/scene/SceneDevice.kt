@@ -18,18 +18,19 @@ import kotlin.math.roundToInt
 class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: IStateUpdater<SceneState>, val dev: AlleyDeviceMapper) :
     AlleyDevice<SceneDevice, SceneConfig, SceneState>(id, config, state, stateStore), IAlleyRelay {
 
-    private suspend fun getLights() = config.parts.map { dev.getDevice(it.lightId) }.filterIsInstance<IAlleyLight>()
+    private suspend fun getLights() = config.parts.map { dev.getDevice(it.lightId) }.filterIsInstance<IAlleyRelay>()
     override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) =
         if (value) execute(bus) else off(bus)
 
     override suspend fun getPowerState() = getLights().any { it.getPowerState() }
 
     private suspend fun averageBrightness() = coerceToBrightness(
-        getLights()
+        getLights().filterIsInstance<IAlleyLight>()
             .map {
                 if (it.getPowerState()) { it.getLightState().brightness ?: 0 } else { 0 }
             }.average()
     )
+
     private fun coerceToBrightness(avg: Double) =
         when {
             avg.isNaN() -> 0
