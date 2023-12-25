@@ -9,6 +9,10 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.serialization.encodeToString
@@ -197,13 +201,25 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
             ).filter { defaultKeys.contains(it.key) }
         }
 
-    private suspend fun queryRequest(intent: QueryIntent) = QueryResponse(
-        intent.payload.devices.mapNotNull {
-            deviceMapper.getDevice(it.deviceId)
-        }.associate {
-            it.id.toString() to JsonObject(getState(it))
+    private suspend fun <K, V> Flow<Pair<K, V>>.toMap(): Map<K, V> {
+        val map = mutableMapOf<K, V>()
+        collect { (k, v) ->
+            map[k] = v
         }
-    )
+        return map
+    }
+
+    private suspend fun queryRequest(intent: QueryIntent) = CoroutineScope(threadPool).async {
+        QueryResponse(
+            intent.payload.devices.mapNotNull {
+                deviceMapper.getDevice(it.deviceId)
+            }.asFlow().flatMapMerge(30) {
+                flow {
+                    emit(it.id.toString() to JsonObject(getState(it)))
+                }
+            }.toMap()
+        )
+    }.await()
 
     private suspend fun syncRequest(userId: String) = SyncResponse(
         userId,

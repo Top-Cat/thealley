@@ -5,8 +5,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import uk.co.thomasc.thealley.cached
 import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.GetStateException
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
+import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -48,7 +50,11 @@ class Zigbee2MqttHelper<T : ZigbeeUpdate>(
         }
     }
 
-    fun get() = latestUpdate
+    fun get() = try {
+        latestUpdate
+    } catch (e: Exception) {
+        throw GetStateException(GoogleHomeErrorCode.TransientError)
+    }
 
     companion object {
         private val threadPool = newFixedThreadPoolContext(2, "Zigbee2MqttHelper")
