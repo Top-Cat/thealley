@@ -12,7 +12,7 @@ import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.hours
 
 class Zigbee2MqttHelper<T : ZigbeeUpdate>(
     private val bus: AlleyEventBus,
@@ -24,7 +24,7 @@ class Zigbee2MqttHelper<T : ZigbeeUpdate>(
     private val latch = ReentrantLock()
     private val condition = latch.newCondition()
 
-    private var latestUpdate: T by cached(1.minutes) {
+    private var latestUpdate: T by cached(1.hours) {
         bus.emit(MqttSendEvent("$prefix/$deviceId/get", "{\"state\": \"\"}"))
         latch.withLock {
             condition.await(5L, TimeUnit.SECONDS)
