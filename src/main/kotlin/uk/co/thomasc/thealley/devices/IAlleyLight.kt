@@ -14,6 +14,12 @@ interface IAlleyRelay {
     suspend fun togglePowerState(bus: AlleyEventBus)
 }
 
+interface IAlleyMultiGangRelay {
+    suspend fun setPowerState(bus: AlleyEventBus, index: Int, value: Boolean)
+    suspend fun getPowerState(index: Int): Boolean
+    suspend fun togglePowerState(bus: AlleyEventBus, index: Int)
+}
+
 interface ILightState {
     val hue: Int?
     val saturation: Int?
