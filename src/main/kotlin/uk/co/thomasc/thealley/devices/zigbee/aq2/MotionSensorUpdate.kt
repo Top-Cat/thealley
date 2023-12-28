@@ -10,7 +10,7 @@ data class MotionSensorUpdate(
     override val linkquality: Int,
     override val battery: Int? = null,
     @SerialName("device_temperature")
-    override val deviceTemperature: Int? = null,
+    val deviceTemperature: Int? = null,
 
     // Light sensor
     val voltage: Int = 0,

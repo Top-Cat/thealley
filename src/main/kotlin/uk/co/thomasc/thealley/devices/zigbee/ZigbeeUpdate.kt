@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 
 interface ZigbeeUpdate {
     val linkquality: Int
+}
+
+interface ZigbeeTemperature {
     val deviceTemperature: Int?
 }
 

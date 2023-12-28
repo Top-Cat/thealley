@@ -9,8 +9,6 @@ data class BlindMotorUpdate(
     // Generic
     override val linkquality: Int,
     override val battery: Int? = null,
-    @SerialName("device_temperature")
-    override val deviceTemperature: Int? = null,
 
     // Blind motor
     @SerialName("motor_state")

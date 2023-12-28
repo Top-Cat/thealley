@@ -8,9 +8,6 @@ import uk.co.thomasc.thealley.devices.zigbee.relay.ZRelayAction
 @Serializable
 data class DualSwitchUpdate(
     override val linkquality: Int,
-    @SerialName("device_temperature")
-    override val deviceTemperature: Int? = null,
-
     override val voltage: Float = 0f,
 
     @SerialName("state_l1")

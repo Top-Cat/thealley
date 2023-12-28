@@ -12,8 +12,6 @@ import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeUpdateRelay
 @Serializable
 data class ZPlugUpdate(
     override val linkquality: Int,
-    @SerialName("device_temperature")
-    override val deviceTemperature: Int? = null,
 
     override val current: Float,
     override val energy: Float,
