@@ -5,21 +5,39 @@ import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IAlleyLight
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.ReportStateEvent
-import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.SDimmerConfig
-import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeRelayDevice
+import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeDimmerDevice
+import uk.co.thomasc.thealley.google.DeviceType
+import uk.co.thomasc.thealley.google.trait.BrightnessTrait
+import uk.co.thomasc.thealley.google.trait.OnOffTrait
 
 class SDimmerDevice(id: Int, config: SDimmerConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
-    ZigbeeRelayDevice<SDimmerUpdate, SDimmerDevice, SDimmerConfig, EmptyState>(id, config, state, stateStore, SDimmerUpdate.serializer()), IAlleyLight {
+    ZigbeeDimmerDevice<SDimmerUpdate, SDimmerDevice, SDimmerConfig, EmptyState>(id, config, state, stateStore, SDimmerUpdate.serializer()), IAlleyLight {
+
+    override suspend fun init(bus: AlleyEventBus) {
+        super.init(bus)
+
+        registerGoogleHomeDevice(
+            DeviceType.LIGHT,
+            true,
+            OnOffTrait(
+                getOnOff = ::getPowerState,
+                setOnOff = {
+                    setPowerState(bus, it)
+                }
+            ),
+            BrightnessTrait(
+                getBrightness = {
+                    getBrightness()
+                },
+                setBrightness = { b ->
+                    setComplexState(bus, IAlleyLight.LightState(b))
+                }
+            )
+        )
+    }
 
     override suspend fun onUpdate(bus: AlleyEventBus, state: SDimmerUpdate) {
         bus.emit(ReportStateEvent(this))
-    }
-
-    override suspend fun getLightState() = IAlleyLight.LightState(getState().brightness)
-
-    override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
-        val json = ZDimmerSet(lightState.brightness ?: 0, null, transitionTime?.let { it / 1000f }).toJson()
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", json))
     }
 }

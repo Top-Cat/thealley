@@ -6,7 +6,7 @@ import uk.co.thomasc.thealley.devices.zigbee.ZigbeePowerMonitoring
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateMains
 import uk.co.thomasc.thealley.devices.zigbee.moes.ZigbeePowerOnBehavior
 import uk.co.thomasc.thealley.devices.zigbee.relay.ZRelayAction
-import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeUpdateRelay
+import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeUpdateDimmer
 
 @Serializable
 data class SDimmerUpdate(
@@ -18,6 +18,6 @@ data class SDimmerUpdate(
     @SerialName("power_on_behavior")
     val powerOnBehavior: ZigbeePowerOnBehavior,
 
-    val brightness: Int,
+    override val brightness: Int,
     override val state: ZRelayAction
-) : ZigbeeUpdateMains, ZigbeePowerMonitoring, ZigbeeUpdateRelay
+) : ZigbeeUpdateMains, ZigbeePowerMonitoring, ZigbeeUpdateDimmer

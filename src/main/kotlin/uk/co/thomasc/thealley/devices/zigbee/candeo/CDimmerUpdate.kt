@@ -7,7 +7,7 @@ import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdate
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateOTA
 import uk.co.thomasc.thealley.devices.zigbee.moes.ZigbeePowerOnBehavior
 import uk.co.thomasc.thealley.devices.zigbee.relay.ZRelayAction
-import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeUpdateRelay
+import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeUpdateDimmer
 
 @Serializable
 data class CDimmerUpdate(
@@ -19,6 +19,6 @@ data class CDimmerUpdate(
     override val updateAvailable: Boolean? = null,
     override val update: ZigbeeOTAInfo? = null,
 
-    val brightness: Int,
+    override val brightness: Int,
     override val state: ZRelayAction
-) : ZigbeeUpdate, ZigbeeUpdateOTA, ZigbeeUpdateRelay
+) : ZigbeeUpdate, ZigbeeUpdateOTA, ZigbeeUpdateDimmer
