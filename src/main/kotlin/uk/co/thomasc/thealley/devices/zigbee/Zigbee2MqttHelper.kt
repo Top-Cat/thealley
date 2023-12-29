@@ -35,11 +35,13 @@ class Zigbee2MqttHelper<T : ZigbeeUpdate>(
     init {
         scope.launch {
             bus.handle<MqttMessageEvent> { ev ->
-                val host = ev.topic.substring(0, ev.topic.indexOf("/"))
-                if (host != prefix) return@handle
+                val parts = ev.topic.split('/')
 
-                val device = ev.topic.substring(host.length + 1)
-                if (device != deviceId) return@handle
+                // Check prefix and device id match
+                if (parts.size < 2 || parts[0] != prefix || parts[1] != deviceId) return@handle
+
+                // Partial update, ignore for now
+                if (parts.size > 2) return@handle
 
                 latestUpdate = decode(ev.payload)
                 callback()
