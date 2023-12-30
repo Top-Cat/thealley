@@ -1,7 +1,6 @@
 package uk.co.thomasc.thealley
 
 import external.Axios
-import external.axiosGet
 import external.generateConfig
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -103,7 +102,7 @@ val dialog = fc<DialogProps> { props ->
                         color = "#000"
                     } else if (state.hue != null) {
                         val brightness = (state.state + 30) * 0.6
-                        color = "hsl(${state.hue},100%,${brightness}%)"
+                        color = "hsl(${state.hue},100%,$brightness%)"
                     } else if (state.temp != null) {
                         color = temperatureColors[(state.temp / 100) - 27]
                     }

@@ -31,9 +31,9 @@ class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: I
             )
         )
 
-        /*Zigbee2MqttHelper.scope.launch {
+        Zigbee2MqttHelper.scope.launch {
             getState() // Force initial update
-        }*/
+        }
     }
 
     override suspend fun onUpdate(bus: AlleyEventBus, update: BlindMotorUpdate) {

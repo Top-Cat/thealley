@@ -31,7 +31,7 @@ kotlin {
             kotlinOptions.jvmTarget = "17"
         }
         testRuns["test"].executionTask.configure {
-            useJUnit()
+            useJUnitPlatform()
         }
         withJava()
     }
@@ -132,9 +132,10 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation(kotlin("test-junit"))
+                implementation(kotlin("test-junit5"))
 
-                implementation("io.ktor:ktor-server-test-host:$ktorVersion")
+                implementation("org.junit.jupiter:junit-jupiter-api:5.0.0")
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.0.0")
             }
         }
         val jsMain by getting {

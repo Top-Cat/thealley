@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.types.deviceConfig
+import uk.co.thomasc.thealley.json
 import uk.co.thomasc.thealley.repo.DeviceDao
 import uk.co.thomasc.thealley.repo.DeviceTable
 import uk.co.thomasc.thealley.repo.NowExpression
@@ -100,10 +101,6 @@ suspend fun initDevice(device: AlleyDevice<*, *, *>, bus: AlleyEventBus) {
 }
 
 fun newDevices(): Pair<AlleyEventBus, AlleyDeviceMapper> {
-    val json = Json {
-        prettyPrint = false
-    }
-
     val devices = transaction {
         DeviceDao.wrapRows(
             DeviceTable.select {

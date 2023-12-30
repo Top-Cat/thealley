@@ -24,7 +24,7 @@ val home = fc<Props> {
         if (lights == null) return@useEffect
 
         val ids = lights.map { it.id }.joinToString(",")
-        axiosGet<Map<Int, BulbState>>("/control/multi/${ids}").then {
+        axiosGet<Map<Int, BulbState>>("/control/multi/$ids").then {
             setLightStateMap(lightStateMap.plus(it.data))
         }
     }
