@@ -14,9 +14,7 @@ import uk.co.thomasc.thealley.google.trait.OnOffTrait
 class CDimmerDevice(id: Int, config: CDimmerConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     ZigbeeDimmerDevice<CDimmerUpdate, CDimmerDevice, CDimmerConfig, EmptyState>(id, config, state, stateStore, CDimmerUpdate.serializer()), IAlleyLight {
 
-    override suspend fun init(bus: AlleyEventBus) {
-        super.init(bus)
-
+    override suspend fun onInit(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,

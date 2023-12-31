@@ -89,19 +89,15 @@ val dialog = fc<DialogProps> { props ->
 
             div("far icon") {
                 attrs.onClickFunction = {
-                    if (props.state.state > 0) {
-                        props.updateState(props.state.copy(state = 0))
-                    } else {
-                        props.updateState(props.state.copy(state = 100))
-                    }
+                    props.updateState(props.state.copy(state = !props.state.state))
                 }
                 attrs.jsStyle {
                     val state = props.state
 
-                    if (state.state == 0) {
+                    if (!state.state) {
                         color = "#000"
                     } else if (state.hue != null) {
-                        val brightness = (state.state + 30) * 0.6
+                        val brightness = ((state.brightness ?: 0) + 30) * 0.6
                         color = "hsl(${state.hue},100%,$brightness%)"
                     } else if (state.temp != null) {
                         color = temperatureColors[(state.temp / 100) - 27]
@@ -148,11 +144,11 @@ val dialog = fc<DialogProps> { props ->
                 attrs.name = "brightness"
                 attrs.min = "0"
                 attrs.max = "100"
-                attrs.defaultValue = props.state.state.toString()
+                attrs.defaultValue = props.state.brightness.toString()
 
                 attrs.onChangeFunction = {
                     val newValue = (it.target as HTMLInputElement).value.toIntOrNull() ?: 0
-                    props.updateState(props.state.copy(state = newValue))
+                    props.updateState(props.state.copy(brightness = newValue))
                 }
             }
 

@@ -15,9 +15,7 @@ import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
 class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: IStateUpdater<BlindState>) :
     ZigbeeDevice<BlindMotorUpdate, BlindDevice, BlindConfig, BlindState>(id, config, state, stateStore, BlindMotorUpdate.serializer()), IAlleyLight {
 
-    override suspend fun init(bus: AlleyEventBus) {
-        super.init(bus)
-
+    override suspend fun onInit(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.BLINDS,
             false,

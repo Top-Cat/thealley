@@ -25,12 +25,18 @@ abstract class ZigbeeDevice<X : ZigbeeUpdate, T : AlleyDevice<T, U, V>, U : IZig
     protected fun getState() = helper.get()
     protected open fun getEvent() = MqttSendEvent("${config.prefix}/${config.deviceId}/get", "{\"state\": \"\"}")
 
-    override suspend fun init(bus: AlleyEventBus) {
+    final override suspend fun init(bus: AlleyEventBus) {
         helper = Zigbee2MqttHelper(bus, config.prefix, config.deviceId, getEvent(), latch, condition, { json ->
             alleyJsonUgly.decodeFromString(serializer, json)
         }) {
             onUpdate(bus, getState())
         }
+
+        onInit(bus)
+    }
+
+    open suspend fun onInit(bus: AlleyEventBus) {
+
     }
 
     protected fun waitForUpdate() {

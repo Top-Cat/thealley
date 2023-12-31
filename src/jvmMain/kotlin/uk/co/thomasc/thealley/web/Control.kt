@@ -78,22 +78,26 @@ class ControlRoute : IAlleyRoute {
 
             when (device) {
                 is IAlleyLight -> {
-                    device.setComplexState(
-                        bus,
-                        IAlleyLight.LightState(
-                            stateRequest.state,
-                            if (stateRequest.color && stateRequest.state > 0) stateRequest.hue else null,
-                            if (stateRequest.color && stateRequest.state > 0) 100 else null,
-                            if (stateRequest.color && stateRequest.state > 0) stateRequest.temp else null
-                        ),
-                        500
-                    )
+                    if (!stateRequest.state) {
+                        device.setPowerState(bus, false)
+                    } else {
+                        device.setComplexState(
+                            bus,
+                            IAlleyLight.LightState(
+                                stateRequest.brightness,
+                                stateRequest.hue,
+                                if (stateRequest.hue != null) 100 else null,
+                                stateRequest.temp
+                            ),
+                            500
+                        )
+                    }
 
                     stateRequest
                 }
                 is IAlleyRelay -> {
-                    device.setPowerState(bus, stateRequest.state > 50)
-                    BulbState(stateRequest.state > 50)
+                    device.setPowerState(bus, stateRequest.state)
+                    BulbState(stateRequest.state)
                 }
                 else -> BulbState(false)
             }.let { bs ->
@@ -105,7 +109,7 @@ class ControlRoute : IAlleyRoute {
             when (val device = deviceMapper.getDevice(id)) {
                 is IAlleyLight -> {
                     val state = device.getLightState()
-                    BulbState(state.brightness ?: 0, state.hue, state.temperature)
+                    BulbState(device.getPowerState(), state.brightness, state.hue, state.temperature)
                 }
                 is IAlleyRelay -> BulbState(device.getPowerState())
                 else -> BulbState(false)

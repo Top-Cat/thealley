@@ -13,9 +13,7 @@ import uk.co.thomasc.thealley.google.trait.OnOffTrait
 class ZBMiniDevice(id: Int, config: ZBMiniConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     ZigbeeRelayDevice<ZBMiniUpdate, ZBMiniDevice, ZBMiniConfig, EmptyState>(id, config, state, stateStore, ZBMiniUpdate.serializer()), IAlleyRelay {
 
-    override suspend fun init(bus: AlleyEventBus) {
-        super.init(bus)
-
+    override suspend fun onInit(bus: AlleyEventBus) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,

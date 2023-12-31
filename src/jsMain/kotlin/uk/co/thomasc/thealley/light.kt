@@ -18,7 +18,7 @@ external interface LightProps : Props {
 val lightControl = fc<LightProps> { props ->
     div("far") {
         attrs.jsStyle {
-            color = if (props.state?.state?.let { it > 0 } == true) "#5d5" else "#888"
+            color = if (props.state?.state == true) "#5d5" else "#888"
         }
         attrs.onClickFunction = {
             props.showDialog()
