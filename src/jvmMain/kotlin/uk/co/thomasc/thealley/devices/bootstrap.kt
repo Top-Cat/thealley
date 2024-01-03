@@ -46,8 +46,12 @@ private class AlleyEventBusImpl : AlleyEventBus() {
         }
 
         channel.send {
-            listeners[event::class]?.filterIsInstance<EventHandler<T>>()?.forEach {
-                it.invoke(event)
+            try {
+                listeners[event::class]?.filterIsInstance<EventHandler<T>>()?.forEach {
+                    it.invoke(event)
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "Error handing ${event.javaClass.simpleName}" }
             }
         }
     }
