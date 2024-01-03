@@ -28,7 +28,7 @@ class Zigbee2MqttHelper<T : ZigbeeUpdate>(
     private var latestUpdate: T by cached(1.hours) {
         bus.emit(sendEvent)
         latch.withLock {
-            condition.await(5L, TimeUnit.SECONDS)
+            condition.await(1L, TimeUnit.SECONDS)
         }
         null
     }
