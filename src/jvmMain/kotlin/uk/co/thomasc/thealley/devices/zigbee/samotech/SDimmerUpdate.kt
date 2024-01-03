@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.devices.zigbee.samotech
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeePowerMonitoring
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateMains
 import uk.co.thomasc.thealley.devices.zigbee.moes.ZigbeePowerOnBehavior
@@ -18,6 +19,15 @@ data class SDimmerUpdate(
     @SerialName("power_on_behavior")
     val powerOnBehavior: ZigbeePowerOnBehavior,
 
+    @SerialName("level_config")
+    val levelConfig: ZigbeeLevelConfig? = null,
+
     override val brightness: Int,
     override val state: ZRelayAction
 ) : ZigbeeUpdateMains, ZigbeePowerMonitoring, ZigbeeUpdateDimmer
+
+@Serializable
+data class ZigbeeLevelConfig(
+    @SerialName("on_level")
+    val onLevel: JsonElement
+)
