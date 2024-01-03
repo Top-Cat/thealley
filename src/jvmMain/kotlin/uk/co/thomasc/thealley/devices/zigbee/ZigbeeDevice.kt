@@ -35,9 +35,7 @@ abstract class ZigbeeDevice<X : ZigbeeUpdate, T : AlleyDevice<T, U, V>, U : IZig
         onInit(bus)
     }
 
-    open suspend fun onInit(bus: AlleyEventBus) {
-
-    }
+    abstract suspend fun onInit(bus: AlleyEventBus)
 
     protected fun waitForUpdate() {
         latch.withLock {
