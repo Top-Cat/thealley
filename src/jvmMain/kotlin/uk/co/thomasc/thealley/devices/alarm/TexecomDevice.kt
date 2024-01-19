@@ -61,7 +61,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: EmptyState, stateStor
                     val armedAreas = areasInState(true)
                     ArmDisarmTrait.State(
                         armedAreas.isNotEmpty(),
-                        armedAreas.values.joinToString(","),
+                        armedAreas.values.joinToString(",") { it.name },
                         30
                     )
                 }
