@@ -43,6 +43,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig, V : 
             is SwitchConfig -> SwitchDeviceConfig(config)
             is SwitchServerConfig -> SwitchServerDeviceConfig(config)
             is TadoConfig -> TadoDeviceConfig(config)
+            is TexecomConfig -> TexecomDeviceConfig(config)
             is UnifiConfig -> UnifiDeviceConfig(config)
             is ZBMiniConfig -> ZBMiniDeviceConfig(config)
             is ZPlugConfig -> ZPlugDeviceConfig(config)

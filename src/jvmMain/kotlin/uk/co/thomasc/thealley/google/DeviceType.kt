@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.google
 
 import kotlinx.serialization.SerialName
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
+import uk.co.thomasc.thealley.google.trait.ArmDisarmTrait
 import uk.co.thomasc.thealley.google.trait.GoogleHomeTrait
 import uk.co.thomasc.thealley.google.trait.InputSelectorTrait
 import uk.co.thomasc.thealley.google.trait.MediaStateTrait
@@ -31,6 +32,9 @@ enum class DeviceType(val requiredTraits: Set<KClass<out GoogleHomeTrait<out IGo
 
     @SerialName("action.devices.types.SCENE")
     SCENE(setOf(SceneTrait::class)),
+
+    @SerialName("action.devices.types.SECURITYSYSTEM")
+    SECURITYSYSTEM(setOf(ArmDisarmTrait::class)),
 
     @SerialName("action.devices.types.SWITCH")
     SWITCH(setOf(OnOffTrait::class))

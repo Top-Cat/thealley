@@ -3,7 +3,6 @@ package uk.co.thomasc.thealley.google.trait
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import uk.co.thomasc.thealley.google.command.NoCommands
-import uk.co.thomasc.thealley.web.google.ExecuteStatus
 
 class MediaStateTrait(
     private val supportActivityState: Boolean = false,
@@ -28,8 +27,6 @@ class MediaStateTrait(
             it.plus("playbackState" to JsonPrimitive(state))
         } ?: it
     }
-
-    override suspend fun handleCommand(cmd: NoCommands) = ExecuteStatus.SUCCESS()
 
     enum class ActivityState {
         INACTIVE, STANDBY, ACTIVE

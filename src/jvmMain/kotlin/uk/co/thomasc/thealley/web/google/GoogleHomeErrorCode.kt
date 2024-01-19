@@ -6,6 +6,9 @@ enum class GoogleHomeErrorCode {
     @SerialName("alreadyAtMax")
     AlreadyAtMax,
 
+    @SerialName("alreadyInState")
+    AlreadyInState,
+
     @SerialName("deviceNotFound")
     DeviceNotFound,
 
