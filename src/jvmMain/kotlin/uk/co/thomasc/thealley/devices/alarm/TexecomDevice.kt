@@ -28,16 +28,17 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: EmptyState, stateStor
 
     private val areaState = mutableMapOf<String, TexecomArea>()
     private val zoneState = mutableMapOf<Int, TexecomZone>()
+    private lateinit var powerInfo: TexecomPower
 
     override suspend fun init(bus: AlleyEventBus) {
         bus.handle<MqttMessageEvent> { ev ->
             val parts = ev.topic.split('/')
 
             if (parts.size < 2 || parts[0] != config.prefix) return@handle
+            if (parts[1] == "area" && parts.size > 3) return@handle
 
             if (parts[1] == "status") {
-                val online = ev.payload == "online"
-                logger.info { "Texecom online: $online" }
+                // val online = ev.payload == "online"
                 return@handle
             }
 
@@ -67,13 +68,14 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: EmptyState, stateStor
             ) { arm, level ->
                 if (arm && level == "FULL") {
                     areasInState(false).forEach { (_, area) ->
-                        areaCommand(bus, area.slug ?: "", AreaCommand.FULL)
+                        areaCommand(bus, area.slug!!, AreaCommand.FULL)
                     }
                 } else if (arm) {
-                    areaCommand(bus, level, AreaCommand.FULL)
+                    val area = areaState.values.first { it.name == level }
+                    areaCommand(bus, area.slug!!, AreaCommand.FULL)
                 } else {
                     areasInState(true).forEach { (_, area) ->
-                        areaCommand(bus, area.slug ?: "", AreaCommand.DISARM)
+                        areaCommand(bus, area.slug!!, AreaCommand.DISARM)
                     }
                 }
             }
@@ -84,12 +86,11 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: EmptyState, stateStor
         .filter { (_, area) -> (area.status != TexecomAreaStatus.DISARMED) == armed }
 
     private fun <T : Any> handleMessage(payload: String, parts: List<String>, serializer: KSerializer<T>) {
-        val msg = alleyJson.decodeFromString(serializer, payload)
-        logger.info { "Texecom parsed $msg" }
-
-        when (msg) {
+        when (val msg = alleyJson.decodeFromString(serializer, payload)) {
             is TexecomArea -> areaState[msg.id] = msg.copy(slug = parts[2])
             is TexecomZone -> zoneState[msg.number] = msg.copy(slug = parts[2])
+            is TexecomPower -> powerInfo = msg
+            else -> logger.info { "Texecom parsed $msg" }
         }
     }
 
