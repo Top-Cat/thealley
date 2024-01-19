@@ -11,5 +11,6 @@ data class TexecomEvent(
     val timestamp: Instant,
     val areas: List<String>,
     val parameter: Int,
-    val entity: JsonElement
+    val entity: JsonElement,
+    val groupType: EventGroupType
 )
