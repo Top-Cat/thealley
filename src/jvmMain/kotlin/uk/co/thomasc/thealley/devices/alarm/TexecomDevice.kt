@@ -66,7 +66,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                     )
                 }
             ) { arm, level ->
-                if (arm && level == "FULL") {
+                if (arm && (level == null || level == "FULL")) {
                     areasInState(false).forEach { (_, area) ->
                         areaCommand(bus, area.slug!!, AreaCommand.FULL)
                     }

@@ -11,6 +11,6 @@ data class ArmDisarmCommand(override val params: Params) : IGoogleHomeCommand<Ar
         val followUpToken: String,
         val arm: Boolean,
         val cancel: Boolean? = null,
-        val armLevel: String
+        val armLevel: String? = null
     )
 }

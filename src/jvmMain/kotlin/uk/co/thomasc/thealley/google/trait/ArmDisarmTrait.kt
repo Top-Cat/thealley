@@ -15,7 +15,7 @@ class ArmDisarmTrait(
     private val availableArmLevels: Set<ArmLevel>,
     private val ordered: Boolean,
     private val getArmState: suspend () -> State,
-    private val arm: suspend (Boolean, String) -> Unit
+    private val arm: suspend (Boolean, String?) -> Unit
 ) : GoogleHomeTrait<ArmDisarmCommand>() {
     override val name = "action.devices.traits.ArmDisarm"
     override val klazz = ArmDisarmCommand::class
