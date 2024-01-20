@@ -72,7 +72,7 @@ class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: 
                         payload = FollowUpPayload(
                             FollowUpDevices(
                                 states = mapOf(
-                                    device.id.toString() to JsonObject(getState(device, setOf()))
+                                    device.id.toString() to JsonObject(getState(device, setOf("online")))
                                 )
                             )
                         )

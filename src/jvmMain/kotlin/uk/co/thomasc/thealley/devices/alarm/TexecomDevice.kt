@@ -105,7 +105,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
 
     private fun getLevel(): GoogleArmLevel {
         val currentState = areasInState(true).values.map { it.name }.sorted().joinToString(",")
-        return GoogleArmLevel.entries.find { it.str == currentState } ?: GoogleArmLevel.NONE
+        return GoogleArmLevel.entries.find { it.str == currentState } ?: GoogleArmLevel.FULL
     }
 
     private suspend fun checkState(bus: AlleyEventBus) {
