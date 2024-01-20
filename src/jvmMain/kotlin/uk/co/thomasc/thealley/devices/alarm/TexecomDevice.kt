@@ -32,6 +32,8 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
     private lateinit var powerInfo: TexecomPower
     private lateinit var deviceInfo: TexecomInfo
 
+    private lateinit var armState: ArmDisarmTrait.State
+
     override suspend fun init(bus: AlleyEventBus) {
         bus.handle<MqttMessageEvent> { ev ->
             val parts = ev.topic.split('/')
@@ -61,23 +63,23 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                 }.toSet(),
                 true,
                 {
-                    val level = getLevel()
-                    val armed = level != GoogleArmLevel.NONE
-
-                    ArmDisarmTrait.State(
-                        armed,
-                        getLevel().armLevel,
-                        if (!armed) null else 30
-                    )
+                    armState
                 }
             ) { arm, level ->
-                if (arm && (level == null || level == "FULL")) {
-                    areasInState(false).forEach { (_, area) ->
-                        areaCommand(bus, area.slug!!, AreaCommand.FULL)
-                    }
-                } else if (arm) {
-                    val area = areaState.values.first { it.name == level }
-                    areaCommand(bus, area.slug!!, AreaCommand.FULL)
+                val newLevel = if (!arm) {
+                    GoogleArmLevel.NONE
+                } else {
+                    GoogleArmLevel.entries.find { it.armLevel == level } ?: GoogleArmLevel.FULL
+                }
+                armState = stateFor(newLevel)
+
+                if (arm) {
+                    newLevel.areas
+                        .mapNotNull { areaState[it] }
+                        .filter { it.status == TexecomAreaStatus.DISARMED }
+                        .forEach { area ->
+                            areaCommand(bus, area.slug!!, AreaCommand.FULL)
+                        }
                 } else {
                     areasInState(true).forEach { (_, area) ->
                         areaCommand(bus, area.slug!!, AreaCommand.DISARM)
@@ -86,6 +88,15 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
             }
         )
     }
+
+    private fun stateFor(level: GoogleArmLevel) =
+        (level != GoogleArmLevel.NONE).let { armed ->
+            ArmDisarmTrait.State(
+                armed,
+                getLevel().armLevel,
+                if (!armed) null else 30
+            )
+        }
 
     private fun areasInState(armed: Boolean) = areaState
         .filter { (_, area) -> (area.status != TexecomAreaStatus.DISARMED) == armed }
@@ -110,6 +121,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
 
     private suspend fun checkState(bus: AlleyEventBus) {
         if (updateState(state.copy(armLevel = getLevel()))) {
+            armState = stateFor(state.armLevel)
             bus.emit(ReportStateEvent(this))
         }
     }
