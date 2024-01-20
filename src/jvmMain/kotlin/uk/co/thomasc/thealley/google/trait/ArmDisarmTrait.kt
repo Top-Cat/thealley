@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.google.trait
 
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -45,7 +46,9 @@ class ArmDisarmTrait(
 
         arm(cmd.params.arm, cmd.params.armLevel)
 
-        return ExecuteStatus.SUCCESS()
+        // Wait for transition
+        delay(300L)
+        return ExecuteStatus.SUCCESS(getState())
         // return ExecuteStatus.ERROR(GoogleHomeErrorCode.ChallengeNeeded)
     }
 
