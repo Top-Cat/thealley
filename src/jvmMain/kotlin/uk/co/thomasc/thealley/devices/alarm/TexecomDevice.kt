@@ -56,11 +56,12 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                 }.toSet(),
                 false,
                 {
-                    val armedAreas = areasInState(true)
-                    val armed = armedAreas.isNotEmpty()
+                    val level = getLevel()
+                    val armed = level != GoogleArmLevel.NONE
+
                     ArmDisarmTrait.State(
                         armed,
-                        if (!armed) null else armedAreas.values.joinToString(",") { it.name },
+                        getLevel().armLevel,
                         if (!armed) null else 30
                     )
                 }
@@ -96,12 +97,13 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
         }
     }
 
-    private suspend fun checkState(bus: AlleyEventBus) {
-        val armedAreas = areasInState(true)
-        val currentState = armedAreas.values.map { it.name }.sorted().joinToString(",")
-        val level = GoogleArmLevel.entries.find { it.str == currentState } ?: GoogleArmLevel.NONE
+    private fun getLevel(): GoogleArmLevel {
+        val currentState = areasInState(true).values.map { it.name }.sorted().joinToString(",")
+        return GoogleArmLevel.entries.find { it.str == currentState } ?: GoogleArmLevel.NONE
+    }
 
-        if (updateState(state.copy(armLevel = level))) {
+    private suspend fun checkState(bus: AlleyEventBus) {
+        if (updateState(state.copy(armLevel = getLevel()))) {
             bus.emit(ReportStateEvent(this))
         }
     }
@@ -112,4 +114,3 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
 
     companion object : KLogging()
 }
-
