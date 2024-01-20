@@ -93,7 +93,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
         (level != GoogleArmLevel.NONE).let { armed ->
             ArmDisarmTrait.State(
                 armed,
-                getLevel().armLevel,
+                level.armLevel,
                 if (!armed) null else 30
             )
         }
