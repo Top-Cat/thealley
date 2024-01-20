@@ -14,6 +14,7 @@ import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.GoogleHomeLang
 import uk.co.thomasc.thealley.google.trait.ArmDisarmTrait
 import uk.co.thomasc.thealley.google.trait.ArmLevel
+import uk.co.thomasc.thealley.web.google.AlleyDeviceInfo
 
 class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateStore: IStateUpdater<TexecomState>) :
     AlleyDevice<TexecomDevice, TexecomConfig, TexecomState>(id, config, state, stateStore) {
@@ -29,6 +30,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
     private val areaState = mutableMapOf<String, TexecomArea>()
     private val zoneState = mutableMapOf<Int, TexecomZone>()
     private lateinit var powerInfo: TexecomPower
+    private lateinit var deviceInfo: TexecomInfo
 
     override suspend fun init(bus: AlleyEventBus) {
         bus.handle<MqttMessageEvent> { ev ->
@@ -50,6 +52,9 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
         registerGoogleHomeDevice(
             DeviceType.SECURITYSYSTEM,
             true,
+            {
+                AlleyDeviceInfo("Texecom", deviceInfo.model, deviceInfo.firmwareVersion, deviceInfo.version)
+            },
             ArmDisarmTrait(
                 GoogleArmLevel.entries.mapNotNull { it.armLevel }.map {
                     ArmLevel(it, setOf(ArmLevel.Value(GoogleHomeLang.ENGLISH, listOf(it))))
@@ -93,6 +98,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
             }
             is TexecomZone -> zoneState[msg.number] = msg.copy(slug = parts[2])
             is TexecomPower -> powerInfo = msg
+            is TexecomInfo -> deviceInfo = msg
             else -> logger.info { "Texecom parsed $msg" }
         }
     }
