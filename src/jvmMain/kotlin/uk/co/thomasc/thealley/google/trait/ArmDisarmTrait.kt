@@ -23,8 +23,8 @@ class ArmDisarmTrait(
     @Serializable
     data class State(
         val isArmed: Boolean,
-        val currentArmLevel: String,
-        val exitAllowance: Int
+        val currentArmLevel: String? = null,
+        val exitAllowance: Int? = null
     )
 
     override suspend fun getAttributes() = mapOf(
@@ -46,6 +46,7 @@ class ArmDisarmTrait(
         arm(cmd.params.arm, cmd.params.armLevel)
 
         return ExecuteStatus.SUCCESS()
+        // return ExecuteStatus.ERROR(GoogleHomeErrorCode.ChallengeNeeded)
     }
 
     companion object : KLogging()

@@ -49,7 +49,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: EmptyState, stateStor
 
         registerGoogleHomeDevice(
             DeviceType.SECURITYSYSTEM,
-            false,
+            true,
             ArmDisarmTrait(
                 setOf(
                     ArmLevel("House", setOf(ArmLevel.Value(GoogleHomeLang.ENGLISH, listOf("House")))),
@@ -59,10 +59,11 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: EmptyState, stateStor
                 false,
                 {
                     val armedAreas = areasInState(true)
+                    val armed = armedAreas.isNotEmpty()
                     ArmDisarmTrait.State(
-                        armedAreas.isNotEmpty(),
-                        armedAreas.values.joinToString(",") { it.name },
-                        30
+                        armed,
+                        if (!armed) null else armedAreas.values.joinToString(",") { it.name },
+                        if (!armed) null else 30
                     )
                 }
             ) { arm, level ->
