@@ -5,6 +5,7 @@ import mu.KLogging
 import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.IAlleyEvent
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.ReportStateEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
@@ -106,8 +107,12 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
             is TexecomArea -> {
                 areaState[msg.id] = msg.copy(slug = parts[2])
                 checkState(bus)
+                bus.emit(TexecomAreaEvent(msg.number, msg.status))
             }
-            is TexecomZone -> zoneState[msg.number] = msg.copy(slug = parts[2])
+            is TexecomZone -> {
+                zoneState[msg.number] = msg.copy(slug = parts[2])
+                bus.emit(TexecomZoneEvent(msg.number, msg.status))
+            }
             is TexecomPower -> powerInfo = msg
             is TexecomInfo -> deviceInfo = msg
             else -> logger.info { "Texecom parsed $msg" }
@@ -132,3 +137,15 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
 
     companion object : KLogging()
 }
+
+interface ITexecomEvent : IAlleyEvent
+
+data class TexecomZoneEvent(
+    val zoneId: Int,
+    val status: ZoneState
+) : ITexecomEvent
+
+data class TexecomAreaEvent(
+    val areaId: Int,
+    val status: TexecomAreaStatus
+) : ITexecomEvent

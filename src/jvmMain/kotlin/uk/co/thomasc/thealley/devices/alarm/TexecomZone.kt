@@ -9,7 +9,7 @@ data class TexecomZone(
     @Transient
     val slug: String? = null,
     val number: Int,
-    val status: Int,
+    val status: ZoneState,
     val type: TexecomZoneType,
     val areas: List<String>
 )

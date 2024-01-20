@@ -27,6 +27,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig, V : 
             is BrightConfig -> BrightDeviceConfig(config)
             is BulbConfig -> BulbDeviceConfig(config)
             is CDimmerConfig -> CDimmerDeviceConfig(config)
+            is ConditionalConfig -> ConditionalDeviceConfig(config)
             is DualDimmerConfig -> DualDimmerDeviceConfig(config)
             is DualSwitchConfig -> DualSwitchDeviceConfig(config)
             is MotionConfig -> MotionDeviceConfig(config)
