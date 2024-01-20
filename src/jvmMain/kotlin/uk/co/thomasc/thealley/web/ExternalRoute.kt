@@ -7,6 +7,7 @@ import io.ktor.server.locations.post
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import mu.KLogging
 import uk.co.thomasc.thealley.checkOauth
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
@@ -34,8 +35,11 @@ class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute 
         post<Routes.GoogleHome> {
             checkOauth(alleyTokenStore) { userId ->
                 val obj = call.receive<GoogleHomeReq>()
+                logger.info { "Received google home request $obj" }
                 call.respond(externalHandler.handleRequest(userId, obj))
             }
         }
     }
+
+    companion object : KLogging()
 }
