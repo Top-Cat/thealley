@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class ArmDisarmCommand(override val params: Params) : IGoogleHomeCommand<ArmDisarmCommand.Params> {
     @Serializable
     data class Params(
-        val followUpToken: String,
+        val followUpToken: String? = null,
         val arm: Boolean,
         val cancel: Boolean? = null,
         val armLevel: String? = null
