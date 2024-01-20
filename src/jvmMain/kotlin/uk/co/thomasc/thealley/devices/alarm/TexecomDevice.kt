@@ -59,7 +59,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                 GoogleArmLevel.entries.mapNotNull { it.armLevel }.map {
                     ArmLevel(it, setOf(ArmLevel.Value(GoogleHomeLang.ENGLISH, listOf(it))))
                 }.toSet(),
-                false,
+                true,
                 {
                     val level = getLevel()
                     val armed = level != GoogleArmLevel.NONE

@@ -28,10 +28,10 @@ class ArmDisarmTrait(
     )
 
     override suspend fun getAttributes() = mapOf(
-        "ordered" to JsonPrimitive(ordered),
         "availableArmLevels" to JsonObject(
             mapOf(
-                "levels" to alleyJson.encodeToJsonElement(availableArmLevels)
+                "levels" to alleyJson.encodeToJsonElement(availableArmLevels),
+                "ordered" to JsonPrimitive(ordered)
             )
         )
     )
