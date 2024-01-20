@@ -14,7 +14,7 @@ class ConditionalDevice(id: Int, config: ConditionalConfig, state: ConditionalSt
 
     override suspend fun init(bus: AlleyEventBus) {
         if (state.states.size != config.conditions.size) {
-            updateState(state.copy (states = (1..config.conditions.size).map { false }))
+            updateState(state.copy(states = (1..config.conditions.size).map { false }))
         }
 
         config.conditions.forEach {
@@ -33,4 +33,3 @@ class ConditionalDevice(id: Int, config: ConditionalConfig, state: ConditionalSt
         updateState(state.copy(states = state.states.mapIndexed { i, b -> if (i == idx) v else b }))
     }
 }
-

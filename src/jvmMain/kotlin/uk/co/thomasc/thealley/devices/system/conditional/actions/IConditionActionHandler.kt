@@ -10,4 +10,3 @@ interface IConditionActionHandler {
 fun IConditionAction.handler() = when (this) {
     is SceneConditionAction -> SceneConditionActionHandler(this)
 }
-

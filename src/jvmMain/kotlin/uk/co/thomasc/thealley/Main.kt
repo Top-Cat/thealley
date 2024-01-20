@@ -41,7 +41,6 @@ import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import nl.myndocs.oauth2.authenticator.Credentials
 import nl.myndocs.oauth2.client.AuthorizedGrantType
 import nl.myndocs.oauth2.client.Client
@@ -52,12 +51,7 @@ import nl.myndocs.oauth2.ktor.feature.Oauth2ServerFeature
 import nl.myndocs.oauth2.ktor.feature.request.KtorCallContext
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
-import uk.co.thomasc.thealley.devices.alarm.TexecomAreaStatus
 import uk.co.thomasc.thealley.devices.newDevices
-import uk.co.thomasc.thealley.devices.system.conditional.actions.SceneConditionAction
-import uk.co.thomasc.thealley.devices.system.conditional.conditions.SunCondition
-import uk.co.thomasc.thealley.devices.system.conditional.conditions.TexecomAreaCondition
-import uk.co.thomasc.thealley.devices.types.ConditionalConfig
 import uk.co.thomasc.thealley.oauth.AlleyTokenStore
 import uk.co.thomasc.thealley.oauth.ClientProperties
 import uk.co.thomasc.thealley.repo.UserRepository
