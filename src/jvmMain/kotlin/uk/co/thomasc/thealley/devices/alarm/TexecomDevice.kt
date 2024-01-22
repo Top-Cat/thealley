@@ -28,14 +28,14 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
         "config" to TexecomInfo.serializer()
     )
 
-    private val areaState = mutableMapOf<String, TexecomArea>()
-    private val zoneState = mutableMapOf<Int, TexecomZone>()
     private lateinit var powerInfo: TexecomPower
     private lateinit var deviceInfo: TexecomInfo
 
     private lateinit var armState: ArmDisarmTrait.State
 
     override suspend fun init(bus: AlleyEventBus) {
+        armState = stateFor(state.armLevel)
+
         bus.handle<MqttMessageEvent> { ev ->
             val parts = ev.topic.split('/')
 
@@ -76,7 +76,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
 
                 if (arm) {
                     newLevel.areas
-                        .mapNotNull { areaState[it] }
+                        .mapNotNull { state.areaState[it] }
                         .filter { it.status == TexecomAreaStatus.DISARMED }
                         .forEach { area ->
                             areaCommand(bus, area.slug!!, AreaCommand.FULL)
@@ -99,19 +99,34 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
             )
         }
 
-    private fun areasInState(armed: Boolean) = areaState
+    private fun areasInState(armed: Boolean) = state.areaState
         .filter { (_, area) -> (area.status != TexecomAreaStatus.DISARMED) == armed }
 
     private suspend fun <T : Any> handleMessage(bus: AlleyEventBus, payload: String, parts: List<String>, serializer: KSerializer<T>) {
         when (val msg = alleyJson.decodeFromString(serializer, payload)) {
             is TexecomArea -> {
-                areaState[msg.id] = msg.copy(slug = parts[2])
+                val newState = state.copy(
+                    areaState = state.areaState.plus(
+                        msg.id to msg.copy(slug = parts[2])
+                    )
+                )
+
+                if (updateState(newState)) {
+                    bus.emit(TexecomAreaEvent(msg.number, msg.status))
+                }
                 checkState(bus)
-                bus.emit(TexecomAreaEvent(msg.number, msg.status))
+
             }
             is TexecomZone -> {
-                zoneState[msg.number] = msg.copy(slug = parts[2])
-                bus.emit(TexecomZoneEvent(msg.number, msg.status))
+                val newState = state.copy(
+                    zoneState = state.zoneState.plus(
+                        msg.number to msg.copy(slug = parts[2])
+                    )
+                )
+
+                if (updateState(newState)) {
+                    bus.emit(TexecomZoneEvent(msg.number, msg.status))
+                }
             }
             is TexecomPower -> powerInfo = msg
             is TexecomInfo -> deviceInfo = msg

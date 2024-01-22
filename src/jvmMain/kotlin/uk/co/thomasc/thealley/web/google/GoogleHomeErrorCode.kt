@@ -9,6 +9,9 @@ enum class GoogleHomeErrorCode {
     @SerialName("alreadyInState")
     AlreadyInState,
 
+    @SerialName("challengeNeeded")
+    ChallengeNeeded,
+
     @SerialName("deviceNotFound")
     DeviceNotFound,
 

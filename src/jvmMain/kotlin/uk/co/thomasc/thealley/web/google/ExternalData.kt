@@ -174,8 +174,22 @@ data class ExecuteResponseCommand(
     val status: String,
     val states: JsonObject? = null,
     override val errorCode: GoogleHomeErrorCode? = null,
-    override val debugString: String? = null
+    override val debugString: String? = null,
+    val challengeNeeded: ExecuteResponseChallenge? = null
 ) : GoogleHomeMayFail
+
+@Serializable
+data class ExecuteResponseChallenge(
+    val type: ChallengeType
+)
+
+enum class ChallengeType {
+    @SerialName("ackNeeded")
+    ACK,
+
+    @SerialName("pinNeeded")
+    PIN
+}
 
 enum class QueryStatus {
     SUCCESS, OFFLINE, EXCEPTIONS, ERROR
