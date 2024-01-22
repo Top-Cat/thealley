@@ -105,25 +105,29 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
     private suspend fun <T : Any> handleMessage(bus: AlleyEventBus, payload: String, parts: List<String>, serializer: KSerializer<T>) {
         when (val msg = alleyJson.decodeFromString(serializer, payload)) {
             is TexecomArea -> {
-                val newState = state.copy(
-                    areaState = state.areaState.plus(
-                        msg.id to msg.copy(slug = parts[2])
+                val didChange = updateState {
+                    state.copy(
+                        areaState = state.areaState.plus(
+                            msg.id to msg.copy(slug = parts[2])
+                        )
                     )
-                )
+                }
 
-                if (updateState(newState)) {
+                if (didChange) {
                     bus.emit(TexecomAreaEvent(msg.number, msg.status))
                 }
                 checkState(bus)
             }
             is TexecomZone -> {
-                val newState = state.copy(
-                    zoneState = state.zoneState.plus(
-                        msg.number to msg.copy(slug = parts[2])
+                val didChange = updateState {
+                    state.copy(
+                        zoneState = state.zoneState.plus(
+                            msg.number to msg.copy(slug = parts[2])
+                        )
                     )
-                )
+                }
 
-                if (updateState(newState)) {
+                if (didChange) {
                     bus.emit(TexecomZoneEvent(msg.number, msg.status))
                 }
             }

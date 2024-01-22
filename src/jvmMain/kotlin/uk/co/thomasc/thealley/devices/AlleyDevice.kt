@@ -1,5 +1,7 @@
 package uk.co.thomasc.thealley.devices
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import uk.co.thomasc.thealley.devices.types.IAlleyConfig
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
@@ -22,6 +24,12 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
             true
         } else {
             false
+        }
+
+    private val mutex = Mutex()
+    suspend fun updateState(block: (U) -> U) =
+        mutex.withLock {
+            updateState(block(state))
         }
 
     private var googleHome: GoogleHomeInfo? = null
