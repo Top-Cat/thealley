@@ -13,9 +13,9 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.types.deviceConfig
-import uk.co.thomasc.thealley.json
 import uk.co.thomasc.thealley.repo.DeviceDao
 import uk.co.thomasc.thealley.repo.DeviceTable
 import uk.co.thomasc.thealley.repo.NowExpression
@@ -116,8 +116,8 @@ fun newDevices(): Pair<AlleyEventBus, AlleyDeviceMapper> {
     val bus = AlleyEventBusImpl()
     return bus to AlleyDeviceMapperImpl().also { dm ->
         devices.map { (id, config, state) ->
-            val stateFactory = StateUpdaterFactory(json, id)
-            config.deviceConfig().generate(id, json, stateFactory, state, dm)
+            val stateFactory = StateUpdaterFactory(alleyJsonUgly, id)
+            config.deviceConfig().generate(id, alleyJsonUgly, stateFactory, state, dm)
         }.also { deviceList ->
             GlobalScope.launch {
                 deviceList.forEach {
