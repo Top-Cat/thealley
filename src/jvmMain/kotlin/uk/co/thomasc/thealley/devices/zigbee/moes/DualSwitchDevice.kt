@@ -2,8 +2,8 @@ package uk.co.thomasc.thealley.devices.zigbee.moes
 
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.EmptyState
-import uk.co.thomasc.thealley.devices.IAlleyMultiGangRelay
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.generic.IAlleyMultiGangRelay
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.DualSwitchConfig
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeDevice

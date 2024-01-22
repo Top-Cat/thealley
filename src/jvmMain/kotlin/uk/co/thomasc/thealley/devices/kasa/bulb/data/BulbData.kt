@@ -2,7 +2,7 @@ package uk.co.thomasc.thealley.devices.kasa.bulb.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import uk.co.thomasc.thealley.devices.ILightState
+import uk.co.thomasc.thealley.devices.generic.ILightState
 import uk.co.thomasc.thealley.devices.kasa.plug.data.KasaData
 import uk.co.thomasc.thealley.devices.kasa.plug.data.KasaEmeter
 import uk.co.thomasc.thealley.devices.kasa.plug.data.KasaErrCode

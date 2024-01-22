@@ -3,7 +3,7 @@ package uk.co.thomasc.thealley.google.command
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyLight
+import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.google.trait.IColorState
 import uk.co.thomasc.thealley.web.google.DeviceColorCommand
 import java.awt.Color

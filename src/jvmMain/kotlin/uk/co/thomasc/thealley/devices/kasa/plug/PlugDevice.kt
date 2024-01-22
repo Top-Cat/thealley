@@ -2,8 +2,8 @@ package uk.co.thomasc.thealley.devices.kasa.plug
 
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyRelay
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 import uk.co.thomasc.thealley.devices.kasa.KasaDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.data.PlugData
 import uk.co.thomasc.thealley.devices.kasa.plug.data.PlugResponse

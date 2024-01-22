@@ -12,8 +12,6 @@ import uk.co.thomasc.thealley.devices.types.ConditionalConfig
 class ConditionalDevice(id: Int, config: ConditionalConfig, state: ConditionalState, stateStore: IStateUpdater<ConditionalState>, val dev: AlleyDeviceMapper) :
     AlleyDevice<ConditionalDevice, ConditionalConfig, ConditionalState>(id, config, state, stateStore), UpdateCondition {
 
-    private lateinit var busLocal: AlleyEventBus
-
     override suspend fun init(bus: AlleyEventBus) {
         if (state.states.size != config.conditions.size) {
             updateState(state.copy(states = (1..config.conditions.size).map { false }))

@@ -12,12 +12,12 @@ import uk.co.thomasc.thealley.cached
 import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyRelay
-import uk.co.thomasc.thealley.devices.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.ReportStateEvent
-import uk.co.thomasc.thealley.devices.TickEvent
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
+import uk.co.thomasc.thealley.devices.generic.IAlleyRevocable
+import uk.co.thomasc.thealley.devices.system.ReportStateEvent
+import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.system.sun.NightBrightnessCalc

@@ -2,8 +2,8 @@ package uk.co.thomasc.thealley.devices.zigbee.blind
 
 import kotlinx.coroutines.launch
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyLight
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.BlindConfig
 import uk.co.thomasc.thealley.devices.zigbee.Zigbee2MqttHelper

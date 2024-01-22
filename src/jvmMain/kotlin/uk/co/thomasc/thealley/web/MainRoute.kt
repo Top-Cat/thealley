@@ -9,7 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyRelay
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 
 @Location("/")
 class MainRoute : IAlleyRoute {

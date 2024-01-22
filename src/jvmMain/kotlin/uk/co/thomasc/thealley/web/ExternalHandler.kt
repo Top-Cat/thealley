@@ -28,7 +28,7 @@ import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.GetStateException
-import uk.co.thomasc.thealley.devices.ReportStateEvent
+import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.google.command.IGoogleHomeFollowUpCommand
 import uk.co.thomasc.thealley.google.followup.FollowUpAuth
 import uk.co.thomasc.thealley.google.followup.FollowUpDevices

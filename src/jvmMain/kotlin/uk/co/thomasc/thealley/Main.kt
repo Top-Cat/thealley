@@ -51,10 +51,10 @@ import nl.myndocs.oauth2.ktor.feature.Oauth2ServerFeature
 import nl.myndocs.oauth2.ktor.feature.request.KtorCallContext
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
-import uk.co.thomasc.thealley.devices.newDevices
 import uk.co.thomasc.thealley.oauth.AlleyTokenStore
 import uk.co.thomasc.thealley.oauth.ClientProperties
 import uk.co.thomasc.thealley.repo.UserRepository
+import uk.co.thomasc.thealley.system.TheAlley
 import uk.co.thomasc.thealley.web.ApiRoute
 import uk.co.thomasc.thealley.web.ControlRoute
 import uk.co.thomasc.thealley.web.ExternalRoute
@@ -88,7 +88,7 @@ fun setupDB(): DataSource {
 }
 
 fun Application.setup() {
-    val (bus, devices) = newDevices()
+    val (bus, devices) = TheAlley.start()
     val userRepository = UserRepository()
 
     install(ContentNegotiation) {

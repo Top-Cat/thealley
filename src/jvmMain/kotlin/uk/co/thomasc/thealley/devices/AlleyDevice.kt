@@ -4,12 +4,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import uk.co.thomasc.thealley.devices.types.IAlleyConfig
 import uk.co.thomasc.thealley.google.DeviceType
-import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
 import uk.co.thomasc.thealley.google.trait.GoogleHomeTrait
 import uk.co.thomasc.thealley.web.google.AlleyDeviceInfo
-import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 import java.io.Closeable
-import kotlin.reflect.KClass
 
 abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(val id: Int, val config: T, state: U, private val stateStore: IStateUpdater<U>) : Closeable {
     private var currentState = state
@@ -52,13 +49,3 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
         // Do nothing by default
     }
 }
-
-data class GoogleHomeInfo(
-    val type: DeviceType,
-    val traits: Set<GoogleHomeTrait<*>>,
-    val willReportState: Boolean = false,
-    val deviceInfo: (() -> AlleyDeviceInfo)? = null
-)
-
-class MissingTraitException(kClass: KClass<out GoogleHomeTrait<out IGoogleHomeCommand<*>>>) : Exception("Missing required trait: ${kClass.simpleName}")
-data class GetStateException(val errorCode: GoogleHomeErrorCode) : Exception("Error getting device state $errorCode")

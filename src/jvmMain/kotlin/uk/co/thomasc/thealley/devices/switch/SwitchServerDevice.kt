@@ -19,7 +19,7 @@ import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.ShutdownEvent
+import uk.co.thomasc.thealley.devices.system.ShutdownEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.SwitchServerConfig
 import java.io.IOException

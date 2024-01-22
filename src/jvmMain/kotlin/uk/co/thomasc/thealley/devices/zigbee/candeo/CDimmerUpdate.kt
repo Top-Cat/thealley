@@ -1,4 +1,4 @@
-package uk.co.thomasc.thealley.devices.zigbee.samotech
+package uk.co.thomasc.thealley.devices.zigbee.candeo
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

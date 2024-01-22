@@ -5,11 +5,9 @@ import kotlinx.datetime.Instant
 import mu.KLogging
 import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyLight
-import uk.co.thomasc.thealley.devices.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.ReportStateEvent
-import uk.co.thomasc.thealley.devices.TickEvent
+import uk.co.thomasc.thealley.devices.generic.IAlleyLight
+import uk.co.thomasc.thealley.devices.generic.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.kasa.KasaDevice
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.BulbData
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.BulbRealtimePower
@@ -17,6 +15,8 @@ import uk.co.thomasc.thealley.devices.kasa.bulb.data.BulbResponse
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.BulbUpdate
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.LightingService
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.LightingServiceUpdate
+import uk.co.thomasc.thealley.devices.system.ReportStateEvent
+import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.system.sun.NightBrightnessCalc
 import uk.co.thomasc.thealley.devices.system.sun.SunRiseEvent
 import uk.co.thomasc.thealley.devices.system.sun.SunSetEvent

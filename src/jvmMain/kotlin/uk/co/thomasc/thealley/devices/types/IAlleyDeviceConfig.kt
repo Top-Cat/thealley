@@ -6,7 +6,7 @@ import kotlinx.serialization.json.Json
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.StateUpdaterFactory
+import uk.co.thomasc.thealley.system.StateUpdaterFactory
 
 @Serializable
 sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig, V : Any> {

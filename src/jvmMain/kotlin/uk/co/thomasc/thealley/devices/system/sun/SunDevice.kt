@@ -8,7 +8,7 @@ import kotlinx.datetime.toKotlinInstant
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.TickEvent
+import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.types.SunConfig
 import java.util.Calendar
 

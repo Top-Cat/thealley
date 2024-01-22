@@ -1,6 +1,6 @@
 package uk.co.thomasc.thealley.devices.switch
 
-import uk.co.thomasc.thealley.devices.IAlleyEvent
+import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 
 data class SwitchEvent(
     val switchId: Int,

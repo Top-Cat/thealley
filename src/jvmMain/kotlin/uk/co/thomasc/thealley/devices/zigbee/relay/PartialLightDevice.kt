@@ -6,12 +6,12 @@ import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.EmptyState
-import uk.co.thomasc.thealley.devices.IAlleyLight
-import uk.co.thomasc.thealley.devices.IAlleyMultiGangLight
-import uk.co.thomasc.thealley.devices.IAlleyMultiGangRelay
-import uk.co.thomasc.thealley.devices.IAlleyRelay
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.ReportStateEvent
+import uk.co.thomasc.thealley.devices.generic.IAlleyLight
+import uk.co.thomasc.thealley.devices.generic.IAlleyMultiGangLight
+import uk.co.thomasc.thealley.devices.generic.IAlleyMultiGangRelay
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
+import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.types.PartialLightConfig
 import uk.co.thomasc.thealley.devices.zigbee.Zigbee2MqttHelper
 import uk.co.thomasc.thealley.google.DeviceType

@@ -2,9 +2,9 @@ package uk.co.thomasc.thealley.devices.zigbee.plug
 
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.EmptyState
-import uk.co.thomasc.thealley.devices.IAlleyRelay
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.ReportStateEvent
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
+import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.types.ZPlugConfig
 import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeRelayDevice
 import uk.co.thomasc.thealley.google.DeviceType

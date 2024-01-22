@@ -3,8 +3,8 @@ package uk.co.thomasc.thealley.devices.zigbee.relay
 import kotlinx.serialization.KSerializer
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyLight
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.IZigbeeConfig
 import uk.co.thomasc.thealley.devices.zigbee.IZigbeeState

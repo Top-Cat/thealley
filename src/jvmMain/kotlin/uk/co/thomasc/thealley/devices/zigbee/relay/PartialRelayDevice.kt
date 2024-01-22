@@ -5,10 +5,10 @@ import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.EmptyState
-import uk.co.thomasc.thealley.devices.IAlleyMultiGangRelay
-import uk.co.thomasc.thealley.devices.IAlleyRelay
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.ReportStateEvent
+import uk.co.thomasc.thealley.devices.generic.IAlleyMultiGangRelay
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
+import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.types.PartialRelayConfig
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.OnOffTrait

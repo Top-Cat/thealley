@@ -6,10 +6,10 @@ import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.TickEvent
 import uk.co.thomasc.thealley.devices.energy.bright.client.Bright
 import uk.co.thomasc.thealley.devices.energy.bright.client.BrightPeriod
 import uk.co.thomasc.thealley.devices.energy.bright.client.BrightResourceType
+import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.types.BrightConfig
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.hours

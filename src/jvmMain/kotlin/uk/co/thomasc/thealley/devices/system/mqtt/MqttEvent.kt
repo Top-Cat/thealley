@@ -1,6 +1,6 @@
 package uk.co.thomasc.thealley.devices.system.mqtt
 
-import uk.co.thomasc.thealley.devices.IAlleyEvent
+import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 
 abstract class MqttEvent : IAlleyEvent {
     abstract val topic: String

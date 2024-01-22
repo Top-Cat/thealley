@@ -4,10 +4,10 @@ import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyLight
-import uk.co.thomasc.thealley.devices.IAlleyRelay
-import uk.co.thomasc.thealley.devices.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.generic.IAlleyLight
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
+import uk.co.thomasc.thealley.devices.generic.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.types.SceneConfig
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.SceneTrait

@@ -1,14 +1,7 @@
 package uk.co.thomasc.thealley.devices
 
+import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 import kotlin.reflect.KClass
-
-fun interface EventHandler<in T : IAlleyEvent> {
-    suspend fun invoke(event: T)
-}
-
-interface AlleyEventEmitter {
-    suspend fun <T : IAlleyEvent> emit(event: T)
-}
 
 abstract class AlleyEventBus : AlleyEventEmitter {
     suspend inline fun <reified T : IAlleyEvent> handle(handler: EventHandler<T>) =

@@ -6,9 +6,9 @@ import kotlinx.datetime.toLocalDateTime
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyRelay
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.TickEvent
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
+import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.types.ScheduleConfig
 
 class ScheduleDevice(id: Int, config: ScheduleConfig, state: ScheduleState, stateStore: IStateUpdater<ScheduleState>, val dev: AlleyDeviceMapper) :

@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyLight
-import uk.co.thomasc.thealley.devices.IAlleyRelay
+import uk.co.thomasc.thealley.devices.generic.IAlleyLight
+import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 
 data class SwitchData(val buttons: Map<Int, Int>)
 

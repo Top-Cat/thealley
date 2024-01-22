@@ -2,9 +2,9 @@ package uk.co.thomasc.thealley.devices.zigbee.samotech
 
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.EmptyState
-import uk.co.thomasc.thealley.devices.IAlleyLight
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.ReportStateEvent
+import uk.co.thomasc.thealley.devices.generic.IAlleyLight
+import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.types.SDimmerConfig
 import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeDimmerDevice
 import uk.co.thomasc.thealley.google.DeviceType
