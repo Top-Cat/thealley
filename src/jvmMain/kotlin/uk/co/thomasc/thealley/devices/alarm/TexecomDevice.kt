@@ -115,7 +115,6 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                     bus.emit(TexecomAreaEvent(msg.number, msg.status))
                 }
                 checkState(bus)
-
             }
             is TexecomZone -> {
                 val newState = state.copy(
