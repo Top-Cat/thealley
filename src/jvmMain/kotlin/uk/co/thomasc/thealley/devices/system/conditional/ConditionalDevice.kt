@@ -25,7 +25,7 @@ class ConditionalDevice(id: Int, config: ConditionalConfig, state: ConditionalSt
     }
 
     override suspend fun updateConditionState(condition: ICondition, v: Boolean, bus: AlleyEventBus) {
-        if (condition == config.trigger && state.states.size == config.conditions.size && state.states.all { it }) {
+        if (condition == config.trigger && v && state.states.size == config.conditions.size && state.states.all { it }) {
             config.action.handler().perform(dev, bus)
         }
 
