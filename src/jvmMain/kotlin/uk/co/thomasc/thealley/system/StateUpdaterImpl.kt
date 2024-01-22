@@ -19,8 +19,8 @@ internal class StateUpdaterImpl<U>(val json: Json, val serializer: KSerializer<U
             DeviceTable.update({
                 DeviceTable.id eq localId
             }) {
-                it[DeviceTable.state] = encoded
-                it[DeviceTable.updatedAt] = NowExpression(DeviceTable.updatedAt)
+                it[state] = encoded
+                it[updatedAt] = NowExpression(updatedAt)
             }
         }
     }
