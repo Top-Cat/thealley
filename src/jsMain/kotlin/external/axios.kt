@@ -3,7 +3,7 @@
 package external
 
 import kotlinx.serialization.encodeToString
-import uk.co.thomasc.thealley.json
+import uk.co.thomasc.thealley.alleyJson
 import kotlin.js.Promise
 
 external interface AxiosTransformer
@@ -141,7 +141,7 @@ inline fun <reified T, reified U> generateConfig(ct: CancelToken? = null) = obje
         if (it is U) {
             it
         } else {
-            json.decodeFromString(it)
+            alleyJson.decodeFromString(it)
         }
     }
 }
@@ -157,7 +157,7 @@ inline fun <reified T, reified U> axiosDelete(url: String, body: T) = Axios.dele
             if (it is U) {
                 it
             } else {
-                json.decodeFromString(it)
+                alleyJson.decodeFromString(it)
             }
         }
     }
@@ -169,7 +169,7 @@ inline fun <reified T> transformRequest(data: T, headers: dynamic) =
         data is String -> data
         else -> {
             headers["Content-Type"] = "application/json"
-            json.encodeToString(data)
+            alleyJson.encodeToString(data)
         }
     }
 

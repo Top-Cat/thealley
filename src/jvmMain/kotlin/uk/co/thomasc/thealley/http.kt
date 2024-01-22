@@ -7,13 +7,6 @@ import io.ktor.client.engine.apache.ApacheEngineConfig
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
-
-val alleyJsonUgly = Json
-
-val alleyJson = Json(alleyJsonUgly) {
-    prettyPrint = true
-}
 
 private fun setupClient(block: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {}) = HttpClient(Apache) {
     install(HttpTimeout)

@@ -5,9 +5,10 @@ import mu.KLogging
 import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.IAlleyEvent
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.ReportStateEvent
+import uk.co.thomasc.thealley.devices.alarm.events.TexecomAreaEvent
+import uk.co.thomasc.thealley.devices.alarm.events.TexecomZoneEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.TexecomConfig
@@ -156,14 +157,3 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
     companion object : KLogging()
 }
 
-interface ITexecomEvent : IAlleyEvent
-
-data class TexecomZoneEvent(
-    val zoneId: Int,
-    val status: ZoneState
-) : ITexecomEvent
-
-data class TexecomAreaEvent(
-    val areaId: Int,
-    val status: TexecomAreaStatus
-) : ITexecomEvent

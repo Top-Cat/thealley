@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.devices.system.conditional.conditions
 
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.alarm.TexecomZoneEvent
+import uk.co.thomasc.thealley.devices.alarm.events.TexecomZoneEvent
 
 class TexecomZoneConditionHandler(condition: TexecomZoneCondition) : Condition<TexecomZoneCondition>(condition) {
     override suspend fun setupHandler(bus: AlleyEventBus) {
