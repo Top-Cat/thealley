@@ -78,13 +78,14 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                 if (arm) {
                     newLevel.areas
                         .mapNotNull { state.areaState[it] }
-                        .filter { it.status == TexecomAreaStatus.DISARMED && it.slug != null }
-                        .forEach { area ->
-                            areaCommand(bus, area.slug!!, AreaCommand.FULL)
+                        .filter { it.status == TexecomAreaStatus.DISARMED }
+                        .mapNotNull { it.slug }
+                        .forEach { slug ->
+                            areaCommand(bus, slug, AreaCommand.FULL)
                         }
                 } else {
-                    areasInState(true).values.filter { it.slug != null }.forEach { area ->
-                        areaCommand(bus, area.slug!!, AreaCommand.DISARM)
+                    areasInState(true).values.mapNotNull { it.slug }.forEach { slug ->
+                        areaCommand(bus, slug, AreaCommand.DISARM)
                     }
                 }
             }
