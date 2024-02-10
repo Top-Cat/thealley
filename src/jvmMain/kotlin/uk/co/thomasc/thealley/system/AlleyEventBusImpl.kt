@@ -34,7 +34,7 @@ internal class AlleyEventBusImpl : AlleyEventBus() {
 
     override suspend fun <T : IAlleyEvent> emit(event: T) {
         if (event !is MqttMessageEvent && event !is TickEvent && event !is ReportStateEvent) {
-            logger.info { "Emitting event $event" }
+            logger.debug { "Emitting event $event" }
         }
 
         channel.send {

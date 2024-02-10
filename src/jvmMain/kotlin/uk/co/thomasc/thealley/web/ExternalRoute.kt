@@ -36,7 +36,7 @@ class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute 
             checkOauth(alleyTokenStore) { userId ->
                 try {
                     val obj = call.receive<GoogleHomeReq>()
-                    logger.info { "Received google home request $obj" }
+                    logger.debug { "Received google home request $obj" }
                     call.respond(externalHandler.handleRequest(userId, obj))
                 } catch (e: Exception) {
                     logger.error(e) { "Error during external request" }

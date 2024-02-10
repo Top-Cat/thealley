@@ -13,7 +13,7 @@ internal class StateUpdaterImpl<U>(val json: Json, val serializer: KSerializer<U
     override suspend fun saveState(newState: U) {
         val localId = id
         val encoded = json.encodeToString(serializer, newState)
-        logger.info { "Update state for $localId - $encoded" }
+        logger.debug { "Update state for $localId - $encoded" }
 
         newSuspendedTransaction {
             DeviceTable.update({
