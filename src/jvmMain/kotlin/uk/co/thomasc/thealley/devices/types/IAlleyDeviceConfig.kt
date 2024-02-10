@@ -36,6 +36,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig, V : 
             is PartialLightConfig -> PartialLightDeviceConfig(config)
             is PartialRelayConfig -> PartialRelayDeviceConfig(config)
             is PlugConfig -> PlugDeviceConfig(config)
+            is PS2Config -> PS2DeviceConfig(config)
             is RelayConfig -> RelayDeviceConfig(config)
             is SDimmerConfig -> SDimmerDeviceConfig(config)
             is SceneConfig -> SceneDeviceConfig(config)

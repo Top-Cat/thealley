@@ -7,17 +7,14 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.request.forms.formData
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.form
-import io.ktor.server.auth.parseAuthorizationHeader
 import io.ktor.server.auth.principal
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.locations.Locations
@@ -39,7 +36,6 @@ import io.ktor.server.sessions.cookie
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
-import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.runBlocking
 import nl.myndocs.oauth2.authenticator.Credentials
 import nl.myndocs.oauth2.client.AuthorizedGrantType
@@ -227,21 +223,6 @@ fun Application.setup() {
 
         staticResources("/static", "static")
     }
-}
-
-suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: AlleyTokenStore, block: suspend (String) -> Unit) {
-    val authHeader = call.request.parseAuthorizationHeader()
-    if (authHeader is HttpAuthHeader.Single) {
-        val token = alleyTokenStore.accessToken(authHeader.blob)
-
-        when (token?.expired()) {
-            true -> alleyTokenStore.revokeAccessToken(token.accessToken).let { null }
-            false -> block(token.identity?.username ?: "").let { true }
-            null -> null
-        }
-    } else {
-        null
-    } ?: call.respond(HttpStatusCode.Unauthorized, "Unauthorized")
 }
 
 fun main(args: Array<String>) {
