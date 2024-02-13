@@ -95,21 +95,30 @@ class StatsRoute : IAlleyRoute {
             }
         }
 
+        suspend fun mapHome(tado: TadoDevice): List<TransformedZoneState> {
+            val home = tado.getHome()
+            val zones = tado.getHome().getZones().associateBy { it.id }
+            val zoneStates = home.getZoneStates().zoneStates
+
+            return zones.map { zone ->
+                val state = zoneStates[zone.key]
+                TransformedZoneState(
+                    tado.getHomeId().toString(),
+                    zone.key,
+                    zone.value.name,
+                    zone.value.devices.size,
+                    state?.tadoMode?.ordinal ?: 0,
+                    state?.setting,
+                    state?.activityDataPoints ?: mapOf(),
+                    state?.sensorDataPoints ?: mapOf()
+                )
+            }
+        }
+
         get<Tado> {
             getStats(deviceMapper, { tado: TadoDevice ->
                 if (!tado.config.updateReadings) {
-                    val zones = tado.getHome().getZoneStates()
-
-                    zones.zoneStates.map { zone ->
-                        TransformedZoneState(
-                            tado.getHomeId().toString(),
-                            zone.key,
-                            zone.value.tadoMode.ordinal,
-                            zone.value.setting,
-                            zone.value.activityDataPoints,
-                            zone.value.sensorDataPoints
-                        )
-                    }
+                    mapHome(tado)
                 } else {
                     null
                 }
@@ -120,18 +129,7 @@ class StatsRoute : IAlleyRoute {
 
         get<TadoMulti> {
             getStats(deviceMapper, { tado: TadoDevice ->
-                val zones = tado.getHome().getZoneStates()
-
-                zones.zoneStates.map { zone ->
-                    TransformedZoneState(
-                        tado.getHomeId().toString(),
-                        zone.key,
-                        zone.value.tadoMode.ordinal,
-                        zone.value.setting,
-                        zone.value.activityDataPoints,
-                        zone.value.sensorDataPoints
-                    )
-                }
+                mapHome(tado)
             }).flatten().let {
                 call.respond(it)
             }
