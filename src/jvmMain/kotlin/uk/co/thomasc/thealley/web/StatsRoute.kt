@@ -19,7 +19,6 @@ import uk.co.thomasc.thealley.devices.relay.RelayDevice
 import uk.co.thomasc.thealley.web.stats.BulbResponse
 import uk.co.thomasc.thealley.web.stats.PlugResponse
 import uk.co.thomasc.thealley.web.stats.RelayResponse
-import uk.co.thomasc.thealley.web.stats.TadoResponse
 import uk.co.thomasc.thealley.web.stats.TransformedZoneState
 
 @Location("/stats")
@@ -54,7 +53,7 @@ class StatsRoute : IAlleyRoute {
         PlugResponse(
             plug.config.host,
             plug.getName() ?: "",
-            if (plug.getPowerState() == true) 1 else 0,
+            if (plug.getPowerState()) 1 else 0,
             power.power,
             power.voltage,
             power.current,
@@ -103,6 +102,7 @@ class StatsRoute : IAlleyRoute {
 
                     zones.zoneStates.map { zone ->
                         TransformedZoneState(
+                            tado.getHomeId(),
                             zone.key,
                             zone.value.tadoMode.ordinal,
                             zone.value.setting,
@@ -122,19 +122,17 @@ class StatsRoute : IAlleyRoute {
             getStats(deviceMapper, { tado: TadoDevice ->
                 val zones = tado.getHome().getZoneStates()
 
-                TadoResponse(
-                    tado.getHomeId(),
-                    zones.zoneStates.map { zone ->
-                        TransformedZoneState(
-                            zone.key,
-                            zone.value.tadoMode.ordinal,
-                            zone.value.setting,
-                            zone.value.activityDataPoints,
-                            zone.value.sensorDataPoints
-                        )
-                    }
-                )
-            }).let {
+                zones.zoneStates.map { zone ->
+                    TransformedZoneState(
+                        tado.getHomeId(),
+                        zone.key,
+                        zone.value.tadoMode.ordinal,
+                        zone.value.setting,
+                        zone.value.activityDataPoints,
+                        zone.value.sensorDataPoints
+                    )
+                }
+            }).flatten().let {
                 call.respond(it)
             }
         }
