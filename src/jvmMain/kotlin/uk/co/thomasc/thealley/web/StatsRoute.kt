@@ -102,7 +102,7 @@ class StatsRoute : IAlleyRoute {
 
                     zones.zoneStates.map { zone ->
                         TransformedZoneState(
-                            tado.getHomeId(),
+                            tado.getHomeId().toString(),
                             zone.key,
                             zone.value.tadoMode.ordinal,
                             zone.value.setting,
@@ -124,7 +124,7 @@ class StatsRoute : IAlleyRoute {
 
                 zones.zoneStates.map { zone ->
                     TransformedZoneState(
-                        tado.getHomeId(),
+                        tado.getHomeId().toString(),
                         zone.key,
                         zone.value.tadoMode.ordinal,
                         zone.value.setting,

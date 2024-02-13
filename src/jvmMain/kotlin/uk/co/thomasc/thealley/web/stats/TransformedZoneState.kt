@@ -9,14 +9,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TransformedZoneState(
-    val home: Int,
+    val home: String,
     val zone: Int,
     val tadoMode: Int,
     val setting: ITadoSetting?,
     val activityDataPoints: Map<String, ITadoData?>,
     val sensorDataPoints: Map<String, ITadoData?>
 ) {
-    constructor(home: Int, zone: Int, tadoMode: Int, setting: ITadoTyped?, activityDataPoints: Map<String, ITadoTyped>, sensorDataPoints: Map<String, ITadoTyped>) :
+    constructor(home: String, zone: Int, tadoMode: Int, setting: ITadoTyped?, activityDataPoints: Map<String, ITadoTyped>, sensorDataPoints: Map<String, ITadoTyped>) :
         this(home, zone, tadoMode, mapSetting(setting), activityDataPoints.mapValues(Companion::mapDataPoints), sensorDataPoints.mapValues(Companion::mapDataPoints))
 
     companion object {
