@@ -23,19 +23,17 @@ class PS2Device(id: Int, config: PS2Config, state: PS2State, stateStore: IStateU
         bus.handle<MqttMessageEvent> { ev ->
             val parts = ev.topic.split('/')
 
-            if (parts.size < 2 || parts[0] != config.prefix) return@handle
+            if (parts.size < 4 || parts[0] != config.prefix || parts[3] != "state") return@handle
 
-            if (parts.size >= 4 && parts[3] == "state") {
-                // State update
-                updateState {
-                    when (parts[2]) {
-                        "power" -> it.copy(power = ev.payload == "ON")
-                        else -> it
-                    }
-                }.let {
-                    if (it) {
-                        bus.emit(ReportStateEvent(this))
-                    }
+            // State update
+            updateState {
+                when (parts[2]) {
+                    "power" -> it.copy(power = ev.payload == "ON")
+                    else -> it
+                }
+            }.let {
+                if (it) {
+                    bus.emit(ReportStateEvent(this))
                 }
             }
         }

@@ -20,19 +20,17 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
         bus.handle<MqttMessageEvent> { ev ->
             val parts = ev.topic.split('/')
 
-            if (parts.size < 2 || parts[0] != config.prefix) return@handle
+            if (parts.size < 4 || parts[0] != config.prefix || parts[1] != "shades" && parts[2] != config.deviceId) return@handle
 
-            if (parts.size >= 4 && parts[1] == "shades" && parts[2] == config.deviceId) {
-                // State update
-                updateState {
-                    when (parts[3]) {
-                        "position" -> it.copy(position = ev.payload.toIntOrNull() ?: it.position)
-                        else -> it
-                    }
-                }.let {
-                    if (it) {
-                        bus.emit(ReportStateEvent(this))
-                    }
+            // State update
+            updateState {
+                when (parts[3]) {
+                    "position" -> it.copy(position = ev.payload.toIntOrNull() ?: it.position)
+                    else -> it
+                }
+            }.let {
+                if (it) {
+                    bus.emit(ReportStateEvent(this))
                 }
             }
         }
