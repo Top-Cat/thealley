@@ -41,6 +41,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig, V : 
             is SDimmerConfig -> SDimmerDeviceConfig(config)
             is SceneConfig -> SceneDeviceConfig(config)
             is ScheduleConfig -> ScheduleDeviceConfig(config)
+            is SomfyBlindConfig -> SomfyBlindDeviceConfig(config)
             is SunConfig -> SunDeviceConfig(config)
             is SwitchConfig -> SwitchDeviceConfig(config)
             is SwitchServerConfig -> SwitchServerDeviceConfig(config)
