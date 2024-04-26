@@ -56,7 +56,7 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
     }
 
     override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) {
-        setPosition(bus, if (value) 0 else 100)
+        setPosition(bus, if (value) 100 else 0)
     }
 
     override suspend fun getLightState() = IAlleyLight.LightState(state.position)
@@ -67,7 +67,7 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
         }
     }
 
-    override suspend fun getPowerState() = state.position <= 0
+    override suspend fun getPowerState() = state.position > 0
 
     override suspend fun togglePowerState(bus: AlleyEventBus) = setPowerState(bus, !getPowerState())
 }
