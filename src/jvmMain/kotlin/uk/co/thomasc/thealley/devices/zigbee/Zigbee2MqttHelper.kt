@@ -25,7 +25,7 @@ class Zigbee2MqttHelper<T : ZigbeeUpdate>(
     private val decode: suspend (String) -> T,
     private val callback: suspend () -> Unit = {}
 ) {
-    private var latestUpdate: T by cached(1.hours) {
+    private var latestUpdate: T by cached(1.hours, true) {
         bus.emit(sendEvent)
         latch.withLock {
             condition.await(1L, TimeUnit.SECONDS)

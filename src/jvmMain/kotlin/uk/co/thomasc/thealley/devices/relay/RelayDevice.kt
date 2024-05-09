@@ -33,7 +33,7 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
     AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyRelay, IAlleyStats, IAlleyRevocable {
 
     override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()
-    private var powerState by cached(1.minutes) {
+    private var powerState by cached(1.minutes, true) {
         client.get("http://${config.host}.light.kirkstall.top-cat.me/api/relay/0?apikey=${config.apiKey}") {
             accept(ContentType.Any)
         }.body<Int>() > 0
