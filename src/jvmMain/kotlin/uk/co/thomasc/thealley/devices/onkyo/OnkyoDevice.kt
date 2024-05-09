@@ -15,6 +15,7 @@ import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbPlayStatusPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTimeSeekPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.PowerPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.ReceiverInformationPacket
+import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 import uk.co.thomasc.thealley.devices.types.OnkyoConfig
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.GoogleHomeLang
@@ -57,6 +58,9 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                     repeatStatus = it.command.repeatStatus
                 }
             }
+        }
+        conn.handle<PowerPacket> {
+            bus.emit(RelayStateEvent(id, it.command == PowerPacket.PowerCommand.On))
         }
 
         registerGoogleHomeDevice(
@@ -176,3 +180,5 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
 
     companion object : KLogging()
 }
+
+data class RelayStateEvent(val deviceId: Int, val state: Boolean) : IAlleyEvent

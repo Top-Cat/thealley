@@ -19,6 +19,7 @@ abstract class Condition<T : ICondition>(protected val condition: T) {
 }
 
 fun ICondition.handler() = when (this) {
+    is RelayCondition -> RelayConditionHandler(this)
     is SunCondition -> SunConditionHandler(this)
     is TexecomAreaCondition -> TexecomAreaConditionHandler(this)
     is TexecomZoneCondition -> TexecomZoneConditionHandler(this)

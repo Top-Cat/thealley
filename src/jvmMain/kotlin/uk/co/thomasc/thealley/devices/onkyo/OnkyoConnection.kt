@@ -64,7 +64,7 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
         }
 
     private suspend inline fun <reified T : IOnkyoResponse> emit(packet: T) =
-        handlers[T::class]?.filterIsInstance<OnkyoPacketHandler<T>>()?.forEach { it.invoke(packet) }
+        handlers[packet::class]?.filterIsInstance<OnkyoPacketHandler<T>>()?.forEach { it.invoke(packet) }
 
     private suspend fun receiveLoop() {
         while (!conn.isClosed) {
