@@ -18,6 +18,7 @@ data class NetServiceList(override val count: Int, @XmlElement(true) override va
         val zone: String,
         val enable: String,
         @SerialName("addqueue") val addQueue: Boolean? = null,
-        val sort: Boolean? = null
+        val sort: Boolean? = null,
+        val multipage: Boolean?
     )
 }
