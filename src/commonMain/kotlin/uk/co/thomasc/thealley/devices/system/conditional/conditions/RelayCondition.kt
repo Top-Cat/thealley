@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 @SerialName("Relay")
 data class RelayCondition(
-    val state: Boolean
+    val deviceId: Int,
+    val state: Boolean = true
 ) : ICondition
