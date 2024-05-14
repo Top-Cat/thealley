@@ -10,6 +10,7 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.core.Closeable
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import mu.KLogging
@@ -18,6 +19,7 @@ import uk.co.thomasc.thealley.devices.onkyo.packet.IOnkyoResponse
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.seconds
 
 class OnkyoConnection(private val host: String, private val port: Int = 60128) : Closeable {
     private lateinit var conn: Socket
@@ -35,22 +37,34 @@ class OnkyoConnection(private val host: String, private val port: Int = 60128) :
     }
 
     private suspend fun connect() {
-        logger.info { "Connecting to $host:$port" }
-
-        packetChannel = Channel(0)
-        conn = aSocket(KasaDevice.selector).tcp().connect(host, port).apply {
-            inputChannel = openReadChannel()
-            outputChannel = openWriteChannel(true)
-        }
-
         GlobalScope.launch {
-            try {
-                receiveLoop()
-            } catch (e: Exception) {
-                logger.warn(e) { "Failure reading packet, reconnecting" }
-                conn.close()
-                packetChannel.close(e)
-                connect()
+            var backoff = 0
+            while (true) {
+                try {
+                    delay(backoff.seconds)
+                    logger.info { "Connecting to $host:$port" }
+
+                    packetChannel = Channel(0)
+                    conn = aSocket(KasaDevice.selector).tcp().connect(host, port).apply {
+                        inputChannel = openReadChannel()
+                        outputChannel = openWriteChannel(true)
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to connect to $host" }
+                    if (backoff < 120) backoff += 5
+                    continue
+                }
+
+                logger.info { "Connected" }
+                backoff = 0
+
+                try {
+                    receiveLoop()
+                } catch (e: Exception) {
+                    logger.warn(e) { "Failure reading packet, reconnecting" }
+                    conn.close()
+                    packetChannel.close(e)
+                }
             }
         }
     }
