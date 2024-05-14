@@ -3,14 +3,19 @@ package uk.co.thomasc.thealley.devices.onkyo
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.onkyo.packet.ArtPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.AudioPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.CinemaFilterPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.DimmerLevelPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.IOnkyoResponse
 import uk.co.thomasc.thealley.devices.onkyo.packet.InputPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.IntelliVolumePacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.MasterVolumePacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.MusicOptimizerPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.MutingPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetDeviceNamePacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbAlbumNamePacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbArtistNamePacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbControlPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbDeviceStatusPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbListInfoPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbListTitleInfoPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbMenuStatusPacket
@@ -19,8 +24,10 @@ import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTimeInfoPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTimeSeekPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTitleNamePacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTrackInfoPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.PhaseControlPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.PowerPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.ReceiverInformationPacket
+import uk.co.thomasc.thealley.devices.onkyo.packet.SubwooferLevelPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.VideoPacket
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
@@ -69,6 +76,13 @@ class Packet(private val messageBytes: ByteArray) {
             "NDN" -> NetDeviceNamePacket(cmd)
             "NAL" -> NetUsbAlbumNamePacket(cmd)
             "NTS" -> NetUsbTimeSeekPacket(cmd)
+            "NDS" -> NetUsbDeviceStatusPacket(cmd)
+            "DIM" -> DimmerLevelPacket(cmd)
+            "ITV" -> IntelliVolumePacket(cmd)
+            "MOT" -> MusicOptimizerPacket(cmd)
+            "PCT" -> PhaseControlPacket(cmd)
+            "RAS" -> CinemaFilterPacket(cmd)
+            "SWL" -> SubwooferLevelPacket(cmd)
             else -> {
                 logger.info { "Received unknown packet ${str.trim()}" }
                 null
