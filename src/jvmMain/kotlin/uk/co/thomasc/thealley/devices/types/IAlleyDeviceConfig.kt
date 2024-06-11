@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.somfy.SomfyGroupState
 import uk.co.thomasc.thealley.system.StateUpdaterFactory
 
 @Serializable
@@ -42,6 +43,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig, V : 
             is SceneConfig -> SceneDeviceConfig(config)
             is ScheduleConfig -> ScheduleDeviceConfig(config)
             is SomfyBlindConfig -> SomfyBlindDeviceConfig(config)
+            is SomfyGroupConfig -> SomfyGroupDeviceConfig(config)
             is SunConfig -> SunDeviceConfig(config)
             is SwitchConfig -> SwitchDeviceConfig(config)
             is SwitchServerConfig -> SwitchServerDeviceConfig(config)

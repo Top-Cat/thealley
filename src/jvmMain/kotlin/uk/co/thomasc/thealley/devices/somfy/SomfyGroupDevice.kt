@@ -8,13 +8,13 @@ import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
-import uk.co.thomasc.thealley.devices.types.SomfyBlindConfig
+import uk.co.thomasc.thealley.devices.types.SomfyGroupConfig
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.IBlindState
 import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
 
-class SomfyGroupDevice(id: Int, config: SomfyBlindConfig, state: SomfyGroupState, stateStore: IStateUpdater<SomfyGroupState>) :
-    AlleyDevice<SomfyGroupDevice, SomfyBlindConfig, SomfyGroupState>(id, config, state, stateStore), IAlleyRelay {
+class SomfyGroupDevice(id: Int, config: SomfyGroupConfig, state: SomfyGroupState, stateStore: IStateUpdater<SomfyGroupState>) :
+    AlleyDevice<SomfyGroupDevice, SomfyGroupConfig, SomfyGroupState>(id, config, state, stateStore), IAlleyRelay {
 
     override suspend fun init(bus: AlleyEventBus) {
         bus.handle<MqttMessageEvent> { ev ->
