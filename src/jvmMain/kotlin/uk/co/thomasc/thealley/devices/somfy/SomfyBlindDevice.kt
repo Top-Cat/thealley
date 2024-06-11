@@ -26,7 +26,14 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
             updateState {
                 when (parts[3]) {
                     "position" -> it.copy(position = ev.payload.toIntOrNull() ?: it.position)
-                    "target" -> it.copy(target = ev.payload.toIntOrNull() ?: it.target)
+                    "target" -> it.copy(target = ev.payload.toIntOrNull())
+                    "direction" -> it.copy(
+                        target = when (ev.payload) {
+                            "1" -> 0
+                            "-1" -> 100
+                            else -> null
+                        }
+                    )
                     else -> it
                 }
             }.let {

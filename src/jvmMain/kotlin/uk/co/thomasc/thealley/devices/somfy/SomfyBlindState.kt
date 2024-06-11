@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SomfyBlindState(
     val position: Int = 0,
-    val target: Int = 0
+    val target: Int? = null
 )
