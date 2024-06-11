@@ -25,11 +25,13 @@ class SomfyGroupDevice(id: Int, config: SomfyGroupConfig, state: SomfyGroupState
             // State update
             updateState {
                 when (parts[3]) {
-                    "direction" -> it.copy(position = when (ev.payload.toIntOrNull()) {
-                        -1 -> true // Opening
-                        0 -> it.position
-                        else -> false
-                    })
+                    "direction" -> it.copy(
+                        position = when (ev.payload.toIntOrNull()) {
+                            -1 -> true // Opening
+                            0 -> it.position
+                            else -> false
+                        }
+                    )
                     else -> it
                 }
             }.let {

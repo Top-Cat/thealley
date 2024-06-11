@@ -6,7 +6,6 @@ import kotlinx.serialization.json.Json
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.IStateUpdater
-import uk.co.thomasc.thealley.devices.somfy.SomfyGroupState
 import uk.co.thomasc.thealley.system.StateUpdaterFactory
 
 @Serializable
