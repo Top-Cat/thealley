@@ -50,7 +50,7 @@ class SomfyGroupDevice(id: Int, config: SomfyGroupConfig, state: SomfyGroupState
                     IBlindState.SingleDirection(if (state.position) 100 else 0)
                 },
                 setPosition = {
-                    setPosition(bus, it)
+                    setPowerState(bus, it > 0)
                 }
             )
         )
