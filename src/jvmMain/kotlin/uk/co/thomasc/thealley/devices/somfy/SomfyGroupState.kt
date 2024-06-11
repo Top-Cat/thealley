@@ -3,7 +3,6 @@ package uk.co.thomasc.thealley.devices.somfy
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SomfyBlindState(
-    val position: Int = 0,
-    val target: Int = 0
+data class SomfyGroupState(
+    val position: Boolean = false
 )

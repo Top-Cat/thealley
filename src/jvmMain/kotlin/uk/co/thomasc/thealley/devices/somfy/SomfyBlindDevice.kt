@@ -20,12 +20,13 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
         bus.handle<MqttMessageEvent> { ev ->
             val parts = ev.topic.split('/')
 
-            if (parts.size < 4 || parts[0] != config.prefix || parts[1] != "shades" && parts[2] != config.deviceId) return@handle
+            if (parts.size < 4 || parts[0] != config.prefix || parts[1] != TOPIC || parts[2] != config.deviceId) return@handle
 
             // State update
             updateState {
                 when (parts[3]) {
                     "position" -> it.copy(position = ev.payload.toIntOrNull() ?: it.position)
+                    "target" -> it.copy(target = ev.payload.toIntOrNull() ?: it.target)
                     else -> it
                 }
             }.let {
@@ -37,10 +38,10 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
 
         registerGoogleHomeDevice(
             DeviceType.BLINDS,
-            false,
+            true,
             OpenCloseTrait(
                 getPosition = {
-                    IBlindState.SingleDirection(state.position)
+                    IBlindState.SingleDirection(state.position, state.target)
                 },
                 setPosition = {
                     setPosition(bus, it)
@@ -49,10 +50,12 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
         )
     }
 
-    companion object : KLogging()
+    companion object : KLogging() {
+        const val TOPIC = "shades"
+    }
 
     private suspend fun setPosition(bus: AlleyEventBus, position: Int) {
-        bus.emit(MqttSendEvent("${config.prefix}/shades/${config.deviceId}/target/set", position.toString()))
+        bus.emit(MqttSendEvent("${config.prefix}/$TOPIC/${config.deviceId}/target/set", position.toString()))
     }
 
     override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) {
