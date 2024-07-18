@@ -16,7 +16,7 @@ val home = fc<Props> {
 
     useEffectOnce {
         axiosGet<List<DeviceInfo>>("/control/list").then {
-            setLights(it.data)
+            setLights(it)
         }
     }
 
@@ -25,7 +25,7 @@ val home = fc<Props> {
 
         val ids = lights.map { it.id }.joinToString(",")
         axiosGet<Map<Int, BulbState>>("/control/multi/$ids").then {
-            setLightStateMap(lightStateMap.plus(it.data))
+            setLightStateMap(lightStateMap.plus(it))
         }
     }
 

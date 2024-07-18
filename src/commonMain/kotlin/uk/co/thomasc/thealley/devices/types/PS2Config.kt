@@ -2,10 +2,20 @@ package uk.co.thomasc.thealley.devices.types
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import uk.co.thomasc.thealley.devices.IConfigEditable
+import uk.co.thomasc.thealley.devices.SimpleConfigEditable
+import uk.co.thomasc.thealley.devices.fieldEditor
 
 @Serializable
 @SerialName("PS2")
 data class PS2Config(
     override val name: String,
     val prefix: String = "ps2"
-) : IAlleyConfig
+) : IAlleyConfig,
+    IAlleyRelayConfig,
+    IConfigEditable<PS2Config> by SimpleConfigEditable(
+        listOf(
+            PS2Config::name.fieldEditor("Name") { c, n -> c.copy(name = n) },
+            PS2Config::prefix.fieldEditor("MQTT Prefix") { c, n -> c.copy(prefix = n) }
+        )
+    )

@@ -1,3 +1,5 @@
+package uk.co.thomasc.thealley
+
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.id
@@ -9,7 +11,7 @@ import react.fc
 import react.router.Route
 import react.router.Routes
 import react.router.dom.BrowserRouter
-import uk.co.thomasc.thealley.home
+import uk.co.thomasc.thealley.devices.devicesDialog
 
 fun main() {
     window.onload = {
@@ -27,6 +29,10 @@ val app = fc<Props> {
             Route {
                 attrs.path = "/"
                 attrs.element = createElement(home)
+            }
+            Route {
+                attrs.path = "/edit"
+                attrs.element = createElement(devicesDialog)
             }
             Route {
                 attrs.path = "*"

@@ -21,21 +21,7 @@ body {
   }
 }
 #control {
-  position: absolute;
-  background: rgba(0, 0, 0, 0.4);
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-
   & > div {
-    background: #FFF;
-    width: 600px;
-    top: 50%;
-    position: relative;
-    margin-top: -213px;
-    left: 50%;
-    margin-left: -300px;
     padding: 0 30px 30px;
   }
 
@@ -87,5 +73,83 @@ body {
     padding: 6px;
     border-width: 0 0 1px 0;
     border-color: #000;
+  }
+}
+#control, #devices {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.4);
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+
+  & > div {
+    background: #FFF;
+    width: 600px;
+    top: 50%;
+    position: relative;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    max-height: 70%;
+    overflow: scroll;
+  }
+}
+#devices {
+  & > div {
+    padding: 30px 50px;
+    width: 520px;
+  }
+}
+.device {
+  &> div {
+    margin-bottom: 12px;
+  }
+  label {
+    display: block;
+    font-size: 0.8rem;
+    margin: 2px;
+  }
+  input:not([type=checkbox]), select {
+    padding: 6px;
+    border-radius: 3px;
+    border: 1px solid #000;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+.picker-element {
+  display: flex;
+
+  button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 6px;
+    font-size: 20px;
+    cursor: pointer;
+
+    &.rem {
+      color: #eb4034;
+
+      &:hover {
+        color: #d12115;
+      }
+
+      &:active {
+        color: #f17c74;
+      }
+    }
+
+    &.add {
+      color: #22AA22;
+
+      &:hover {
+        color: #3fd93f;
+      }
+
+      &:active {
+        color: #198019;
+      }
+    }
   }
 }

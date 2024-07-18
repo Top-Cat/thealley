@@ -173,4 +173,4 @@ inline fun <reified T> transformRequest(data: T, headers: dynamic) =
         }
     }
 
-inline fun <reified T> axiosGet(url: String) = Axios.get<T>(url, generateConfig<String, T>())
+inline fun <reified T> axiosGet(url: String) = Axios.get<String>(url, generateConfig<String, String>()).then { alleyJson.decodeFromString<T>(it.data) }

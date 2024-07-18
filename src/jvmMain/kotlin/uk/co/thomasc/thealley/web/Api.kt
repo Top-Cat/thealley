@@ -8,6 +8,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import kotlinx.serialization.json.JsonPrimitive
+import uk.co.thomasc.thealley.devices.AlleyDeviceConfig
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionDevice
@@ -23,6 +24,9 @@ class ApiRoute : IAlleyRoute {
 
     @Location("/prop")
     data class Prop(val api: ApiRoute)
+
+    @Location("/devices")
+    data class Devices(val api: ApiRoute)
 
     override fun Route.setup(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper) {
         post<Motion> {
@@ -47,6 +51,11 @@ class ApiRoute : IAlleyRoute {
                 it.config.deviceId to it.props
             }
             call.respond(sensorData)
+        }
+
+        get<Devices> {
+            val config = deviceMapper.getDevices().map { AlleyDeviceConfig(it.id, it.config) }
+            call.respond(config)
         }
     }
 }

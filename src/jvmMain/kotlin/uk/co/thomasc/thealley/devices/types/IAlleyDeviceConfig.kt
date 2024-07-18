@@ -30,6 +30,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig, V : 
             is ConditionalConfig -> ConditionalDeviceConfig(config)
             is DualDimmerConfig -> DualDimmerDeviceConfig(config)
             is DualSwitchConfig -> DualSwitchDeviceConfig(config)
+            is MDimmerConfig -> MDimmerDeviceConfig(config)
             is MotionConfig -> MotionDeviceConfig(config)
             is MqttConfig -> MqttDeviceConfig(config)
             is OnkyoConfig -> OnkyoDeviceConfig(config)
