@@ -23,7 +23,7 @@ abstract class ZigbeeDimmerDevice<X : ZigbeeUpdateDimmer, T : AlleyDevice<T, U, 
     override suspend fun getLightState() = IAlleyLight.LightState(getBrightness())
 
     override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
-        val json = ZDimmerSet(((lightState.brightness ?: 0) * 2.55f).toInt(), null, transitionTime?.let { it / 1000f }).toJson()
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", json))
+        val json = ZDimmerSet(lightState.brightness255(), null, transitionTime?.let { it / 1000f })
+        bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
     }
 }

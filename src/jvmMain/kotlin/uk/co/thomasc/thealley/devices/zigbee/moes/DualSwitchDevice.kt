@@ -18,9 +18,9 @@ class DualSwitchDevice(id: Int, config: DualSwitchConfig, state: EmptyState, sta
         val json = when (index) {
             2 -> ZMultiRelaySet(state2 = state)
             else -> ZMultiRelaySet(state1 = state)
-        }.toJson()
+        }
 
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", json))
+        bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
     }
 
     override suspend fun setPowerState(bus: AlleyEventBus, index: Int, value: Boolean) =

@@ -7,5 +7,7 @@ interface IAlleyLight : IAlleyRelay {
 
     suspend fun setComplexState(bus: AlleyEventBus, lightState: LightState, transitionTime: Int? = 1000)
 
-    data class LightState(override val brightness: Int? = null, override val hue: Int? = null, override val saturation: Int? = null, override val temperature: Int? = null) : ILightState
+    data class LightState(override val brightness: Int? = null, override val hue: Int? = null, override val saturation: Int? = null, override val temperature: Int? = null) : ILightState {
+        fun brightness255() = ((brightness ?: 0) * 2.55f).toInt()
+    }
 }

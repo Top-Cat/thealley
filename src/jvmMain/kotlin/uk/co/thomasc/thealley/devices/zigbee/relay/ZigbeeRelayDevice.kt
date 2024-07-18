@@ -19,7 +19,7 @@ abstract class ZigbeeRelayDevice<X : ZigbeeUpdateRelay, T : AlleyDevice<T, U, V>
 ) : ZigbeeDevice<X, T, U, V>(id, config, state, stateStore, serializer), IAlleyRelay {
 
     private suspend fun setLightState(bus: AlleyEventBus, state: ZRelayAction) {
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", ZRelaySet(state).toJson()))
+        bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", ZRelaySet(state)))
     }
 
     override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) = setLightState(bus, if (value) ZRelayAction.ON else ZRelayAction.OFF)

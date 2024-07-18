@@ -23,9 +23,9 @@ class DualDimmerDevice(id: Int, config: DualDimmerConfig, state: EmptyState, sta
         val json = when (index) {
             2 -> ZMultiRelaySet(state2 = state)
             else -> ZMultiRelaySet(state1 = state)
-        }.toJson()
+        }
 
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", json))
+        bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
     }
 
     private suspend fun setLightBrightness(bus: AlleyEventBus, index: Int, brightness: Int) {
@@ -42,9 +42,9 @@ class DualDimmerDevice(id: Int, config: DualDimmerConfig, state: EmptyState, sta
         val json = when {
             index == 2 -> ZMultiLightSet(brightness2 = brightness)
             else -> ZMultiLightSet(brightness1 = brightness)
-        }.toJson()
+        }
 
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", json))
+        bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
     }
 
     override suspend fun getLightState(index: Int) =
