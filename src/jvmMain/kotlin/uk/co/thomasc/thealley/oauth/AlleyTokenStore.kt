@@ -12,7 +12,7 @@ import nl.myndocs.oauth2.token.TokenStore
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
@@ -23,7 +23,7 @@ class AlleyTokenStore(private val clientStore: InMemoryClient) : TokenStore {
 
     override fun accessToken(token: String) =
         transaction {
-            AccessTokenTable.select {
+            AccessTokenTable.selectAll().where {
                 AccessTokenTable.id eq token
             }.singleOrNull()?.let {
                 AccessToken(
@@ -54,7 +54,7 @@ class AlleyTokenStore(private val clientStore: InMemoryClient) : TokenStore {
 
     override fun refreshToken(token: String) =
         transaction {
-            RefreshTokenTable.select {
+            RefreshTokenTable.selectAll().where {
                 RefreshTokenTable.id eq token
             }.singleOrNull()?.let {
                 RefreshToken(

@@ -4,7 +4,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
@@ -18,7 +18,7 @@ object TheAlley {
     fun start(): Pair<AlleyEventBus, AlleyDeviceMapper> {
         val devices = transaction {
             DeviceDao.wrapRows(
-                DeviceTable.select {
+                DeviceTable.selectAll().where {
                     DeviceTable.enabled eq true
                 }
             ).map { Triple(it.id.value, it.config, it.state) }
