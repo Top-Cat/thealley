@@ -12,7 +12,7 @@ import uk.co.thomasc.thealley.repo.NowExpression
 internal class StateUpdaterImpl<U>(val json: Json, val serializer: KSerializer<U>, val id: Int) : IStateUpdater<U> {
     override suspend fun saveState(newState: U) {
         val localId = id
-        val encoded = json.encodeToString(serializer, newState)
+        val encoded = encoded(newState)
         logger.debug { "Update state for $localId - $encoded" }
 
         newSuspendedTransaction {
@@ -24,6 +24,9 @@ internal class StateUpdaterImpl<U>(val json: Json, val serializer: KSerializer<U
             }
         }
     }
+
+    override suspend fun encoded(state: U) =
+        json.encodeToString(serializer, state)
 
     companion object : KLogging()
 }

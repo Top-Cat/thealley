@@ -45,6 +45,8 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
         googleHome = GoogleHomeInfo(type, traits.toSet(), willReportState, deviceInfo)
     }
 
+    suspend fun getStateAsString() = stateStore.encoded(state)
+
     override fun close() {
         // Do nothing by default
     }

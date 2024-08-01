@@ -43,7 +43,7 @@ val conditionEditor = fc<ConditionEditorProps> { props ->
             props.updateCondition(cond.second())
         }
 
-        conditionCreator.forEachIndexed { idx, (actionType, creator) ->
+        conditionCreator.forEachIndexed { idx, (actionType, _) ->
             option {
                 attrs.value = idx.toString()
                 attrs.selected = actionType.isInstance(props.condition)

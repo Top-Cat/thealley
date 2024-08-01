@@ -1,12 +1,16 @@
 package uk.co.thomasc.thealley.devices
 
+import external.Axios
 import external.axiosGet
+import external.generateConfig
 import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
 import react.Props
+import react.dom.button
 import react.dom.defaultValue
 import react.dom.div
 import react.dom.input
@@ -31,6 +35,7 @@ val devicesDialog = fc<Props> { _ ->
     val (deviceLookup, setDeviceLookup) = useState(emptyMap<Int, AlleyDeviceConfig>())
     val (device, setDevice) = useState<AlleyDeviceConfig>()
     val (newConfig, setNewConfig) = useState<IAlleyConfig>()
+    val (loading, setLoading) = useState(false)
 
     useEffectOnce {
         axiosGet<List<AlleyDeviceConfig>>("/api/devices").then {
@@ -39,14 +44,18 @@ val devicesDialog = fc<Props> { _ ->
     }
 
     useEffect(devices) {
-        val dev = devices.firstOrNull()
-        setDevice(dev)
-        setNewConfig(dev?.config)
+        if (!devices.contains(device)) {
+            val dev = devices.firstOrNull()
+            setDevice(dev)
+            setNewConfig(dev?.config)
+        }
         setDeviceLookup(devices.associateBy { it.id })
     }
 
     useEffect(newConfig) {
-        console.log("NEW CONFIG", newConfig)
+        if (newConfig == null && device?.config != null) {
+            setNewConfig(device.config)
+        }
     }
 
     div {
@@ -73,8 +82,8 @@ val devicesDialog = fc<Props> { _ ->
                     div("device") {
                         p { +"Id: ${d.id}" }
 
-                        if (d.config is IConfigEditable<*>) {
-                            d.config.fields.forEach { field ->
+                        if (newConfig is IConfigEditable<*>) {
+                            newConfig.fields.forEach { field ->
                                 div {
                                     label {
                                         attrs.htmlFor = field.name
@@ -238,6 +247,35 @@ val devicesDialog = fc<Props> { _ ->
                                         }
                                     }
                                 }
+                            }
+                        }
+
+                        div("btn-group") {
+                            val disable = loading || d.config == newConfig
+                            button(classes = "secondary") {
+                                attrs.onClickFunction = {
+                                    it.preventDefault()
+                                    setNewConfig(null)
+                                }
+                                attrs.disabled = disable
+                                +"Cancel"
+                            }
+                            button(classes = "primary") {
+                                attrs.onClickFunction = {
+                                    it.preventDefault()
+
+                                    setLoading(true)
+                                    Axios.put<String>("/api/devices/${d.id}", newConfig, generateConfig<IAlleyConfig, String>()).then {
+                                        setLoading(false)
+                                        val newDevice = d.copy(config = newConfig)
+                                        setDevice(newDevice)
+                                        setDevices(devices.filter { df -> df.id != d.id }.plus(newDevice).sortedBy { ds -> ds.id })
+                                    }.catch {
+                                        setLoading(false)
+                                    }
+                                }
+                                attrs.disabled = disable
+                                +"Save"
                             }
                         }
                     }
