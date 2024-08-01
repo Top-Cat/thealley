@@ -2,7 +2,8 @@ package uk.co.thomasc.thealley.devices.system.conditional
 
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.system.conditional.actions.handler
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.ICondition
@@ -12,7 +13,7 @@ import uk.co.thomasc.thealley.devices.types.ConditionalConfig
 class ConditionalDevice(id: Int, config: ConditionalConfig, state: ConditionalState, stateStore: IStateUpdater<ConditionalState>, val dev: AlleyDeviceMapper) :
     AlleyDevice<ConditionalDevice, ConditionalConfig, ConditionalState>(id, config, state, stateStore), UpdateCondition {
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         if (state.states.size != config.conditions.size) {
             updateState(state.copy(states = (1..config.conditions.size).map { false }))
         }
@@ -24,7 +25,7 @@ class ConditionalDevice(id: Int, config: ConditionalConfig, state: ConditionalSt
         config.trigger.handler().setup(this, bus)
     }
 
-    override suspend fun updateConditionState(condition: ICondition, v: Boolean, bus: AlleyEventBus) {
+    override suspend fun updateConditionState(condition: ICondition, v: Boolean, bus: AlleyEventEmitter) {
         if (condition == config.trigger && v && state.states.size == config.conditions.size && state.states.all { it }) {
             config.action.handler().perform(dev, bus)
         }

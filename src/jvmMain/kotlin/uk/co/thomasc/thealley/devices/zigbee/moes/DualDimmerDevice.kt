@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.devices.zigbee.moes
 
 import kotlinx.coroutines.delay
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
@@ -19,7 +19,7 @@ class DualDimmerDevice(id: Int, config: DualDimmerConfig, state: EmptyState, sta
 
     override fun getEvent() = MqttSendEvent("${config.prefix}/${config.deviceId}/set", "{\"countdown_l1\": \"0\"}")
 
-    private suspend fun setLightState(bus: AlleyEventBus, index: Int, state: ZRelayAction) {
+    private suspend fun setLightState(bus: AlleyEventEmitter, index: Int, state: ZRelayAction) {
         val json = when (index) {
             2 -> ZMultiRelaySet(state2 = state)
             else -> ZMultiRelaySet(state1 = state)
@@ -28,7 +28,7 @@ class DualDimmerDevice(id: Int, config: DualDimmerConfig, state: EmptyState, sta
         bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
     }
 
-    private suspend fun setLightBrightness(bus: AlleyEventBus, index: Int, brightness: Int) {
+    private suspend fun setLightBrightness(bus: AlleyEventEmitter, index: Int, brightness: Int) {
         val currentState = getPowerState(index)
         if (brightness == 0) {
             if (currentState) setLightState(bus, index, ZRelayAction.OFF)
@@ -57,11 +57,11 @@ class DualDimmerDevice(id: Int, config: DualDimmerConfig, state: EmptyState, sta
             )
         }
 
-    override suspend fun setComplexState(bus: AlleyEventBus, index: Int, lightState: IAlleyLight.LightState, transitionTime: Int?) {
+    override suspend fun setComplexState(bus: AlleyEventEmitter, index: Int, lightState: IAlleyLight.LightState, transitionTime: Int?) {
         setLightBrightness(bus, index, lightState.brightness ?: 0)
     }
 
-    override suspend fun setPowerState(bus: AlleyEventBus, index: Int, value: Boolean) =
+    override suspend fun setPowerState(bus: AlleyEventEmitter, index: Int, value: Boolean) =
         setLightState(bus, index, if (value) ZRelayAction.ON else ZRelayAction.OFF)
 
     override suspend fun getPowerState(index: Int) =
@@ -72,10 +72,10 @@ class DualDimmerDevice(id: Int, config: DualDimmerConfig, state: EmptyState, sta
             } == ZRelayAction.ON
         }
 
-    override suspend fun togglePowerState(bus: AlleyEventBus, index: Int) =
+    override suspend fun togglePowerState(bus: AlleyEventEmitter, index: Int) =
         setLightState(bus, index, ZRelayAction.TOGGLE)
 
-    override suspend fun onUpdate(bus: AlleyEventBus, update: DualDimmerUpdate) {
+    override suspend fun onUpdate(bus: AlleyEventEmitter, update: DualDimmerUpdate) {
         bus.emit(MultiGangUpdate(id))
     }
 }

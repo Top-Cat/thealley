@@ -6,7 +6,7 @@ import com.luckycatlabs.sunrisesunset.dto.Location
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toKotlinInstant
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.types.SunConfig
@@ -15,8 +15,10 @@ import java.util.Calendar
 class SunDevice(id: Int, config: SunConfig, state: SunState, stateStore: IStateUpdater<SunState>) :
     AlleyDevice<SunDevice, SunConfig, SunState>(id, config, state, stateStore) {
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<TickEvent> {
+            println("TickEvent ${this.hashCode()}")
+
             val daytime = isDaytime()
             if (state.daytime != daytime) {
                 bus.emit(if (daytime) SunRiseEvent else SunSetEvent)

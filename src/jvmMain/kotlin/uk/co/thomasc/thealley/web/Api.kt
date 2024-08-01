@@ -86,13 +86,13 @@ class ApiRoute : IAlleyRoute {
                     }
 
                     deviceMapper.deregister(currentDevice)
-                    currentDevice.close()
+                    currentDevice.finalise()
 
                     val stateFactory = StateUpdaterFactory(alleyJsonUgly, id)
                     val newDevice = newDeviceConfig.generate(id, alleyJsonUgly, stateFactory, currentDevice.getStateAsString(), deviceMapper)
 
                     withTimeout(1000) {
-                        newDevice.init(bus)
+                        newDevice.create(bus)
                     }
 
                     deviceMapper.register(newDevice)

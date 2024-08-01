@@ -4,7 +4,8 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import mu.KLogging
 import uk.co.thomasc.thealley.alleyJson
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.generic.IAlleyRevocable
@@ -31,14 +32,14 @@ import uk.co.thomasc.thealley.google.trait.OnOffTrait
 class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: IStateUpdater<BulbState>) :
     KasaDevice<BulbData, BulbDevice, BulbConfig, BulbState>(id, config, state, stateStore), IAlleyLight, IAlleyRevocable {
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {
-                    setPowerState(bus, it)
+                    setPowerState(bus.bus, it)
                 }
             ),
             BrightnessTrait(
@@ -46,7 +47,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
                     getLightPossibleState()?.brightness ?: 0
                 },
                 setBrightness = { b ->
-                    setComplexState(bus, IAlleyLight.LightState(b))
+                    setComplexState(bus.bus, IAlleyLight.LightState(b))
                 }
             ),
             ColorSettingTrait(
@@ -54,7 +55,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
                     IColorState.fromLightState(getLightPossibleState())
                 },
                 setColor = {
-                    it.setComplexState(bus, ::setComplexState)
+                    it.setComplexState(bus.bus, ::setComplexState)
                 }
             )
         )
@@ -92,7 +93,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
         }
     }
 
-    private suspend fun onWithNightScaling(bus: AlleyEventBus, now: Instant, transitionTime: Int = 500) =
+    private suspend fun onWithNightScaling(bus: AlleyEventEmitter, now: Instant, transitionTime: Int = 500) =
         setComplexState(
             bus,
             IAlleyLight.LightState(
@@ -111,7 +112,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
     suspend fun getSignalStrength() = getData<BulbResponse>()?.rssi
     suspend fun getPowerUsage() = getPower().power
 
-    private suspend fun setLightState(bus: AlleyEventBus, update: BulbUpdate) {
+    private suspend fun setLightState(bus: AlleyEventEmitter, update: BulbUpdate) {
         val obj = LightingServiceUpdate(LightingService(update))
 
         send(obj)?.let {
@@ -132,9 +133,9 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
             } ?: BulbRealtimePower(0, 0, -1)
         }
 
-    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) = setLightState(bus, BulbUpdate(value))
+    override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) = setLightState(bus, BulbUpdate(value))
 
-    override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
+    override suspend fun setComplexState(bus: AlleyEventEmitter, lightState: IAlleyLight.LightState, transitionTime: Int?) {
         setLightState(
             bus,
             lightState.temperature?.let {
@@ -147,7 +148,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
 
     override suspend fun getPowerState() = getData<BulbResponse>()?.lightState?.isOn() == true
 
-    override suspend fun togglePowerState(bus: AlleyEventBus) =
+    override suspend fun togglePowerState(bus: AlleyEventEmitter) =
         setPowerState(bus, !getPowerState())
 
     override suspend fun hold() {

@@ -2,7 +2,7 @@ package uk.co.thomasc.thealley.devices.zigbee.relay
 
 import kotlinx.serialization.KSerializer
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
@@ -22,7 +22,7 @@ abstract class ZigbeeDimmerDevice<X : ZigbeeUpdateDimmer, T : AlleyDevice<T, U, 
 
     override suspend fun getLightState() = IAlleyLight.LightState(getBrightness())
 
-    override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
+    override suspend fun setComplexState(bus: AlleyEventEmitter, lightState: IAlleyLight.LightState, transitionTime: Int?) {
         val json = ZDimmerSet(lightState.brightness255(), null, transitionTime?.let { it / 1000f })
         bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
     }

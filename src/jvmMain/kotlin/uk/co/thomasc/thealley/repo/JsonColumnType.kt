@@ -22,7 +22,7 @@ inline fun <reified T : Any> Table.json(
 fun <T : Any> Table.json(name: String, stringify: (T) -> String, parse: (String) -> T): Column<T> =
     registerColumn(name, JsonColumnType(stringify, parse))
 
-class JsonColumnType<T : Any>(private val stringify: (T) -> String, private val parse: (String) -> T) : ColumnType() {
+class JsonColumnType<T : Any>(private val stringify: (T) -> String, private val parse: (String) -> T) : ColumnType<T>() {
     override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
         stmt[index] = value as String
     }
@@ -30,10 +30,9 @@ class JsonColumnType<T : Any>(private val stringify: (T) -> String, private val 
     override fun sqlType(): String = "json"
     override fun valueFromDB(value: Any) = parse(value as String)
 
-    @Suppress("UNCHECKED_CAST")
-    override fun notNullValueToDB(value: Any) = stringify(value as T)
+    override fun notNullValueToDB(value: T) = stringify(value)
 
-    override fun valueToString(value: Any?): String = when (value) {
+    override fun valueToString(value: T?): String = when (value) {
         is Iterable<*> -> notNullValueToDB(value)
         else -> super.valueToString(value)
     }

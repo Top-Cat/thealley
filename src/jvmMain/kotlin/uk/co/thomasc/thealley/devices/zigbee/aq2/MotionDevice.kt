@@ -2,7 +2,7 @@ package uk.co.thomasc.thealley.devices.zigbee.aq2
 
 import kotlinx.serialization.json.JsonPrimitive
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.IStateUpdater
@@ -13,7 +13,7 @@ import kotlin.collections.set
 class MotionDevice(id: Int, config: MotionConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>, val dev: AlleyDeviceMapper) :
     ZigbeeDevice<MotionSensorUpdate, MotionDevice, MotionConfig, EmptyState>(id, config, state, stateStore, MotionSensorUpdate.serializer()), IAlleyStats {
 
-    override suspend fun onUpdate(bus: AlleyEventBus, update: MotionSensorUpdate) {
+    override suspend fun onUpdate(bus: AlleyEventEmitter, update: MotionSensorUpdate) {
         if (update.occupancy) {
             trigger(bus)
         }
@@ -25,7 +25,7 @@ class MotionDevice(id: Int, config: MotionConfig, state: EmptyState, stateStore:
         props["voltage"] = JsonPrimitive(update.voltage.toDouble())
     }
 
-    suspend fun trigger(bus: AlleyEventBus) {
+    suspend fun trigger(bus: AlleyEventEmitter) {
         bus.emit(MotionEvent(id, config.deviceId))
     }
 

@@ -13,7 +13,13 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
     protected val state
         get() = currentState
 
-    open suspend fun init(bus: AlleyEventBus) { }
+    private lateinit var shim: AlleyEventBusShim
+    suspend fun create(bus: AlleyEventBus) {
+        shim = AlleyEventBusShim(bus)
+        init(shim)
+    }
+
+    open suspend fun init(bus: AlleyEventBusShim) { }
     suspend fun updateState(state: U) =
         if (this.currentState != state) {
             stateStore.saveState(state)
@@ -49,5 +55,10 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(
 
     override fun close() {
         // Do nothing by default
+    }
+
+    suspend fun finalise() {
+        shim.close()
+        close()
     }
 }

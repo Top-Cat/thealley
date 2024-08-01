@@ -2,7 +2,8 @@ package uk.co.thomasc.thealley.devices.somfy
 
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
@@ -16,7 +17,7 @@ import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
 class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState, stateStore: IStateUpdater<SomfyBlindState>) :
     AlleyDevice<SomfyBlindDevice, SomfyBlindConfig, SomfyBlindState>(id, config, state, stateStore), IAlleyLight {
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<MqttMessageEvent> { ev ->
             val parts = ev.topic.split('/')
 
@@ -61,17 +62,17 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
         const val TOPIC = "shades"
     }
 
-    private suspend fun setPosition(bus: AlleyEventBus, position: Int) {
+    private suspend fun setPosition(bus: AlleyEventEmitter, position: Int) {
         bus.emit(MqttSendEvent("${config.prefix}/$TOPIC/${config.deviceId}/target/set", position.toString()))
     }
 
-    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) {
+    override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) {
         setPosition(bus, if (value) 100 else 0)
     }
 
     override suspend fun getLightState() = IAlleyLight.LightState(state.position)
 
-    override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
+    override suspend fun setComplexState(bus: AlleyEventEmitter, lightState: IAlleyLight.LightState, transitionTime: Int?) {
         lightState.brightness?.let {
             setPosition(bus, it)
         }
@@ -79,5 +80,5 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
 
     override suspend fun getPowerState() = state.position > 0
 
-    override suspend fun togglePowerState(bus: AlleyEventBus) = setPowerState(bus, !getPowerState())
+    override suspend fun togglePowerState(bus: AlleyEventEmitter) = setPowerState(bus, !getPowerState())
 }

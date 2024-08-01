@@ -1,6 +1,7 @@
 package uk.co.thomasc.thealley.devices.zigbee.moes
 
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
@@ -17,7 +18,7 @@ import uk.co.thomasc.thealley.google.trait.OnOffTrait
 class MDimmerDevice(id: Int, config: MDimmerConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     ZigbeeDimmerDevice<MDimmerUpdate, MDimmerDevice, MDimmerConfig, EmptyState>(id, config, state, stateStore, MDimmerUpdate.serializer()), IAlleyLight {
 
-    override suspend fun onInit(bus: AlleyEventBus) {
+    override suspend fun onInit(bus: AlleyEventBusShim) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
@@ -38,11 +39,11 @@ class MDimmerDevice(id: Int, config: MDimmerConfig, state: EmptyState, stateStor
         )
     }
 
-    override suspend fun onUpdate(bus: AlleyEventBus, update: MDimmerUpdate) {
+    override suspend fun onUpdate(bus: AlleyEventEmitter, update: MDimmerUpdate) {
         bus.emit(ReportStateEvent(this))
     }
 
-    override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
+    override suspend fun setComplexState(bus: AlleyEventEmitter, lightState: IAlleyLight.LightState, transitionTime: Int?) {
         val action = when {
             lightState.brightness == null || lightState.brightness == 0 -> ZRelayAction.OFF
             else -> ZRelayAction.ON

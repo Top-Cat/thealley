@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import uk.co.thomasc.thealley.cached
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.GetStateException
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
@@ -16,7 +16,7 @@ import kotlin.concurrent.withLock
 import kotlin.time.Duration.Companion.hours
 
 class Zigbee2MqttHelper<T : ZigbeeUpdate>(
-    private val bus: AlleyEventBus,
+    private val bus: AlleyEventBusShim,
     private val prefix: String,
     private val deviceId: String,
     private val sendEvent: MqttSendEvent,

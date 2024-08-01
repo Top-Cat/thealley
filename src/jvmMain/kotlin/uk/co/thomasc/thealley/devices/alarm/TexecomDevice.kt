@@ -5,6 +5,8 @@ import mu.KLogging
 import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.alarm.events.TexecomAreaEvent
 import uk.co.thomasc.thealley.devices.alarm.events.TexecomZoneEvent
@@ -34,7 +36,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
 
     private lateinit var armState: ArmDisarmTrait.State
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         armState = stateFor(state.armLevel)
 
         bus.handle<MqttMessageEvent> { ev ->
@@ -81,11 +83,11 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                         .filter { it.status == TexecomAreaStatus.DISARMED }
                         .mapNotNull { it.slug }
                         .forEach { slug ->
-                            areaCommand(bus, slug, AreaCommand.FULL)
+                            areaCommand(bus.bus, slug, AreaCommand.FULL)
                         }
                 } else {
                     areasInState(true).values.mapNotNull { it.slug }.forEach { slug ->
-                        areaCommand(bus, slug, AreaCommand.DISARM)
+                        areaCommand(bus.bus, slug, AreaCommand.DISARM)
                     }
                 }
             }
@@ -104,7 +106,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
     private fun areasInState(armed: Boolean) = state.areaState
         .filter { (_, area) -> (area.status != TexecomAreaStatus.DISARMED) == armed }
 
-    private suspend fun <T : Any> handleMessage(bus: AlleyEventBus, payload: String, parts: List<String>, serializer: KSerializer<T>) {
+    private suspend fun <T : Any> handleMessage(bus: AlleyEventEmitter, payload: String, parts: List<String>, serializer: KSerializer<T>) {
         when (val msg = alleyJson.decodeFromString(serializer, payload)) {
             is TexecomArea -> {
                 val didChange = updateState {
@@ -144,7 +146,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
         return GoogleArmLevel.entries.find { it.str == currentState } ?: GoogleArmLevel.FULL
     }
 
-    private suspend fun checkState(bus: AlleyEventBus) {
+    private suspend fun checkState(bus: AlleyEventEmitter) {
         if (updateState(state.copy(armLevel = getLevel()))) {
             armState = stateFor(state.armLevel)
             bus.emit(ReportStateEvent(this))

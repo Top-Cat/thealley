@@ -8,7 +8,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.types.MqttConfig
@@ -25,7 +25,7 @@ class MqttDevice(id: Int, config: MqttConfig, state: EmptyState, stateStore: ISt
     }
     private val client = MqttClient("tcp://${config.host}:1883", config.clientId + suffix)
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         client.setCallback(object : MqttCallbackExtended {
             override fun connectionLost(cause: Throwable) {
                 logger.warn { "connectionLost" }

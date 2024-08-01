@@ -26,7 +26,7 @@ import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.GetStateException
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.google.command.IGoogleHomeFollowUpCommand
@@ -56,7 +56,7 @@ import uk.co.thomasc.thealley.web.google.SyncIntent
 import uk.co.thomasc.thealley.web.google.SyncResponse
 import java.util.UUID
 
-class ExternalHandler(private val bus: AlleyEventBus, private val deviceMapper: AlleyDeviceMapper) {
+class ExternalHandler(private val bus: AlleyEventBusShim, private val deviceMapper: AlleyDeviceMapper) {
     init {
         CoroutineScope(threadPool).launch {
             bus.handle<ReportStateEvent> {

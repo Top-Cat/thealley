@@ -1,6 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.moes
 
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyMultiGangRelay
@@ -14,7 +14,7 @@ import uk.co.thomasc.thealley.devices.zigbee.relay.ZRelayAction
 class DualSwitchDevice(id: Int, config: DualSwitchConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     ZigbeeDevice<DualSwitchUpdate, DualSwitchDevice, DualSwitchConfig, EmptyState>(id, config, state, stateStore, DualSwitchUpdate.serializer()), IAlleyMultiGangRelay {
 
-    private suspend fun setLightState(bus: AlleyEventBus, index: Int, state: ZRelayAction) {
+    private suspend fun setLightState(bus: AlleyEventEmitter, index: Int, state: ZRelayAction) {
         val json = when (index) {
             2 -> ZMultiRelaySet(state2 = state)
             else -> ZMultiRelaySet(state1 = state)
@@ -23,7 +23,7 @@ class DualSwitchDevice(id: Int, config: DualSwitchConfig, state: EmptyState, sta
         bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
     }
 
-    override suspend fun setPowerState(bus: AlleyEventBus, index: Int, value: Boolean) =
+    override suspend fun setPowerState(bus: AlleyEventEmitter, index: Int, value: Boolean) =
         setLightState(bus, index, if (value) ZRelayAction.ON else ZRelayAction.OFF)
 
     override suspend fun getPowerState(index: Int) =
@@ -34,10 +34,10 @@ class DualSwitchDevice(id: Int, config: DualSwitchConfig, state: EmptyState, sta
             } == ZRelayAction.ON
         }
 
-    override suspend fun togglePowerState(bus: AlleyEventBus, index: Int) =
+    override suspend fun togglePowerState(bus: AlleyEventEmitter, index: Int) =
         setLightState(bus, index, ZRelayAction.TOGGLE)
 
-    override suspend fun onUpdate(bus: AlleyEventBus, update: DualSwitchUpdate) {
+    override suspend fun onUpdate(bus: AlleyEventEmitter, update: DualSwitchUpdate) {
         bus.emit(MultiGangUpdate(id))
     }
 }

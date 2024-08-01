@@ -37,7 +37,7 @@ object TheAlley {
 
                     deviceList.forEach {
                         withTimeout(1000) {
-                            it.init(bus)
+                            it.create(bus)
                         }
                     }
 

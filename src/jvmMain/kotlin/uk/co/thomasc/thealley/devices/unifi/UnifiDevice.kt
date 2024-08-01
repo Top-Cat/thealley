@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.devices.unifi
 
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.types.UnifiConfig
@@ -11,7 +11,7 @@ import uk.co.thomasc.thealley.google.trait.NetworkControlTrait
 class UnifiDevice(id: Int, config: UnifiConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<UnifiDevice, UnifiConfig, EmptyState>(id, config, state, stateStore) {
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         registerGoogleHomeDevice(
             DeviceType.NETWORK,
             false,

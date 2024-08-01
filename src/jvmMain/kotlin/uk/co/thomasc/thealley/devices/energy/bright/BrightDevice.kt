@@ -4,7 +4,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.energy.bright.client.Bright
 import uk.co.thomasc.thealley.devices.energy.bright.client.BrightPeriod
@@ -20,7 +20,7 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
     private val bright = Bright(config.email, config.pass)
     private fun nextHalfHour(instant: Instant) = ((instant.epochSeconds / 1800) + 1) * 1800
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<TickEvent> {
             val now = Clock.System.now()
             if (state.nextCatchup?.let { now > it } != false) {

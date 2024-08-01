@@ -2,7 +2,8 @@ package uk.co.thomasc.thealley.devices.ps2
 
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
@@ -19,7 +20,7 @@ enum class ESPHomeSwitchState {
 class PS2Device(id: Int, config: PS2Config, state: PS2State, stateStore: IStateUpdater<PS2State>) :
     AlleyDevice<PS2Device, PS2Config, PS2State>(id, config, state, stateStore), IAlleyRelay {
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<MqttMessageEvent> { ev ->
             val parts = ev.topic.split('/')
 
@@ -52,21 +53,21 @@ class PS2Device(id: Int, config: PS2Config, state: PS2State, stateStore: IStateU
 
     companion object : KLogging()
 
-    private suspend fun setPower(bus: AlleyEventBus, state: ESPHomeSwitchState) {
+    private suspend fun setPower(bus: AlleyEventEmitter, state: ESPHomeSwitchState) {
         bus.emit(MqttSendEvent("${config.prefix}/switch/power/command", state.toString()))
     }
 
-    private suspend fun toggleTray(bus: AlleyEventBus) {
+    private suspend fun toggleTray(bus: AlleyEventEmitter) {
         bus.emit(MqttSendEvent("${config.prefix}/button/tray/command", "PRESS"))
     }
 
-    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) {
+    override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) {
         setPower(bus, if (value) ESPHomeSwitchState.ON else ESPHomeSwitchState.OFF)
     }
 
     override suspend fun getPowerState() = state.power
 
-    override suspend fun togglePowerState(bus: AlleyEventBus) {
+    override suspend fun togglePowerState(bus: AlleyEventEmitter) {
         setPower(bus, ESPHomeSwitchState.TOGGLE)
     }
 }

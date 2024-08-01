@@ -15,7 +15,7 @@ import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
@@ -27,12 +27,13 @@ import java.nio.ByteBuffer
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.coroutines.coroutineContext
 
+// TODO: Support closing
 class SwitchServerDevice(id: Int, config: SwitchServerConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<SwitchServerDevice, SwitchServerConfig, EmptyState>(id, config, state, stateStore) {
 
     private val server: ServerSocket = aSocket(selector).tcp().bind(port = config.port)
 
-    private suspend fun listenForClients(bus: AlleyEventBus) {
+    private suspend fun listenForClients(bus: AlleyEventBusShim) {
         while (true) {
             val client = server.accept()
             with(CoroutineScope(coroutineContext)) {
@@ -54,7 +55,7 @@ class SwitchServerDevice(id: Int, config: SwitchServerConfig, state: EmptyState,
         }
     }
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         GlobalScope.launch(threadPool) {
             listenForClients(bus)
         }.apply {

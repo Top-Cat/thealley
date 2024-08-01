@@ -2,7 +2,7 @@ package uk.co.thomasc.thealley.devices.switch
 
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.system.scene.SceneEvent
 import uk.co.thomasc.thealley.devices.types.SwitchConfig
@@ -10,7 +10,7 @@ import uk.co.thomasc.thealley.devices.types.SwitchConfig
 class SwitchDevice(id: Int, config: SwitchConfig, state: SwitchState, stateStore: IStateUpdater<SwitchState>) :
     AlleyDevice<SwitchDevice, SwitchConfig, SwitchState>(id, config, state, stateStore) {
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<SwitchEvent> { ev ->
             if (ev.switchId != config.id) return@handle
             val sceneId = config.scenes[ev.buttonId]

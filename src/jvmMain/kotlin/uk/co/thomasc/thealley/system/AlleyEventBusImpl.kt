@@ -48,5 +48,9 @@ internal class AlleyEventBusImpl : AlleyEventBus() {
         }
     }
 
+    override suspend fun <T : IAlleyEvent> remove(clazz: KClass<T>, handler: EventHandler<T>) {
+        listeners.getOrPut(clazz) { mutableListOf() }.remove(handler)
+    }
+
     companion object : KLogging()
 }

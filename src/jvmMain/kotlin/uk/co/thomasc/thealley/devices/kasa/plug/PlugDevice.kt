@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.devices.kasa.plug
 
 import mu.KLogging
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 import uk.co.thomasc.thealley.devices.kasa.KasaDevice
@@ -14,12 +14,12 @@ class PlugDevice(id: Int, config: PlugConfig, state: PlugState, stateStore: ISta
     KasaDevice<PlugData, PlugDevice, PlugConfig, PlugState>(id, config, state, stateStore), IAlleyRelay {
 
     suspend fun getName() = getData<PlugResponse>()?.alias
-    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) {
+    override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) {
         // Not implemented
     }
 
     override suspend fun getPowerState() = getData<PlugResponse>()?.getRelayState() ?: false
-    override suspend fun togglePowerState(bus: AlleyEventBus) = setPowerState(bus, !getPowerState())
+    override suspend fun togglePowerState(bus: AlleyEventEmitter) = setPowerState(bus, !getPowerState())
 
     suspend fun getUptime() = getData<PlugResponse>()?.onTime
     suspend fun getSignalStrength() = getData<PlugResponse>()?.rssi

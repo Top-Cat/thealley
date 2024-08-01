@@ -3,7 +3,8 @@ package uk.co.thomasc.thealley.devices.system.scene
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
@@ -19,7 +20,7 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
     AlleyDevice<SceneDevice, SceneConfig, SceneState>(id, config, state, stateStore), IAlleyRelay {
 
     private suspend fun getLights() = config.parts.map { dev.getDevice(it.lightId) }.filterIsInstance<IAlleyRelay>()
-    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) =
+    override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) =
         if (value) execute(bus) else off(bus)
 
     override suspend fun getPowerState() = getLights().any { it.getPowerState() }
@@ -37,7 +38,7 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
             else -> min(100, max(0, avg.roundToInt()))
         }
 
-    private suspend fun emitFadeEvent(bus: AlleyEventBus, s: SceneConfig.ScenePart, percent: Int, transitionTime: Int = 0) {
+    private suspend fun emitFadeEvent(bus: AlleyEventEmitter, s: SceneConfig.ScenePart, percent: Int, transitionTime: Int = 0) {
         val light = dev.getDevice(s.lightId)
         when (light) {
             is IAlleyLight -> light.setComplexState(bus, IAlleyLight.LightState((s.brightness * percent) / 100, s.hue, s.saturation, s.temperature), transitionTime)
@@ -49,7 +50,7 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
         }
     }
 
-    suspend fun off(bus: AlleyEventBus) {
+    suspend fun off(bus: AlleyEventEmitter) {
         config.parts.forEach { s ->
             val light = dev.getDevice(s.lightId)
             if (light is IAlleyRelay) {
@@ -61,13 +62,13 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
         }
     }
 
-    suspend fun execute(bus: AlleyEventBus) {
+    suspend fun execute(bus: AlleyEventEmitter) {
         config.parts.forEach { s ->
             emitFadeEvent(bus, s, 100, 1000)
         }
     }
 
-    override suspend fun togglePowerState(bus: AlleyEventBus) {
+    override suspend fun togglePowerState(bus: AlleyEventEmitter) {
         if (getPowerState()) {
             off(bus)
         } else {
@@ -75,7 +76,7 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
         }
     }
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         registerGoogleHomeDevice(
             DeviceType.SCENE,
             false,

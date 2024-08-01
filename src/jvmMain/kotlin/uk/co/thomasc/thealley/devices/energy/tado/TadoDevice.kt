@@ -10,7 +10,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.energy.bright.BrightEvent
 import uk.co.thomasc.thealley.devices.types.TadoConfig
@@ -32,7 +32,7 @@ class TadoDevice(id: Int, config: TadoConfig, state: TadoState, stateStore: ISta
     suspend fun getHomeId() = homeId.await()
     suspend fun getHome() = home.await()
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<BrightEvent> {
             if (!config.updateReadings) return@handle
 

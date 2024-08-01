@@ -5,7 +5,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 import uk.co.thomasc.thealley.devices.system.TickEvent
@@ -16,7 +16,7 @@ class ScheduleDevice(id: Int, config: ScheduleConfig, state: ScheduleState, stat
 
     private val sortedStates = config.elements.sortedBy { it.time }
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<TickEvent> {
             val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
             val idealState = sortedStates.indexOfLast { it.time < now.time }.let {

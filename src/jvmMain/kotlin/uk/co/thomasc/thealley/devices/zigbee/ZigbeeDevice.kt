@@ -3,7 +3,8 @@ package uk.co.thomasc.thealley.devices.zigbee
 import kotlinx.serialization.KSerializer
 import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.IZigbeeConfig
@@ -25,7 +26,7 @@ abstract class ZigbeeDevice<X : ZigbeeUpdate, T : AlleyDevice<T, U, V>, U : IZig
     protected fun getState() = helper.get()
     protected open fun getEvent() = MqttSendEvent("${config.prefix}/${config.deviceId}/get", "{\"state\": \"\"}")
 
-    final override suspend fun init(bus: AlleyEventBus) {
+    final override suspend fun init(bus: AlleyEventBusShim) {
         helper = Zigbee2MqttHelper(bus, config.prefix, config.deviceId, getEvent(), latch, condition, { json ->
             alleyJsonUgly.decodeFromString(serializer, json)
         }) {
@@ -35,8 +36,7 @@ abstract class ZigbeeDevice<X : ZigbeeUpdate, T : AlleyDevice<T, U, V>, U : IZig
         onInit(bus)
     }
 
-    open suspend fun onInit(bus: AlleyEventBus) {
-    }
+    open suspend fun onInit(bus: AlleyEventBusShim) { }
 
     protected fun waitForUpdate() {
         latch.withLock {
@@ -44,5 +44,5 @@ abstract class ZigbeeDevice<X : ZigbeeUpdate, T : AlleyDevice<T, U, V>, U : IZig
         }
     }
 
-    abstract suspend fun onUpdate(bus: AlleyEventBus, update: X)
+    abstract suspend fun onUpdate(bus: AlleyEventEmitter, update: X)
 }

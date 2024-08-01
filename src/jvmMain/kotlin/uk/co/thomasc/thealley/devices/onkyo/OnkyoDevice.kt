@@ -3,7 +3,7 @@ package uk.co.thomasc.thealley.devices.onkyo
 import mu.KLogging
 import uk.co.thomasc.thealley.cached
 import uk.co.thomasc.thealley.devices.AlleyDevice
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.GetStateException
 import uk.co.thomasc.thealley.devices.IStateUpdater
@@ -47,7 +47,7 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
     private var playStatus: NetUsbPlayStatusPacket.Command.Info.PlayStatus? = null
     private var repeatStatus: NetUsbPlayStatusPacket.Command.Info.RepeatStatus? = null
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         conn.init()
         conn.handle<NetUsbPlayStatusPacket> {
             if (it.command is NetUsbPlayStatusPacket.Command.Info) {

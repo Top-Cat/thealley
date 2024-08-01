@@ -11,6 +11,7 @@ import mu.KLogging
 import uk.co.thomasc.thealley.checkOauth
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.oauth.AlleyTokenStore
 import uk.co.thomasc.thealley.web.google.GoogleHomeReq
 
@@ -25,7 +26,8 @@ class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute 
     }
 
     override fun Route.setup(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper) {
-        val externalHandler = ExternalHandler(bus, deviceMapper)
+        val shim = AlleyEventBusShim(bus)
+        val externalHandler = ExternalHandler(shim, deviceMapper)
         get<Routes.Test> {
             checkOauth(alleyTokenStore) {
                 call.respond("Hi")

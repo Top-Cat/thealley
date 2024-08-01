@@ -4,7 +4,8 @@ import kotlinx.coroutines.launch
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
@@ -32,7 +33,7 @@ class PartialLightDevice(id: Int, config: PartialLightConfig, state: EmptyState,
             }
         }
 
-    override suspend fun setComplexState(bus: AlleyEventBus, lightState: IAlleyLight.LightState, transitionTime: Int?) {
+    override suspend fun setComplexState(bus: AlleyEventEmitter, lightState: IAlleyLight.LightState, transitionTime: Int?) {
         when (val device = getDevice()) {
             is IAlleyMultiGangLight -> device.setComplexState(bus, config.index, lightState, transitionTime)
             is IAlleyLight -> device.setComplexState(bus, lightState, transitionTime)
@@ -40,7 +41,7 @@ class PartialLightDevice(id: Int, config: PartialLightConfig, state: EmptyState,
         }
     }
 
-    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) {
+    override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) {
         when (val device = getDevice()) {
             is IAlleyMultiGangRelay -> device.setPowerState(bus, config.index, value)
             is IAlleyRelay -> device.setPowerState(bus, value)
@@ -58,7 +59,7 @@ class PartialLightDevice(id: Int, config: PartialLightConfig, state: EmptyState,
             }
         }
 
-    override suspend fun togglePowerState(bus: AlleyEventBus) {
+    override suspend fun togglePowerState(bus: AlleyEventEmitter) {
         when (val device = getDevice()) {
             is IAlleyMultiGangRelay -> device.togglePowerState(bus, config.index)
             is IAlleyRelay -> device.togglePowerState(bus)
@@ -66,7 +67,7 @@ class PartialLightDevice(id: Int, config: PartialLightConfig, state: EmptyState,
         }
     }
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,

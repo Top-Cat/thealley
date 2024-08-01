@@ -3,7 +3,8 @@ package uk.co.thomasc.thealley.devices.zigbee.relay
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
-import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.AlleyEventBusShim
+import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyMultiGangRelay
@@ -18,7 +19,7 @@ class PartialRelayDevice(id: Int, config: PartialRelayConfig, state: EmptyState,
 
     private suspend fun getDevice() = dev.getDevice(config.device)
 
-    override suspend fun setPowerState(bus: AlleyEventBus, value: Boolean) {
+    override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) {
         when (val device = getDevice()) {
             is IAlleyMultiGangRelay -> device.setPowerState(bus, config.index, value)
             is IAlleyRelay -> device.setPowerState(bus, value)
@@ -36,7 +37,7 @@ class PartialRelayDevice(id: Int, config: PartialRelayConfig, state: EmptyState,
             }
         }
 
-    override suspend fun togglePowerState(bus: AlleyEventBus) {
+    override suspend fun togglePowerState(bus: AlleyEventEmitter) {
         when (val device = getDevice()) {
             is IAlleyMultiGangRelay -> device.togglePowerState(bus, config.index)
             is IAlleyRelay -> device.togglePowerState(bus)
@@ -44,7 +45,7 @@ class PartialRelayDevice(id: Int, config: PartialRelayConfig, state: EmptyState,
         }
     }
 
-    override suspend fun init(bus: AlleyEventBus) {
+    override suspend fun init(bus: AlleyEventBusShim) {
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
