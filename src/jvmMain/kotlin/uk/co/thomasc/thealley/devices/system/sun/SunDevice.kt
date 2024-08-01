@@ -17,8 +17,6 @@ class SunDevice(id: Int, config: SunConfig, state: SunState, stateStore: IStateU
 
     override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<TickEvent> {
-            println("TickEvent ${this.hashCode()}")
-
             val daytime = isDaytime()
             if (state.daytime != daytime) {
                 bus.emit(if (daytime) SunRiseEvent else SunSetEvent)
