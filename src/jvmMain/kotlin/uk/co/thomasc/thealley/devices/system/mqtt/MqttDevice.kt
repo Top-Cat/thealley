@@ -9,8 +9,8 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
-import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.types.MqttConfig
 
 class MqttDevice(id: Int, config: MqttConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :

@@ -5,6 +5,7 @@ import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.state.system.conditional.ConditionalState
 import uk.co.thomasc.thealley.devices.system.conditional.actions.handler
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.ICondition
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.handler

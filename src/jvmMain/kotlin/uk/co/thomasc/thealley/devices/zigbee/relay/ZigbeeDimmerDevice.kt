@@ -5,12 +5,12 @@ import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
+import uk.co.thomasc.thealley.devices.state.zigbee.IZigbeeState
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.IZigbeeConfig
-import uk.co.thomasc.thealley.devices.zigbee.IZigbeeState
 import uk.co.thomasc.thealley.devices.zigbee.samotech.ZDimmerSet
 
-abstract class ZigbeeDimmerDevice<X : ZigbeeUpdateDimmer, T : AlleyDevice<T, U, V>, U : IZigbeeConfig, V : IZigbeeState>(
+abstract class ZigbeeDimmerDevice<X : ZigbeeUpdateDimmer, T : AlleyDevice<T, U, V>, U : IZigbeeConfig<V>, V : IZigbeeState>(
     id: Int,
     config: U,
     state: V,

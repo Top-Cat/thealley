@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
+import uk.co.thomasc.thealley.devices.state.system.sun.SunState
 
 @Serializable
 @SerialName("Sun")
@@ -13,7 +14,7 @@ data class SunConfig(
     val lat: Double,
     val lon: Double,
     val tz: String
-) : IAlleyConfig,
+) : IAlleyConfig<SunState>,
     IConfigEditable<SunConfig> by SimpleConfigEditable(
         listOf(
             SunConfig::name.fieldEditor("Name") { c, n -> c.copy(name = n) },
@@ -21,4 +22,7 @@ data class SunConfig(
             SunConfig::lon.fieldEditor("Longitude") { c, n -> c.copy(lon = n) },
             SunConfig::tz.fieldEditor("Timezone") { c, n -> c.copy(tz = n) }
         )
-    )
+    ) {
+    override val defaultState = SunState(true)
+    override val stateSerializer = SunState.serializer()
+}

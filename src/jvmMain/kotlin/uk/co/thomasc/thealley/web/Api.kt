@@ -3,6 +3,7 @@ package uk.co.thomasc.thealley.web
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.locations.Location
+import io.ktor.server.locations.delete
 import io.ktor.server.locations.get
 import io.ktor.server.locations.post
 import io.ktor.server.locations.put
@@ -12,13 +13,18 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonPrimitive
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.update
 import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.AlleyDeviceConfig
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.state.IAlleyState
 import uk.co.thomasc.thealley.devices.types.IAlleyConfig
+import uk.co.thomasc.thealley.devices.types.IAlleyConfigBase
 import uk.co.thomasc.thealley.devices.types.deviceConfig
 import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionDevice
 import uk.co.thomasc.thealley.repo.DeviceTable
@@ -72,9 +78,52 @@ class ApiRoute : IAlleyRoute {
             call.respond(config)
         }
 
+        fun <U : IAlleyState> IAlleyConfig<U>.defaultAsString() = alleyJsonUgly.encodeToString(stateSerializer, defaultState)
+
+        post<Devices> {
+            val newConfig = call.receive<IAlleyConfigBase>()
+            val newDeviceConfig = newConfig.deviceConfig()
+
+            newSuspendedTransaction {
+                val newState = (newConfig as IAlleyConfig<*>).defaultAsString()
+                val newId = DeviceTable.insertAndGetId {
+                    it[config] = newConfig
+                    it[state] = newState
+                }.value
+
+                val stateFactory = StateUpdaterFactory(alleyJsonUgly, newId)
+                val newDevice = newDeviceConfig.generate(newId, alleyJsonUgly, stateFactory, newState, deviceMapper)
+
+                withTimeout(1000) {
+                    newDevice.create(bus)
+                }
+
+                deviceMapper.register(newDevice)
+            }
+
+            call.respond(HttpStatusCode.OK)
+        }
+
+        delete<DeviceById> { req ->
+            val id = req.id
+
+            deviceMapper.getDevice(id)?.let { currentDevice ->
+                newSuspendedTransaction {
+                    DeviceTable.deleteWhere {
+                        DeviceTable.id eq id
+                    }
+
+                    deviceMapper.deregister(currentDevice)
+                    currentDevice.finalise()
+                }
+            }
+
+            call.respond(HttpStatusCode.OK)
+        }
+
         put<DeviceById> { req ->
             val id = req.id
-            val newConfig = call.receive<IAlleyConfig>()
+            val newConfig = call.receive<IAlleyConfigBase>()
             val newDeviceConfig = newConfig.deviceConfig()
 
             deviceMapper.getDevice(id)?.let { currentDevice ->

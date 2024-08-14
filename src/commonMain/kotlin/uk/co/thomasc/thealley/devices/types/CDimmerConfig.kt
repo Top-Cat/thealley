@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
+import uk.co.thomasc.thealley.devices.state.EmptyState
 
 @Serializable
 @SerialName("CDimmer")
@@ -12,8 +13,8 @@ data class CDimmerConfig(
     override val name: String,
     override val deviceId: String,
     override val prefix: String = "zigbee"
-) : IAlleyConfig,
-    IZigbeeConfig,
+) : IAlleyConfig<EmptyState>,
+    IZigbeeConfig<EmptyState>,
     IAlleyLightConfig,
     IConfigEditable<CDimmerConfig> by SimpleConfigEditable(
         listOf(
@@ -21,4 +22,7 @@ data class CDimmerConfig(
             CDimmerConfig::deviceId.fieldEditor("Device ID") { c, n -> c.copy(deviceId = n) },
             CDimmerConfig::prefix.fieldEditor("MQTT Prefix") { c, n -> c.copy(prefix = n) }
         )
-    )
+    ) {
+    override val defaultState = EmptyState
+    override val stateSerializer = EmptyState.serializer()
+}

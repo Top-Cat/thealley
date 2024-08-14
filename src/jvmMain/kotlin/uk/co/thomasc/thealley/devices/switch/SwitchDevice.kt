@@ -4,6 +4,7 @@ import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
+import uk.co.thomasc.thealley.devices.state.switch.SwitchState
 import uk.co.thomasc.thealley.devices.system.scene.SceneEvent
 import uk.co.thomasc.thealley.devices.types.SwitchConfig
 

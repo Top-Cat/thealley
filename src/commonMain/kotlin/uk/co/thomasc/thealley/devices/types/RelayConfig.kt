@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
+import uk.co.thomasc.thealley.devices.state.relay.RelayState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -17,7 +18,7 @@ data class RelayConfig(
     val timeout: Duration = 10.minutes,
     val switchTimeout: Duration = 10.minutes,
     val sensors: List<Int> = listOf()
-) : IAlleyConfig,
+) : IAlleyConfig<RelayState>,
     IAlleyRelayConfig,
     IConfigEditable<RelayConfig> by SimpleConfigEditable(
         listOf(
@@ -28,4 +29,7 @@ data class RelayConfig(
             RelayConfig::switchTimeout.fieldEditor("Switch Timeout") { c, n -> c.copy(switchTimeout = n) },
             RelayConfig::sensors.fieldEditor("Sensors", { it is MotionConfig }) { c, n -> c.copy(sensors = n) }
         )
-    )
+    ) {
+    override val defaultState = RelayState(false)
+    override val stateSerializer = RelayState.serializer()
+}

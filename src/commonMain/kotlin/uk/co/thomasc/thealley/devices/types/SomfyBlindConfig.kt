@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
+import uk.co.thomasc.thealley.devices.state.somfy.SomfyBlindState
 
 @Serializable
 @SerialName("SomfyBlind")
@@ -12,7 +13,7 @@ data class SomfyBlindConfig(
     override val name: String,
     val deviceId: String,
     val prefix: String = "espsomfy"
-) : IAlleyConfig,
+) : IAlleyConfig<SomfyBlindState>,
     IAlleyLightConfig,
     IConfigEditable<SomfyBlindConfig> by SimpleConfigEditable(
         listOf(
@@ -20,4 +21,7 @@ data class SomfyBlindConfig(
             SomfyBlindConfig::deviceId.fieldEditor("Device ID") { c, n -> c.copy(deviceId = n) },
             SomfyBlindConfig::prefix.fieldEditor("MQTT Prefix") { c, n -> c.copy(prefix = n) }
         )
-    )
+    ) {
+    override val defaultState = SomfyBlindState()
+    override val stateSerializer = SomfyBlindState.serializer()
+}

@@ -13,6 +13,7 @@ import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.energy.bright.BrightEvent
+import uk.co.thomasc.thealley.devices.state.energy.tado.TadoState
 import uk.co.thomasc.thealley.devices.types.TadoConfig
 
 class TadoDevice(id: Int, config: TadoConfig, state: TadoState, stateStore: IStateUpdater<TadoState>) :

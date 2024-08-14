@@ -8,6 +8,7 @@ import uk.co.thomasc.thealley.devices.kasa.KasaDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.data.PlugData
 import uk.co.thomasc.thealley.devices.kasa.plug.data.PlugResponse
 import uk.co.thomasc.thealley.devices.kasa.plug.data.RealtimePower
+import uk.co.thomasc.thealley.devices.state.kasa.plug.PlugState
 import uk.co.thomasc.thealley.devices.types.PlugConfig
 
 class PlugDevice(id: Int, config: PlugConfig, state: PlugState, stateStore: IStateUpdater<PlugState>) :

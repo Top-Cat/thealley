@@ -16,6 +16,7 @@ import uk.co.thomasc.thealley.devices.kasa.bulb.data.BulbResponse
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.BulbUpdate
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.LightingService
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.LightingServiceUpdate
+import uk.co.thomasc.thealley.devices.state.kasa.bulb.BulbState
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.system.sun.NightBrightnessCalc

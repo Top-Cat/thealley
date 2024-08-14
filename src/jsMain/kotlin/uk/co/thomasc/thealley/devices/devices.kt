@@ -34,7 +34,7 @@ val devicesDialog = fc<Props> { _ ->
     val (devices, setDevices) = useState(emptyList<AlleyDeviceConfig>())
     val (deviceLookup, setDeviceLookup) = useState(emptyMap<Int, AlleyDeviceConfig>())
     val (device, setDevice) = useState<AlleyDeviceConfig>()
-    val (newConfig, setNewConfig) = useState<IAlleyConfig>()
+    val (newConfig, setNewConfig) = useState<IAlleyConfig<*>>()
     val (loading, setLoading) = useState(false)
 
     useEffectOnce {
@@ -265,7 +265,7 @@ val devicesDialog = fc<Props> { _ ->
                                     it.preventDefault()
 
                                     setLoading(true)
-                                    Axios.put<String>("/api/devices/${d.id}", newConfig, generateConfig<IAlleyConfig, String>()).then {
+                                    Axios.put<String>("/api/devices/${d.id}", newConfig, generateConfig<IAlleyConfig<*>, String>()).then {
                                         setLoading(false)
                                         val newDevice = d.copy(config = newConfig)
                                         setDevice(newDevice)

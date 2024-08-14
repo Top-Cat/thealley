@@ -2,10 +2,10 @@ package uk.co.thomasc.thealley.devices.zigbee.moes
 
 import kotlinx.coroutines.delay
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
-import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.generic.IAlleyMultiGangLight
+import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.DualDimmerConfig
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeDevice

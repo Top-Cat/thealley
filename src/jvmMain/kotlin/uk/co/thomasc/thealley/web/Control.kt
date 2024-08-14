@@ -62,16 +62,6 @@ class ControlRoute : IAlleyRoute {
             call.respond(setState(bus, deviceMapper, it.id, true))
         }
 
-        put<Switch> {
-            val switchData = call.receive<SwitchData>()
-
-            // TODO: Update switch object
-            /*switchData.buttons.forEach { (buttonId, sceneId) ->
-                switchRepository.updateSwitch(it.switchId, buttonId, sceneId)
-            }
-            sceneController.resetSwitchDelegate()*/
-        }
-
         put<Device> {
             val stateRequest = call.receive<BulbState>()
             val device = deviceMapper.getDevice(it.id)

@@ -23,13 +23,14 @@ import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.kasa.plug.data.KasaData
 import uk.co.thomasc.thealley.devices.kasa.plug.data.KasaResponse
+import uk.co.thomasc.thealley.devices.state.kasa.IKasaState
 import uk.co.thomasc.thealley.devices.types.IKasaConfig
 import java.net.SocketException
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
 import kotlin.time.Duration.Companion.minutes
 
-abstract class KasaDevice<X : KasaData, T : AlleyDevice<T, U, V>, U : IKasaConfig, V : IKasaState>(id: Int, config: U, state: V, stateStore: IStateUpdater<V>) :
+abstract class KasaDevice<X : KasaData, T : AlleyDevice<T, U, V>, U : IKasaConfig<V>, V : IKasaState>(id: Int, config: U, state: V, stateStore: IStateUpdater<V>) :
     AlleyDevice<T, U, V>(id, config, state, stateStore) {
 
     protected var deviceData: X? = null

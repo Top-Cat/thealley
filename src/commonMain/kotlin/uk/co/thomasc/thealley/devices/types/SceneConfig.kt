@@ -6,6 +6,7 @@ import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.IConfigField
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
+import uk.co.thomasc.thealley.devices.system.scene.SceneState
 import kotlin.reflect.KProperty1
 
 data class SceneElementConfigField(
@@ -22,7 +23,7 @@ data class SceneElementConfigField(
 data class SceneConfig(
     override val name: String,
     val parts: List<ScenePart>
-) : IAlleyConfig,
+) : IAlleyConfig<SceneState>,
     IAlleyRelayConfig,
     IConfigEditable<SceneConfig> by SimpleConfigEditable(
         listOf(
@@ -32,4 +33,7 @@ data class SceneConfig(
     ) {
     @Serializable
     data class ScenePart(val lightId: Int, val brightness: Int, val hue: Int? = null, val saturation: Int? = null, val temperature: Int? = null)
+
+    override val defaultState = SceneState()
+    override val stateSerializer = SceneState.serializer()
 }

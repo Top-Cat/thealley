@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
+import uk.co.thomasc.thealley.devices.state.EmptyState
 
 @Serializable
 @SerialName("Mqtt")
@@ -14,7 +15,7 @@ data class MqttConfig(
     val host: String,
     val user: String,
     val pass: String
-) : IAlleyConfig,
+) : IAlleyConfig<EmptyState>,
     IConfigEditable<MqttConfig> by SimpleConfigEditable(
         listOf(
             MqttConfig::name.fieldEditor("Name") { c, n -> c.copy(name = n) },
@@ -23,4 +24,7 @@ data class MqttConfig(
             MqttConfig::user.fieldEditor("Username") { c, n -> c.copy(user = n) },
             MqttConfig::pass.fieldEditor("Password", password = true) { c, n -> c.copy(pass = n) }
         )
-    )
+    ) {
+    override val defaultState = EmptyState
+    override val stateSerializer = EmptyState.serializer()
+}

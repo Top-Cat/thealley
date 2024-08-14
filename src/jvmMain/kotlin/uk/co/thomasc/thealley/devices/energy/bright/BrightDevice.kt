@@ -9,6 +9,7 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.energy.bright.client.Bright
 import uk.co.thomasc.thealley.devices.energy.bright.client.BrightPeriod
 import uk.co.thomasc.thealley.devices.energy.bright.client.BrightResourceType
+import uk.co.thomasc.thealley.devices.state.energy.bright.BrightState
 import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.types.BrightConfig
 import kotlin.random.Random

@@ -7,6 +7,7 @@ import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.IConfigField
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
+import uk.co.thomasc.thealley.devices.state.system.schedule.ScheduleState
 import kotlin.reflect.KProperty1
 
 data class ScheduleElementConfigField(
@@ -24,7 +25,7 @@ data class ScheduleConfig(
     override val name: String,
     val device: Int,
     val elements: List<ScheduleElement> = listOf()
-) : IAlleyConfig,
+) : IAlleyConfig<ScheduleState>,
     IConfigEditable<ScheduleConfig> by SimpleConfigEditable(
         listOf(
             ScheduleConfig::name.fieldEditor("Name") { c, n -> c.copy(name = n) },
@@ -37,4 +38,7 @@ data class ScheduleConfig(
         val time: LocalTime,
         val state: Boolean
     )
+
+    override val defaultState = ScheduleState()
+    override val stateSerializer = ScheduleState.serializer()
 }

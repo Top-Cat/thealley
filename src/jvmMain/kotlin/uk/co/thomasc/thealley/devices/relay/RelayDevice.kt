@@ -17,6 +17,7 @@ import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 import uk.co.thomasc.thealley.devices.generic.IAlleyRevocable
+import uk.co.thomasc.thealley.devices.state.relay.RelayState
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent

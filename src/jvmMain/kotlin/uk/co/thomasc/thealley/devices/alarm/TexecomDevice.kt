@@ -10,6 +10,7 @@ import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.alarm.events.TexecomAreaEvent
 import uk.co.thomasc.thealley.devices.alarm.events.TexecomZoneEvent
+import uk.co.thomasc.thealley.devices.state.alarm.TexecomState
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent

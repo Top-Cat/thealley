@@ -6,6 +6,7 @@ import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.IConfigField
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
+import uk.co.thomasc.thealley.devices.state.system.conditional.ConditionalState
 import uk.co.thomasc.thealley.devices.system.conditional.actions.IConditionAction
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.ICondition
 import kotlin.reflect.KProperty1
@@ -35,7 +36,7 @@ data class ConditionalConfig(
     val conditions: List<ICondition>,
     val trigger: ICondition,
     val action: IConditionAction
-) : IAlleyConfig,
+) : IAlleyConfig<ConditionalState>,
     IConfigEditable<ConditionalConfig> by SimpleConfigEditable(
         listOf(
             ConditionalConfig::name.fieldEditor("Name") { c, n -> c.copy(name = n) },
@@ -43,4 +44,7 @@ data class ConditionalConfig(
             ConditionConfigField("Trigger", ConditionalConfig::trigger) { c, n -> c.copy(trigger = n) },
             ConditionActionConfigField("Action", ConditionalConfig::action) { c, n -> c.copy(action = n) }
         )
-    )
+    ) {
+    override val defaultState = ConditionalState()
+    override val stateSerializer = ConditionalState.serializer()
+}

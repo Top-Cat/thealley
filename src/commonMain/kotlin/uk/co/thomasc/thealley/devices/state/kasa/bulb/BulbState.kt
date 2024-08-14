@@ -1,8 +1,9 @@
-package uk.co.thomasc.thealley.devices.kasa.bulb
+package uk.co.thomasc.thealley.devices.state.kasa.bulb
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
-import uk.co.thomasc.thealley.devices.kasa.IKasaState
+import uk.co.thomasc.thealley.devices.state.IAlleyState
+import uk.co.thomasc.thealley.devices.state.kasa.IKasaState
 
 @Serializable
 data class BulbState(
@@ -10,4 +11,4 @@ data class BulbState(
     val lastMotion: Instant? = null,
     val offAt: Instant? = null,
     val ignoreMotionUntil: Instant? = null
-) : IKasaState
+) : IKasaState, IAlleyState

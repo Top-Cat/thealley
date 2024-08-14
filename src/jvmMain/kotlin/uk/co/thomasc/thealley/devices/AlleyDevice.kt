@@ -2,13 +2,14 @@ package uk.co.thomasc.thealley.devices
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import uk.co.thomasc.thealley.devices.state.IAlleyState
 import uk.co.thomasc.thealley.devices.types.IAlleyConfig
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.GoogleHomeTrait
 import uk.co.thomasc.thealley.web.google.AlleyDeviceInfo
 import java.io.Closeable
 
-abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig, U : Any>(val id: Int, val config: T, state: U, private val stateStore: IStateUpdater<U>) : Closeable {
+abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig<U>, U : IAlleyState>(val id: Int, val config: T, state: U, private val stateStore: IStateUpdater<U>) : Closeable {
     private var currentState = state
     protected val state
         get() = currentState

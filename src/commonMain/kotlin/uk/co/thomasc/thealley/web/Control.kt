@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.types.IAlleyConfig
 
 @Serializable
-data class DeviceInfo(val id: Int, val config: IAlleyConfig)
+data class DeviceInfo(val id: Int, val config: IAlleyConfig<*>)
 
 @Serializable
 data class ControlResult(val success: Boolean)

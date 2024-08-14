@@ -4,7 +4,6 @@ import mu.KLogging
 import uk.co.thomasc.thealley.cached
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
-import uk.co.thomasc.thealley.devices.EmptyState
 import uk.co.thomasc.thealley.devices.GetStateException
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.onkyo.packet.InputPacket
@@ -15,6 +14,7 @@ import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbPlayStatusPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.NetUsbTimeSeekPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.PowerPacket
 import uk.co.thomasc.thealley.devices.onkyo.packet.ReceiverInformationPacket
+import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 import uk.co.thomasc.thealley.devices.types.OnkyoConfig
 import uk.co.thomasc.thealley.google.DeviceType
