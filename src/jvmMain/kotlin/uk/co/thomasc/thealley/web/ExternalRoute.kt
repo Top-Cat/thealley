@@ -14,6 +14,7 @@ import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.oauth.AlleyTokenStore
 import uk.co.thomasc.thealley.web.google.GoogleHomeReq
+import kotlin.time.measureTime
 
 class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute {
     @Location("/external")
@@ -39,7 +40,10 @@ class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute 
                 try {
                     val obj = call.receive<GoogleHomeReq>()
                     logger.debug { "Received google home request $obj" }
-                    call.respond(externalHandler.handleRequest(userId, obj))
+                    val requestTime = measureTime {
+                        call.respond(externalHandler.handleRequest(userId, obj))
+                    }
+                    logger.info { "Processed ${obj.inputs.first().javaClass.name} in ${requestTime.inWholeMilliseconds}ms" }
                 } catch (e: Exception) {
                     logger.error(e) { "Error during external request" }
                     throw e
