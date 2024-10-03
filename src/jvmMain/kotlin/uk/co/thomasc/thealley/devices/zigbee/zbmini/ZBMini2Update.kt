@@ -21,7 +21,7 @@ data class ZBMini2Update(
     @SerialName("delayed_power_on_state")
     val delayedPowerOnState: Boolean = false,
     @SerialName("delayed_power_on_time")
-    val delayedPowerOnTime: Int = 0,
+    val delayedPowerOnTime: Float = 0f,
     @SerialName("detach_relay_mode")
     val detachRelayMode: Boolean = false,
     @SerialName("external_trigger_mode")
