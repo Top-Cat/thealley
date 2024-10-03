@@ -10,5 +10,8 @@ enum class ZigbeePowerOnBehavior {
     OFF,
 
     @SerialName("previous")
-    PREVIOUS
+    PREVIOUS,
+
+    @SerialName("toggle")
+    TOGGLE
 }

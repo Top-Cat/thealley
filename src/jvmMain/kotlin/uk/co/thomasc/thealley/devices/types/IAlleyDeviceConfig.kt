@@ -89,6 +89,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V
             is TexecomConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::TexecomDevice)
             is UnifiConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::UnifiDevice)
             is ZBMiniConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBMiniDevice)
+            is ZBMini2Config -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBMini2Device)
             is ZPlugConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZPlugDevice)
             else -> throw IllegalArgumentException("Invalid config type ${config.javaClass.simpleName}")
         }
