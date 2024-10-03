@@ -33,7 +33,7 @@ data class ZBMini2Update(
 ) : ZigbeeUpdateRelay, ZigbeeUpdateOTA
 
 enum class ExternalTriggerMode {
-    @SerialName("toggle")
+    @SerialName("edge")
     EDGE,
 
     @SerialName("pulse")
