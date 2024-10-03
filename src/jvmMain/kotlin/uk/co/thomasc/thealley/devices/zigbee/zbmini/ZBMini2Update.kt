@@ -29,7 +29,7 @@ data class ZBMini2Update(
     @SerialName("power_on_behavior")
     val powerOnBehavior: ZigbeePowerOnBehavior,
     @SerialName("turbo_mode")
-    val turboMode: Boolean = false,
+    val turboMode: Boolean = false
 ) : ZigbeeUpdateRelay, ZigbeeUpdateOTA
 
 enum class ExternalTriggerMode {

@@ -33,8 +33,8 @@ import uk.co.thomasc.thealley.devices.zigbee.plug.ZPlugDevice
 import uk.co.thomasc.thealley.devices.zigbee.relay.PartialLightDevice
 import uk.co.thomasc.thealley.devices.zigbee.relay.PartialRelayDevice
 import uk.co.thomasc.thealley.devices.zigbee.samotech.SDimmerDevice
-import uk.co.thomasc.thealley.devices.zigbee.zbmini.ZBMiniDevice
 import uk.co.thomasc.thealley.devices.zigbee.zbmini.ZBMini2Device
+import uk.co.thomasc.thealley.devices.zigbee.zbmini.ZBMiniDevice
 import uk.co.thomasc.thealley.system.StateUpdaterFactory
 
 class GenericAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V : IAlleyState> private constructor(config: U, val block: (Int, V, IStateUpdater<V>, AlleyDeviceMapper) -> T) : IAlleyDeviceConfig<T, U, V>(config) {
