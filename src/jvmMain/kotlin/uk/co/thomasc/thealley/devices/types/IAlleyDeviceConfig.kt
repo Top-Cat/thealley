@@ -9,6 +9,7 @@ import uk.co.thomasc.thealley.devices.energy.bright.BrightDevice
 import uk.co.thomasc.thealley.devices.energy.tado.TadoDevice
 import uk.co.thomasc.thealley.devices.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.PlugDevice
+import uk.co.thomasc.thealley.devices.notify.NotifyDevice
 import uk.co.thomasc.thealley.devices.onkyo.OnkyoDevice
 import uk.co.thomasc.thealley.devices.ps2.PS2Device
 import uk.co.thomasc.thealley.devices.relay.RelayDevice
@@ -72,6 +73,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V
             is MDimmerConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::MDimmerDevice)
             is MotionConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::MotionDevice)
             is MqttConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::MqttDevice)
+            is NotifyConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::NotifyDevice)
             is OnkyoConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::OnkyoDevice)
             is PartialLightConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::PartialLightDevice)
             is PartialRelayConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::PartialRelayDevice)

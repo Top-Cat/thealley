@@ -20,6 +20,7 @@ abstract class IConfigField<T : IAlleyConfig<*>, U : Any> {
 }
 
 data class StringConfigField<T : IAlleyConfig<*>>(override val name: String, override val getter: (T) -> String, override val setter: (T, String) -> T, override val clazz: KClass<T>) : IConfigField<T, String>()
+data class StringListConfigField<T : IAlleyConfig<*>>(override val name: String, override val getter: (T) -> List<String>, override val setter: (T, List<String>) -> T, override val clazz: KClass<T>) : IConfigField<T, List<String>>()
 data class PasswordConfigField<T : IAlleyConfig<*>>(override val name: String, override val getter: (T) -> String, override val setter: (T, String) -> T, override val clazz: KClass<T>) : IConfigField<T, String>()
 data class DurationConfigField<T : IAlleyConfig<*>>(override val name: String, override val getter: (T) -> Duration, override val setter: (T, Duration) -> T, override val clazz: KClass<T>) : IConfigField<T, Duration>()
 data class DoubleConfigField<T : IAlleyConfig<*>>(override val name: String, override val getter: (T) -> Double, override val setter: (T, Double) -> T, override val clazz: KClass<T>) : IConfigField<T, Double>()
@@ -35,6 +36,9 @@ inline fun <reified T : IAlleyConfig<*>> KProperty1<T, String>.fieldEditor(label
     } else {
         StringConfigField(label ?: name, ::get, setter, T::class)
     }
+
+inline fun <reified T : IAlleyConfig<*>> KProperty1<T, List<String>>.fieldEditor(label: String? = null, noinline setter: (T, List<String>) -> T) =
+    StringListConfigField(label ?: name, ::get, setter, T::class)
 
 inline fun <reified T : IAlleyConfig<*>> KProperty1<T, Duration>.fieldEditor(label: String? = null, noinline setter: (T, Duration) -> T) =
     DurationConfigField(label ?: name, ::get, setter, T::class)

@@ -119,7 +119,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                 }
 
                 if (didChange) {
-                    bus.emit(TexecomAreaEvent(msg.number, msg.status))
+                    bus.emit(TexecomAreaEvent(msg.number, msg.name, msg.status))
                 }
                 checkState(bus)
             }

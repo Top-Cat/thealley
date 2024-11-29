@@ -26,6 +26,7 @@ import uk.co.thomasc.thealley.devices.types.ConditionActionConfigField
 import uk.co.thomasc.thealley.devices.types.ConditionConfigField
 import uk.co.thomasc.thealley.devices.types.ConditionListConfigField
 import uk.co.thomasc.thealley.devices.types.IAlleyConfig
+import uk.co.thomasc.thealley.devices.types.IAlleyConfigBase
 import uk.co.thomasc.thealley.devices.types.SceneElementConfigField
 import uk.co.thomasc.thealley.devices.types.ScheduleElementConfigField
 import kotlin.time.Duration.Companion.seconds
@@ -99,6 +100,18 @@ val devicesDialog = fc<Props> { _ ->
                                                 attrs.onChangeFunction = { ev ->
                                                     setNewConfig(field.set(newConfig, (ev.currentTarget as HTMLInputElement).value))
                                                 }
+                                            }
+                                        }
+
+                                        is StringListConfigField<*> -> {
+                                            stringListEditor {
+                                                key = "field-${d.id}-${field.name}"
+                                                attrs.fieldName = field.name
+                                                attrs.strings = field.get(newConfig) ?: listOf()
+                                                attrs.updateStrings = {
+                                                    setNewConfig(field.set(newConfig, it))
+                                                }
+                                                attrs.changeSize = true
                                             }
                                         }
 
@@ -265,7 +278,7 @@ val devicesDialog = fc<Props> { _ ->
                                     it.preventDefault()
 
                                     setLoading(true)
-                                    Axios.put<String>("/api/devices/${d.id}", newConfig, generateConfig<IAlleyConfig<*>, String>()).then {
+                                    Axios.put<String>("/api/devices/${d.id}", newConfig, generateConfig<IAlleyConfigBase, String>()).then {
                                         setLoading(false)
                                         val newDevice = d.copy(config = newConfig)
                                         setDevice(newDevice)
