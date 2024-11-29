@@ -4,6 +4,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
@@ -12,6 +13,7 @@ import uk.co.thomasc.thealley.devices.alarm.events.TexecomAreaEvent
 import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.types.NotifyConfig
 
+@Serializable
 data class ChatRequest(val chatId: String, val text: String, val session: String)
 
 class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
