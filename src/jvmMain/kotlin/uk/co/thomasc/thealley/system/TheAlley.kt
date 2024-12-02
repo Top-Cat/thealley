@@ -36,7 +36,7 @@ object TheAlley {
                     }
 
                     deviceList.forEach {
-                        runCatching {
+                        runCatching { // Start even if a device fails to init. Should we restart the app instead?
                             withTimeout(1000) {
                                 it.create(bus)
                             }
