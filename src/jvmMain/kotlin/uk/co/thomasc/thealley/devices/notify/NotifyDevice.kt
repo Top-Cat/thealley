@@ -1,10 +1,14 @@
 package uk.co.thomasc.thealley.devices.notify
 
+import io.ktor.client.plugins.websocket.receiveDeserialized
+import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
+import mu.KLogging
 import uk.co.thomasc.thealley.client
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
@@ -23,6 +27,18 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
         bus.handle<TexecomAreaEvent> {
             sendNotification("Area '${it.areaName}' ${it.status}")
         }
+
+        client.webSocket(
+            method = HttpMethod.Get,
+            host = "waha",
+            port = 80,
+            path = "/ws?session=${config.session}&events=message"
+        ) {
+            while (true) {
+                val othersMessage = receiveDeserialized<WahaEvent<WahaMessage>>()
+                logger.info { "Received websocket message: $othersMessage" }
+            }
+        }
     }
 
     private suspend fun sendNotification(text: String) {
@@ -33,4 +49,6 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
             }
         }
     }
+
+    companion object : KLogging()
 }

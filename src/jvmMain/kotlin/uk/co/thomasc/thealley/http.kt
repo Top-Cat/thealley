@@ -6,8 +6,10 @@ import io.ktor.client.engine.apache.Apache
 import io.ktor.client.engine.apache.ApacheEngineConfig
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.auth.HttpAuthHeader
+import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -20,6 +22,10 @@ private fun setupClient(block: HttpClientConfig<ApacheEngineConfig>.() -> Unit =
     install(HttpTimeout)
     install(ContentNegotiation) {
         json(alleyJson)
+    }
+    install(WebSockets) {
+        contentConverter = KotlinxWebsocketSerializationConverter(alleyJson)
+        pingInterval = 20_000
     }
 
     engine {

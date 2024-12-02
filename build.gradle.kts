@@ -96,6 +96,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-apache:$ktorVersion")
                 implementation("ch.qos.logback:logback-classic:1.4.7")
                 implementation("io.ktor:ktor-server-locations:$ktorVersion")
+                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.3")
