@@ -7,6 +7,11 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.serialization.Serializable
 import mu.KLogging
 import uk.co.thomasc.thealley.client
@@ -29,15 +34,17 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
             sendNotification("Area '${it.areaName}' ${it.status}")
         }
 
-        websocketClient.webSocket(
-            method = HttpMethod.Get,
-            host = "waha",
-            port = 80,
-            path = "/ws?session=${config.session}&events=message"
-        ) {
-            while (true) {
-                val othersMessage = receiveDeserialized<WahaEvent<WahaMessage>>()
-                logger.info { "Received websocket message: $othersMessage" }
+        CoroutineScope(threadPool).launch {
+            websocketClient.webSocket(
+                method = HttpMethod.Get,
+                host = "waha",
+                port = 80,
+                path = "/ws?session=${config.session}&events=message"
+            ) {
+                while (true) {
+                    val othersMessage = receiveDeserialized<WahaEvent<WahaMessage>>()
+                    logger.info { "Received websocket message: $othersMessage" }
+                }
             }
         }
     }
@@ -51,5 +58,7 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
         }
     }
 
-    companion object : KLogging()
+    companion object : KLogging() {
+        val threadPool = newFixedThreadPoolContext(3, "Websocket")
+    }
 }
