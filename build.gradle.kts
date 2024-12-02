@@ -94,6 +94,7 @@ kotlin {
                 implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0")
                 implementation("io.ktor:ktor-client-apache:$ktorVersion")
+                implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation("ch.qos.logback:logback-classic:1.4.7")
                 implementation("io.ktor:ktor-server-locations:$ktorVersion")
                 implementation("io.ktor:ktor-client-websockets:$ktorVersion")

@@ -2,8 +2,11 @@ package uk.co.thomasc.thealley
 
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.engine.apache.ApacheEngineConfig
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.websocket.WebSockets
@@ -18,25 +21,26 @@ import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
 import uk.co.thomasc.thealley.oauth.AlleyTokenStore
 
-private fun setupClient(block: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {}) = HttpClient(Apache) {
+private fun <T : HttpClientEngineConfig> setupClient(factory: HttpClientEngineFactory<T>, block: HttpClientConfig<T>.() -> Unit = {}) = HttpClient(factory) {
     install(HttpTimeout)
     install(ContentNegotiation) {
         json(alleyJson)
     }
-    install(WebSockets) {
-        contentConverter = KotlinxWebsocketSerializationConverter(alleyJson)
-        pingInterval = 20_000
-    }
-
-    engine {
-        customizeClient {
-            setMaxConnTotal(100)
-            setMaxConnPerRoute(20)
-        }
-    }
 
     block()
 }
+
+private fun setupClient(block: HttpClientConfig<ApacheEngineConfig>.() -> Unit = {}) =
+    setupClient(Apache) {
+        engine {
+            customizeClient {
+                setMaxConnTotal(100)
+                setMaxConnPerRoute(20)
+            }
+        }
+
+        block()
+    }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: AlleyTokenStore, block: suspend (String) -> Unit) {
     val authHeader = call.request.parseAuthorizationHeader()
@@ -54,3 +58,9 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkOauth(alleyTokenStore: A
 }
 
 val client = setupClient()
+val websocketClient = setupClient(CIO) {
+    install(WebSockets) {
+        contentConverter = KotlinxWebsocketSerializationConverter(alleyJson)
+        pingInterval = 20_000
+    }
+}

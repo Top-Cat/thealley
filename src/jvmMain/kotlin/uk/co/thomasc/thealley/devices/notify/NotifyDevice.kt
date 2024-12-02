@@ -16,6 +16,7 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.alarm.events.TexecomAreaEvent
 import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.types.NotifyConfig
+import uk.co.thomasc.thealley.websocketClient
 
 @Serializable
 data class ChatRequest(val chatId: String, val text: String, val session: String)
@@ -28,7 +29,7 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
             sendNotification("Area '${it.areaName}' ${it.status}")
         }
 
-        client.webSocket(
+        websocketClient.webSocket(
             method = HttpMethod.Get,
             host = "waha",
             port = 80,
