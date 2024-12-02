@@ -29,6 +29,7 @@ data class WahaEnvironment(
 )
 
 enum class WahaEventType {
+    @SerialName("message")
     MESSAGE
 }
 

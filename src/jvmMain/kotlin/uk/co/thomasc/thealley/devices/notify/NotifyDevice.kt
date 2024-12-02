@@ -49,7 +49,7 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
 
     override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<TexecomAreaEvent> {
-            sendNotification("Area '${it.areaName}' ${it.status}")
+            sendNotification("${it.status.emoji} Area '${it.areaName}' ${it.status.human}")
         }
 
         CoroutineScope(threadPool).launch {
