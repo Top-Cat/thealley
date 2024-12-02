@@ -5,7 +5,6 @@ import io.ktor.client.plugins.websocket.receiveDeserialized
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
@@ -85,7 +84,6 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
     }
 
     private suspend fun sendNotification(text: String) {
-        logger.info { "Sending notification: $text" }
         config.users.map { u -> "$u@c.us" }.forEach { u ->
             channel.send {
                 it.post("${config.baseUrl}/api/startTyping") {
@@ -97,14 +95,10 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
             delay(500L)
 
             channel.send {
-                val response = it.post("${config.baseUrl}/api/sendText") {
+                it.post("${config.baseUrl}/api/sendText") {
                     contentType(ContentType.Application.Json)
                     setBody(ChatRequest(u, text, config.session))
                 }
-
-                val body = response.bodyAsText()
-
-                logger.info { "Notification sent: (${response.status}) $body" }
             }
 
             channel.send {
