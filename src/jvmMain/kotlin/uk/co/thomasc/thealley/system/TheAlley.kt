@@ -36,8 +36,10 @@ object TheAlley {
                     }
 
                     deviceList.forEach {
-                        withTimeout(1000) {
-                            it.create(bus)
+                        runCatching {
+                            withTimeout(1000) {
+                                it.create(bus)
+                            }
                         }
                     }
 
