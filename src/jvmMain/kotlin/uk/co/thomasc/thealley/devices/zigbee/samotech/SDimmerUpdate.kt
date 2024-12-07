@@ -17,7 +17,7 @@ data class SDimmerUpdate(
     override val energy: Float,
     override val power: Float,
     @SerialName("power_on_behavior")
-    val powerOnBehavior: ZigbeePowerOnBehavior,
+    val powerOnBehavior: ZigbeePowerOnBehavior? = null,
 
     @SerialName("level_config")
     val levelConfig: ZigbeeLevelConfig? = null,
