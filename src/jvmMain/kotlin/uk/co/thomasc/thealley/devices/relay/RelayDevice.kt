@@ -17,22 +17,21 @@ import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 import uk.co.thomasc.thealley.devices.generic.IAlleyRevocable
+import uk.co.thomasc.thealley.devices.kasa.bulb.TriggerHelper
 import uk.co.thomasc.thealley.devices.state.relay.RelayState
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
-import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.system.sun.NightBrightnessCalc
-import uk.co.thomasc.thealley.devices.system.sun.SunRiseEvent
-import uk.co.thomasc.thealley.devices.system.sun.SunSetEvent
 import uk.co.thomasc.thealley.devices.types.RelayConfig
-import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionEvent
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
 import kotlin.time.Duration.Companion.minutes
 
 class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: IStateUpdater<RelayState>) :
     AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyRelay, IAlleyStats, IAlleyRevocable {
+
+    val triggerHelper = TriggerHelper(this) { this.state }
 
     override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()
     private var powerState by cached(1.minutes, true) {
@@ -103,36 +102,10 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
             }
         }
 
-        bus.handle<SunRiseEvent> {
-            updateState(state.copy(daytime = true))
-        }
-        bus.handle<SunSetEvent> {
-            val now = Clock.System.now()
-            val off = state.lastMotion?.plus(config.timeout)?.let {
-                if (it > now) {
-                    onWithNightScaling(bus, now)
-                    it
-                } else {
-                    null
-                }
-            }
-            updateState(state.copy(daytime = false, offAt = off))
-        }
-        bus.handle<TickEvent> {
-            val now = Clock.System.now()
-            if (state.offAt?.let { now > it } == true) {
-                setPowerState(bus, false)
-                updateState(state.copy(offAt = null))
-            }
-        }
-        bus.handle<MotionEvent> { ev ->
-            val now = Clock.System.now()
-            if (state.ignoreMotionUntil?.let { it > now } == true || !config.sensors.contains(ev.id)) return@handle
-
-            updateState(state.copy(lastMotion = now, offAt = now.plus(config.timeout)))
-            if (!state.daytime) {
-                onWithNightScaling(bus, now)
-            }
+        triggerHelper.init(bus, { now ->
+            onWithNightScaling(bus, now)
+        }) {
+            setPowerState(bus, false)
         }
     }
 

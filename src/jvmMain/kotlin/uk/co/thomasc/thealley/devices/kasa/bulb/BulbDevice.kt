@@ -18,12 +18,8 @@ import uk.co.thomasc.thealley.devices.kasa.bulb.data.LightingService
 import uk.co.thomasc.thealley.devices.kasa.bulb.data.LightingServiceUpdate
 import uk.co.thomasc.thealley.devices.state.kasa.bulb.BulbState
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
-import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.system.sun.NightBrightnessCalc
-import uk.co.thomasc.thealley.devices.system.sun.SunRiseEvent
-import uk.co.thomasc.thealley.devices.system.sun.SunSetEvent
 import uk.co.thomasc.thealley.devices.types.BulbConfig
-import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionEvent
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.BrightnessTrait
 import uk.co.thomasc.thealley.google.trait.ColorSettingTrait
@@ -32,6 +28,8 @@ import uk.co.thomasc.thealley.google.trait.OnOffTrait
 
 class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: IStateUpdater<BulbState>) :
     KasaDevice<BulbData, BulbDevice, BulbConfig, BulbState>(id, config, state, stateStore), IAlleyLight, IAlleyRevocable {
+
+    private val triggerHelper = TriggerHelper(this) { this.state }
 
     override suspend fun init(bus: AlleyEventBusShim) {
         registerGoogleHomeDevice(
@@ -61,36 +59,10 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
             )
         )
 
-        bus.handle<SunRiseEvent> {
-            updateState(state.copy(daytime = true))
-        }
-        bus.handle<SunSetEvent> {
-            val now = Clock.System.now()
-            val off = state.lastMotion?.plus(config.timeout)?.let {
-                if (it > now) {
-                    onWithNightScaling(bus, now)
-                    it
-                } else {
-                    null
-                }
-            }
-            updateState(state.copy(daytime = false, offAt = off))
-        }
-        bus.handle<TickEvent> {
-            val now = Clock.System.now()
-            if (state.offAt?.let { now > it } == true) {
-                setLightState(bus, BulbUpdate(false))
-                updateState(state.copy(offAt = null))
-            }
-        }
-        bus.handle<MotionEvent> { ev ->
-            val now = Clock.System.now()
-            if (state.ignoreMotionUntil?.let { it > now } == true || !config.sensors.contains(ev.id)) return@handle
-
-            updateState(state.copy(lastMotion = now, offAt = now.plus(config.timeout)))
-            if (!state.daytime) {
-                onWithNightScaling(bus, now)
-            }
+        triggerHelper.init(bus, { now ->
+            onWithNightScaling(bus, now)
+        }) {
+            setLightState(bus, BulbUpdate(false))
         }
     }
 

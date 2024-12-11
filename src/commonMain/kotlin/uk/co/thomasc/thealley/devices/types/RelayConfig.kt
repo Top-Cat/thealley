@@ -15,11 +15,12 @@ data class RelayConfig(
     override val name: String,
     val host: String,
     val apiKey: String,
-    val timeout: Duration = 10.minutes,
+    override val timeout: Duration = 10.minutes,
     val switchTimeout: Duration = 10.minutes,
-    val sensors: List<Int> = listOf()
+    override val sensors: List<Int> = listOf()
 ) : IAlleyConfig<RelayState>,
     IAlleyRelayConfig,
+    ITriggerableConfig<RelayState>,
     IConfigEditable<RelayConfig> by SimpleConfigEditable(
         listOf(
             RelayConfig::name.fieldEditor("Name") { c, n -> c.copy(name = n) },

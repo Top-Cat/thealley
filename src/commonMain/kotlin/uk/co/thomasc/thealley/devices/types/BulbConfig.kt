@@ -14,11 +14,12 @@ import kotlin.time.Duration.Companion.minutes
 data class BulbConfig(
     override val name: String,
     override val host: String,
-    val timeout: Duration = 10.minutes,
+    override val timeout: Duration = 10.minutes,
     val switchTimeout: Duration = 10.minutes,
-    val sensors: List<Int> = listOf()
+    override val sensors: List<Int> = listOf()
 ) : IAlleyConfig<BulbState>,
     IKasaConfig<BulbState>,
+    ITriggerableConfig<BulbState>,
     IAlleyLightConfig,
     IConfigEditable<BulbConfig> by SimpleConfigEditable(
         listOf(
