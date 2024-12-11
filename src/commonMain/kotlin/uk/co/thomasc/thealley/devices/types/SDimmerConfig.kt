@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
-import uk.co.thomasc.thealley.devices.state.kasa.bulb.BulbState
+import uk.co.thomasc.thealley.devices.state.zigbee.SamotechState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -18,9 +18,9 @@ data class SDimmerConfig(
     override val timeout: Duration = 10.minutes,
     val switchTimeout: Duration = 10.minutes,
     override val sensors: List<Int> = listOf()
-) : IAlleyConfig<BulbState>,
-    IZigbeeConfig<BulbState>,
-    ITriggerableConfig<BulbState>,
+) : IAlleyConfig<SamotechState>,
+    IZigbeeConfig<SamotechState>,
+    ITriggerableConfig<SamotechState>,
     IAlleyLightConfig,
     IConfigEditable<SDimmerConfig> by SimpleConfigEditable(
         listOf(
@@ -32,6 +32,6 @@ data class SDimmerConfig(
             SDimmerConfig::sensors.fieldEditor("Sensors", { it is MotionConfig }) { c, n -> c.copy(sensors = n) }
         )
     ) {
-    override val defaultState = BulbState()
-    override val stateSerializer = BulbState.serializer()
+    override val defaultState = SamotechState()
+    override val stateSerializer = SamotechState.serializer()
 }

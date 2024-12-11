@@ -6,19 +6,19 @@ import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
-import uk.co.thomasc.thealley.devices.generic.IAlleyRevocable
 import uk.co.thomasc.thealley.devices.kasa.bulb.TriggerHelper
-import uk.co.thomasc.thealley.devices.state.kasa.bulb.BulbState
+import uk.co.thomasc.thealley.devices.state.zigbee.SamotechState
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.devices.system.sun.NightBrightnessCalc
 import uk.co.thomasc.thealley.devices.types.SDimmerConfig
+import uk.co.thomasc.thealley.devices.zigbee.relay.ZRelayAction
 import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeDimmerDevice
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.BrightnessTrait
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
 
-class SDimmerDevice(id: Int, config: SDimmerConfig, state: BulbState, stateStore: IStateUpdater<BulbState>) :
-    ZigbeeDimmerDevice<SDimmerUpdate, SDimmerDevice, SDimmerConfig, BulbState>(id, config, state, stateStore, SDimmerUpdate.serializer()), IAlleyLight, IAlleyRevocable {
+class SDimmerDevice(id: Int, config: SDimmerConfig, state: SamotechState, stateStore: IStateUpdater<SamotechState>) :
+    ZigbeeDimmerDevice<SDimmerUpdate, SDimmerDevice, SDimmerConfig, SamotechState>(id, config, state, stateStore, SDimmerUpdate.serializer()), IAlleyLight {
 
     private val triggerHelper = TriggerHelper(this) { this.state }
 
@@ -59,14 +59,11 @@ class SDimmerDevice(id: Int, config: SDimmerConfig, state: BulbState, stateStore
         )
 
     override suspend fun onUpdate(bus: AlleyEventEmitter, update: SDimmerUpdate) {
+        val newBrightness = if (update.state == ZRelayAction.OFF) null else update.brightness
+        if (newBrightness != state.lastBrightness) {
+            updateState(state.copy(ignoreMotionUntil = Clock.System.now().plus(config.switchTimeout), lastBrightness = newBrightness))
+        }
+
         bus.emit(ReportStateEvent(this))
-    }
-
-    override suspend fun hold() {
-        updateState(state.copy(ignoreMotionUntil = Clock.System.now().plus(config.switchTimeout)))
-    }
-
-    override suspend fun revoke() {
-        updateState(state.copy(ignoreMotionUntil = null))
     }
 }
