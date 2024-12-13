@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.devices.zigbee.samotech
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
@@ -58,12 +59,29 @@ class SDimmerDevice(id: Int, config: SDimmerConfig, state: SamotechState, stateS
             transitionTime
         )
 
+    override suspend fun setComplexState(bus: AlleyEventEmitter, lightState: IAlleyLight.LightState, transitionTime: Int?) {
+        val newBrightness = if (lightState.brightness == null) null else lightState.brightness255()
+        updateState(state.copy(lastBrightness = newBrightness))
+
+        super.setComplexState(bus, lightState, transitionTime)
+    }
+
+    override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) {
+        val newBrightness = if (value) getState().brightness else null
+        updateState(state.copy(lastBrightness = newBrightness))
+
+        super.setPowerState(bus, value)
+    }
+
     override suspend fun onUpdate(bus: AlleyEventEmitter, update: SDimmerUpdate) {
         val newBrightness = if (update.state == ZRelayAction.OFF) null else update.brightness
         if (newBrightness != state.lastBrightness) {
+            logger.info { "SDimmer ignoring motion $newBrightness ${state.lastBrightness}" }
             updateState(state.copy(ignoreMotionUntil = Clock.System.now().plus(config.switchTimeout), lastBrightness = newBrightness))
         }
 
         bus.emit(ReportStateEvent(this))
     }
+
+    companion object : KLogging()
 }
