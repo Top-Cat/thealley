@@ -17,6 +17,7 @@ import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeDimmerDevice
 import uk.co.thomasc.thealley.google.DeviceType
 import uk.co.thomasc.thealley.google.trait.BrightnessTrait
 import uk.co.thomasc.thealley.google.trait.OnOffTrait
+import kotlin.math.abs
 
 class SDimmerDevice(id: Int, config: SDimmerConfig, state: SamotechState, stateStore: IStateUpdater<SamotechState>) :
     ZigbeeDimmerDevice<SDimmerUpdate, SDimmerDevice, SDimmerConfig, SamotechState>(id, config, state, stateStore, SDimmerUpdate.serializer()), IAlleyLight {
@@ -75,7 +76,8 @@ class SDimmerDevice(id: Int, config: SDimmerConfig, state: SamotechState, stateS
 
     override suspend fun onUpdate(bus: AlleyEventEmitter, update: SDimmerUpdate) {
         val newBrightness = if (update.state == ZRelayAction.OFF) null else update.brightness
-        if (newBrightness != state.lastBrightness) {
+
+        if (abs((newBrightness ?: 1024) - (state.lastBrightness ?: 1024)) > 10) {
             logger.info { "SDimmer ignoring motion $newBrightness ${state.lastBrightness}" }
             updateState(state.copy(ignoreMotionUntil = Clock.System.now().plus(config.switchTimeout), lastBrightness = newBrightness))
         }
