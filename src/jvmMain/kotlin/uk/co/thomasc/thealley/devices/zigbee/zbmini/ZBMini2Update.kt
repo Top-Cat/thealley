@@ -15,7 +15,7 @@ data class ZBMini2Update(
     override val state: ZRelayAction,
 
     @SerialName("update_available")
-    override val updateAvailable: Boolean?,
+    override val updateAvailable: Boolean? = null,
     override val update: ZigbeeOTAInfo?,
 
     @SerialName("delayed_power_on_state")

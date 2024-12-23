@@ -27,6 +27,6 @@ data class ZPlugUpdate(
     val indicatorMode: ZPlugIndicator,
 
     @SerialName("update_available")
-    override val updateAvailable: Boolean?,
+    override val updateAvailable: Boolean? = null,
     override val update: ZigbeeOTAInfo? = null
 ) : ZigbeeUpdateMains, ZigbeePowerMonitoring, ZigbeeUpdateRelay, ZigbeeUpdateOTA
