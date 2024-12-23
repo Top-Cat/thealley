@@ -12,7 +12,7 @@ import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeUpdateDimmer
 data class MDimmerUpdate(
     override val linkquality: Int,
     @SerialName("power_on_behavior")
-    val powerOnBehavior: ZigbeePowerOnBehavior,
+    val powerOnBehavior: ZigbeePowerOnBehavior? = ZigbeePowerOnBehavior.PREVIOUS,
 
     @SerialName("update_available")
     override val updateAvailable: Boolean? = null,

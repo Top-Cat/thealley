@@ -16,7 +16,7 @@ data class ZBMini2Update(
 
     @SerialName("update_available")
     override val updateAvailable: Boolean? = null,
-    override val update: ZigbeeOTAInfo?,
+    override val update: ZigbeeOTAInfo? = null,
 
     @SerialName("delayed_power_on_state")
     val delayedPowerOnState: Boolean = false,
@@ -27,7 +27,7 @@ data class ZBMini2Update(
     @SerialName("external_trigger_mode")
     val externalTriggerMode: ExternalTriggerMode = ExternalTriggerMode.EDGE,
     @SerialName("power_on_behavior")
-    val powerOnBehavior: ZigbeePowerOnBehavior,
+    val powerOnBehavior: ZigbeePowerOnBehavior? = ZigbeePowerOnBehavior.PREVIOUS,
     @SerialName("turbo_mode")
     val turboMode: Boolean = false
 ) : ZigbeeUpdateRelay, ZigbeeUpdateOTA
