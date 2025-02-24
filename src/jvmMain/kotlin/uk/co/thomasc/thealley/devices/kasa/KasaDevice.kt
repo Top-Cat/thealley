@@ -28,6 +28,7 @@ import uk.co.thomasc.thealley.devices.types.IKasaConfig
 import java.net.SocketException
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
+import java.nio.channels.UnresolvedAddressException
 import kotlin.time.Duration.Companion.minutes
 
 abstract class KasaDevice<X : KasaData, T : AlleyDevice<T, U, V>, U : IKasaConfig<V>, V : IKasaState>(id: Int, config: U, state: V, stateStore: IStateUpdater<V>) :
@@ -107,6 +108,8 @@ abstract class KasaDevice<X : KasaData, T : AlleyDevice<T, U, V>, U : IKasaConfi
 
                         String(KasaCrypto.decryptWithHeader(bb.array()))
                     }
+                } catch (e: UnresolvedAddressException) {
+                    null
                 } catch (e: UnknownHostException) {
                     null
                 } catch (e: SocketException) {
