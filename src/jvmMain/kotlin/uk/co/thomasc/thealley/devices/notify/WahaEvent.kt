@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.devices.notify
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class WahaEvent<T : WahaEventPayload>(
@@ -47,12 +48,21 @@ data class WahaMessage(
     val fromMe: Boolean,
     val body: String,
     val hasMedia: Boolean,
+    val media: WahaMedia?,
     val ack: Int?,
     val ackName: String,
     val replyTo: String?,
     @SerialName("_data")
     val data: WahaMessageData
 ) : WahaEventPayload
+
+@Serializable
+data class WahaMedia(
+    val url: String,
+    val mimetype: String,
+    val filename: String?,
+    val error: JsonElement?
+)
 
 @Serializable
 data class WahaMessageData(

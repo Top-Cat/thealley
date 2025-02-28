@@ -118,6 +118,8 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
                     )
                 }
 
+                logger.info { "Texecom area ($msg) changed=$didChange" }
+
                 if (didChange) {
                     bus.emit(TexecomAreaEvent(msg.number, msg.name, msg.status))
                 }

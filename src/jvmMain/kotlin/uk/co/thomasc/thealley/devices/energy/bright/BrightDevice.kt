@@ -27,14 +27,14 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
             if (state.nextCatchup?.let { now > it } != false) {
                 val catchup = bright.catchup(BrightResourceType.GAS_CONSUMPTION)
                 if (catchup.data.status != null) {
-                    logger.info { "Bright catchup initiated ${catchup.data.status}" }
+                    logger.debug { "Bright catchup initiated ${catchup.data.status}" }
                 }
 
                 val from = state.latestReading.plus(1.hours)
 
                 // Download 2 days of readings
                 val readings = if (from < now) {
-                    logger.info { "Getting readings from '$from' to '$now'" }
+                    logger.debug { "Getting readings from '$from' to '$now'" }
 
                     bright
                         .getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, now)
@@ -56,8 +56,8 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
 
                 val next = Instant.fromEpochSeconds(nextHalfHour(now) + Random.Default.nextInt(120))
 
-                logger.info { "Got ${readings.size} readings, Latest = $latest, Total = $newTotal, TempTotal = $tempTotal" }
-                logger.info { readings.toString() }
+                logger.debug { "Got ${readings.size} readings, Latest = $latest, Total = $newTotal, TempTotal = $tempTotal" }
+                logger.debug { readings.toString() }
                 updateState(state.copy(nextCatchup = next, latestReading = latest, meterTotal = newTotal))
                 bus.emit(BrightEvent(tempTotal, mostRecentBucket))
             }
