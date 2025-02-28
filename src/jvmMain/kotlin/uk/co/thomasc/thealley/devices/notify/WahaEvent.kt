@@ -95,7 +95,10 @@ data class WahaMessageDataMessageContextInfo(
 
 @Serializable
 data class WahaDeviceListMetadata(
+    val senderKeyHash: String,
     val senderTimestamp: Long,
+    val senderAccountType: String?,
+    val receiverAccountType: String?,
     val recipientKeyHash: String,
     val recipientTimestamp: Long
 )
