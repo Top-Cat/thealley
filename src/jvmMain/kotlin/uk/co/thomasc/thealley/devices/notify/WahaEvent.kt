@@ -48,7 +48,7 @@ data class WahaMessage(
     val fromMe: Boolean,
     val body: String,
     val hasMedia: Boolean,
-    val media: WahaMedia?,
+    val media: WahaMedia? = null,
     val ack: Int?,
     val ackName: String,
     val replyTo: String?,
@@ -97,8 +97,6 @@ data class WahaMessageDataMessageContextInfo(
 data class WahaDeviceListMetadata(
     val senderKeyHash: String,
     val senderTimestamp: Long,
-    val senderAccountType: String?,
-    val receiverAccountType: String?,
     val recipientKeyHash: String,
     val recipientTimestamp: Long
 )
