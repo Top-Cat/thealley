@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.IConfigEditable
 import uk.co.thomasc.thealley.devices.SimpleConfigEditable
 import uk.co.thomasc.thealley.devices.fieldEditor
-import uk.co.thomasc.thealley.devices.state.ps2.PS2State
+import uk.co.thomasc.thealley.devices.state.esphome.PS2State
 
 @Serializable
 @SerialName("PS2")

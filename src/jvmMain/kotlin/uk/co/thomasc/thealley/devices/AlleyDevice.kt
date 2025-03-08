@@ -31,7 +31,7 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig<U>, U : IA
         }
 
     private val mutex = Mutex()
-    suspend fun updateState(block: (U) -> U) =
+    suspend fun updateState(block: suspend (U) -> U) =
         mutex.withLock {
             updateState(block(state))
         }

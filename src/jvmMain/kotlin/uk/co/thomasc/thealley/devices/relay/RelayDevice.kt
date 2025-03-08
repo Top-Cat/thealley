@@ -31,7 +31,7 @@ import kotlin.time.Duration.Companion.minutes
 class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: IStateUpdater<RelayState>) :
     AlleyDevice<RelayDevice, RelayConfig, RelayState>(id, config, state, stateStore), IAlleyRelay, IAlleyStats, IAlleyRevocable {
 
-    val triggerHelper = TriggerHelper(this) { this.state }
+    private val triggerHelper = TriggerHelper(this) { this.state }
 
     override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()
     private var powerState by cached(1.minutes, true) {
