@@ -25,7 +25,7 @@ class MMWaveDevice(id: Int, config: MMWaveConfig, state: MMWaveState, stateStore
                     "occupancy" -> it.also {
                         bus.emit(RelayStateEvent(id, ev.payload == "ON"))
                     }
-                    //"movement" -> it.copy(power = ev.payload == "ON")
+                    // "movement" -> it.copy(power = ev.payload == "ON")
                     else -> it
                 }
             }
