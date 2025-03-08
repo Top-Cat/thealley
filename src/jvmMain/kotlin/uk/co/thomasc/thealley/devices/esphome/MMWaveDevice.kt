@@ -22,10 +22,10 @@ class MMWaveDevice(id: Int, config: MMWaveConfig, state: MMWaveState, stateStore
             updateState {
                 when (parts[2]) {
                     "light_intensity" -> it.copy(lightIntensity = ev.payload.toIntOrNull() ?: 0)
-                    "occupancy" -> it.also {
+                    "movement" -> it.also {
                         bus.emit(RelayStateEvent(id, ev.payload == "ON"))
                     }
-                    // "movement" -> it.copy(power = ev.payload == "ON")
+                    // "occupancy" -> it.copy(power = ev.payload == "ON")
                     else -> it
                 }
             }
