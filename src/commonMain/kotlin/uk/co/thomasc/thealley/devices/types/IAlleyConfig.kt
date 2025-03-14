@@ -20,6 +20,8 @@ sealed interface IAlleyConfig<U : IAlleyState> : IAlleyConfigBase {
 @Serializable
 sealed interface IAlleyConfigBase
 
+interface IAlleyLuxConfig
+
 interface IAlleyRelayConfig
 
 interface IAlleyLightConfig : IAlleyRelayConfig

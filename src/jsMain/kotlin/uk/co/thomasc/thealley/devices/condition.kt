@@ -20,6 +20,7 @@ import uk.co.thomasc.thealley.devices.system.conditional.conditions.RelayConditi
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.SunCondition
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.TexecomAreaCondition
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.TexecomZoneCondition
+import uk.co.thomasc.thealley.devices.types.IAlleyLuxConfig
 import uk.co.thomasc.thealley.devices.types.IAlleyRelayConfig
 
 external interface ConditionEditorProps : Props {
@@ -73,6 +74,41 @@ val conditionEditor = fc<ConditionEditorProps> { props ->
                     attrs.checked = condition.state
                     attrs.onChangeFunction = { ev ->
                         props.updateCondition(condition.copy(state = (ev.currentTarget as HTMLInputElement).checked))
+                    }
+                }
+                input(InputType.number) {
+                    attrs.id = "relay-period-${props.fieldName}"
+                    attrs.defaultValue = condition.period.toString()
+                    attrs.onChangeFunction = { ev ->
+                        props.updateCondition(condition.copy(period = (ev.currentTarget as HTMLInputElement).value.toIntOrNull() ?: 0))
+                    }
+                }
+            }
+        is LuxCondition ->
+            div {
+                devicePicker {
+                    attrs.fieldName = props.fieldName
+                    attrs.deviceLookup = props.deviceLookup.filter {
+                        it.value.config is IAlleyLuxConfig
+                    }
+                    attrs.deviceIds = listOf(condition.deviceId)
+                    attrs.updateDeviceIds = {
+                        props.updateCondition(condition.copy(deviceId = it.first()))
+                    }
+                    attrs.changeSize = false
+                }
+                input(InputType.number) {
+                    attrs.id = "lux-val-${props.fieldName}"
+                    attrs.defaultValue = condition.lux.toString()
+                    attrs.onChangeFunction = { ev ->
+                        props.updateCondition(condition.copy(lux = (ev.currentTarget as HTMLInputElement).value.toIntOrNull() ?: 0))
+                    }
+                }
+                input(InputType.checkBox) {
+                    attrs.id = "relay-above-${props.fieldName}"
+                    attrs.checked = condition.above
+                    attrs.onChangeFunction = { ev ->
+                        props.updateCondition(condition.copy(above = (ev.currentTarget as HTMLInputElement).checked))
                     }
                 }
             }

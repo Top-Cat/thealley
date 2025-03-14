@@ -13,6 +13,7 @@ data class MMWaveConfig(
     override val name: String,
     val prefix: String
 ) : IAlleyConfig<MMWaveState>,
+    IAlleyLuxConfig,
     IConfigEditable<MMWaveConfig> by SimpleConfigEditable(
         listOf(
             MMWaveConfig::name.fieldEditor("Name") { c, n -> c.copy(name = n) },
