@@ -47,7 +47,7 @@ object TheAlley {
 
                     while (true) {
                         delay(10 * 1000)
-                        bus.emit(TickEvent)
+                        bus.emit(TickEvent())
                     }
                 }
             }

@@ -28,9 +28,8 @@ class TriggerHelper<U : ITriggerableState<U>, T : ITriggerableConfig<U>>(val dev
             }
             device.updateState(getState().toNighttime(off))
         }
-        bus.handle<TickEvent> {
-            val now = Clock.System.now()
-            if (getState().offAt?.let { now > it } == true) {
+        bus.handle<TickEvent> { ev ->
+            if (getState().offAt?.let { ev.now > it } == true) {
                 offBlock()
                 device.updateState(getState().clearOffAt())
             }

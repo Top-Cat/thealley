@@ -6,6 +6,7 @@ import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.onkyo.RelayStateEvent
 import uk.co.thomasc.thealley.devices.state.esphome.MMWaveState
+import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.types.MMWaveConfig
 
@@ -21,7 +22,10 @@ class MMWaveDevice(id: Int, config: MMWaveConfig, state: MMWaveState, stateStore
             // State update
             updateState {
                 when (parts[2]) {
-                    "light_intensity" -> it.copy(lightIntensity = ev.payload.toIntOrNull() ?: 0)
+                    "light_intensity" -> (ev.payload.toIntOrNull() ?: 0).let { lux ->
+                        bus.emit(LuxEvent(id, lux))
+                        it.copy(lightIntensity = lux)
+                    }
                     "movement" -> it.also {
                         bus.emit(RelayStateEvent(id, ev.payload == "ON"))
                     }
@@ -33,4 +37,8 @@ class MMWaveDevice(id: Int, config: MMWaveConfig, state: MMWaveState, stateStore
     }
 
     companion object : KLogging()
+}
+
+data class LuxEvent(val deviceId: Int, val lux: Int) : IAlleyEvent {
+    fun on() = lux > 100
 }

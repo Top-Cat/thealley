@@ -17,8 +17,8 @@ class SunDevice(id: Int, config: SunConfig, state: SunState, stateStore: IStateU
     AlleyDevice<SunDevice, SunConfig, SunState>(id, config, state, stateStore) {
 
     override suspend fun init(bus: AlleyEventBusShim) {
-        bus.handle<TickEvent> {
-            val daytime = isDaytime()
+        bus.handle<TickEvent> { ev ->
+            val daytime = isDaytime(ev.now)
             if (state.daytime != daytime) {
                 bus.emit(if (daytime) SunRiseEvent else SunSetEvent)
                 updateState(state.copy(daytime = daytime))
@@ -33,9 +33,8 @@ class SunDevice(id: Int, config: SunConfig, state: SunState, stateStore: IStateU
 
     private fun Calendar.toKInstant() = this.toInstant().toKotlinInstant()
 
-    private fun isDaytime(): Boolean {
+    private fun isDaytime(nowInstant: Instant): Boolean {
         val now = Calendar.getInstance()
-        val nowInstant = now.toKInstant()
 
         if (now.get(Calendar.YEAR) != cacheTime?.get(Calendar.YEAR) || now.get(Calendar.DAY_OF_YEAR) != cacheTime?.get(Calendar.DAY_OF_YEAR)) {
             val sunrise = sunCalculator.computeSunriseCalendar(Zenith(89.0), now).toKInstant()

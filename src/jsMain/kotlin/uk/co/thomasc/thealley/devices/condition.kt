@@ -15,6 +15,7 @@ import react.fc
 import uk.co.thomasc.thealley.devices.alarm.TexecomAreaStatus
 import uk.co.thomasc.thealley.devices.alarm.ZoneState
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.ICondition
+import uk.co.thomasc.thealley.devices.system.conditional.conditions.LuxCondition
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.RelayCondition
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.SunCondition
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.TexecomAreaCondition
@@ -31,6 +32,7 @@ external interface ConditionEditorProps : Props {
 val conditionEditor = fc<ConditionEditorProps> { props ->
     val conditionCreator = listOf(
         RelayCondition::class to { RelayCondition(0, true) },
+        LuxCondition::class to { LuxCondition(0) },
         SunCondition::class to { SunCondition(true) },
         TexecomAreaCondition::class to { TexecomAreaCondition(0, TexecomAreaStatus.ARMED) },
         TexecomZoneCondition::class to { TexecomZoneCondition(0, ZoneState.Active) }

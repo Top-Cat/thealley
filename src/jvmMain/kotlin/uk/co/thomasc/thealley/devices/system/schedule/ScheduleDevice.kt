@@ -18,8 +18,8 @@ class ScheduleDevice(id: Int, config: ScheduleConfig, state: ScheduleState, stat
     private val sortedStates = config.elements.sortedBy { it.time }
 
     override suspend fun init(bus: AlleyEventBusShim) {
-        bus.handle<TickEvent> {
-            val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+        bus.handle<TickEvent> { ev ->
+            val now = ev.now.toLocalDateTime(TimeZone.UTC)
             val idealState = sortedStates.indexOfLast { it.time < now.time }.let {
                 if (it == -1) sortedStates.lastIndex else it
             }

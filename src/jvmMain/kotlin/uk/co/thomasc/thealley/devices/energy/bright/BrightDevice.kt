@@ -22,9 +22,8 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
     private fun nextHalfHour(instant: Instant) = ((instant.epochSeconds / 1800) + 1) * 1800
 
     override suspend fun init(bus: AlleyEventBusShim) {
-        bus.handle<TickEvent> {
-            val now = Clock.System.now()
-            if (state.nextCatchup?.let { now > it } != false) {
+        bus.handle<TickEvent> { ev ->
+            if (state.nextCatchup?.let { ev.now > it } != false) {
                 val catchup = bright.catchup(BrightResourceType.GAS_CONSUMPTION)
                 if (catchup.data.status != null) {
                     logger.debug { "Bright catchup initiated ${catchup.data.status}" }
@@ -33,18 +32,18 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
                 val from = state.latestReading.plus(1.hours)
 
                 // Download 2 days of readings
-                val readings = if (from < now) {
-                    logger.debug { "Getting readings from '$from' to '$now'" }
+                val readings = if (from < ev.now) {
+                    logger.debug { "Getting readings from '$from' to '${ev.now}'" }
 
                     bright
-                        .getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, now)
+                        .getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, ev.now)
                         .readings
                         .filter { it.consumption != null }
                 } else {
                     listOf()
                 }
 
-                val (oldReadings, last2Days) = readings.partition { it.time < now.minus(48.hours) }
+                val (oldReadings, last2Days) = readings.partition { it.time < ev.now.minus(48.hours) }
 
                 // Add readings older than 2 days to state
                 val latest = oldReadings.maxOfOrNull { it.time } ?: state.latestReading
@@ -54,7 +53,7 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
                 val mostRecentBucket = readings.maxOfOrNull { it.time } ?: state.latestReading
                 val tempTotal = newTotal + last2Days.mapNotNull { it.m3 }.sum()
 
-                val next = Instant.fromEpochSeconds(nextHalfHour(now) + Random.Default.nextInt(120))
+                val next = Instant.fromEpochSeconds(nextHalfHour(ev.now) + Random.Default.nextInt(120))
 
                 logger.debug { "Got ${readings.size} readings, Latest = $latest, Total = $newTotal, TempTotal = $tempTotal" }
                 logger.debug { readings.toString() }
