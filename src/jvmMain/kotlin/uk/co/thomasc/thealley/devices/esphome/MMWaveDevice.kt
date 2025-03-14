@@ -20,18 +20,18 @@ class MMWaveDevice(id: Int, config: MMWaveConfig, state: MMWaveState, stateStore
             if (parts.size < 4 || parts[0] != config.prefix || parts[3] != "state") return@handle
 
             // State update
-            updateState {
-                when (parts[2]) {
-                    "light_intensity" -> (ev.payload.toIntOrNull() ?: 0).let { lux ->
+            when (parts[2]) {
+                "light_intensity" -> (ev.payload.toIntOrNull() ?: 0).let { lux ->
+                    if (updateState(state.copy(lightIntensity = lux))) {
                         bus.emit(LuxEvent(id, lux))
-                        it.copy(lightIntensity = lux)
                     }
-                    "movement" -> it.also {
+                }
+                "movement" -> (ev.payload == "ON").let { occupied ->
+                    if (updateState(state.copy(occupied = occupied))) {
                         bus.emit(RelayStateEvent(id, ev.payload == "ON"))
                     }
-                    // "occupancy" -> it.copy(power = ev.payload == "ON")
-                    else -> it
                 }
+                // "occupancy"
             }
         }
     }

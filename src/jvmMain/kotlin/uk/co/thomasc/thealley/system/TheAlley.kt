@@ -13,6 +13,7 @@ import uk.co.thomasc.thealley.devices.system.TickEvent
 import uk.co.thomasc.thealley.devices.types.deviceConfig
 import uk.co.thomasc.thealley.repo.DeviceDao
 import uk.co.thomasc.thealley.repo.DeviceTable
+import kotlin.time.Duration.Companion.seconds
 
 object TheAlley {
     fun start(): Pair<AlleyEventBus, AlleyDeviceMapper> {
@@ -46,7 +47,7 @@ object TheAlley {
                     bus.start()
 
                     while (true) {
-                        delay(10 * 1000)
+                        delay(10.seconds)
                         bus.emit(TickEvent())
                     }
                 }
