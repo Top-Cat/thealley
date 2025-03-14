@@ -1,6 +1,5 @@
 package uk.co.thomasc.thealley.devices.energy.bright
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyDevice

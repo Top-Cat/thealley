@@ -1,6 +1,5 @@
 package uk.co.thomasc.thealley.devices.system.schedule
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import uk.co.thomasc.thealley.devices.AlleyDevice
