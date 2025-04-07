@@ -8,7 +8,6 @@ import kotlinx.coroutines.async
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mu.KLogging
-import nl.myndocs.oauth2.token.RefreshToken
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
