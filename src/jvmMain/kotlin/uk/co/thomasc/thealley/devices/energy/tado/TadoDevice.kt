@@ -8,6 +8,7 @@ import kotlinx.coroutines.async
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import mu.KLogging
+import nl.myndocs.oauth2.token.RefreshToken
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
@@ -20,7 +21,15 @@ class TadoDevice(id: Int, config: TadoConfig, state: TadoState, stateStore: ISta
 
     private val tado = Tado(
         at.topc.tado.config.TadoConfig(
-            config.email
+            config.email,
+            state.refreshToken,
+            persistRefreshToken = { token ->
+                updateState {
+                    state.copy(
+                        refreshToken = token
+                    )
+                }
+            }
         )
     )
 

@@ -5,4 +5,7 @@ import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.state.IAlleyState
 
 @Serializable
-data class TadoState(val lastMeterReadDate: LocalDate? = null) : IAlleyState
+data class TadoState(
+    val lastMeterReadDate: LocalDate? = null,
+    val refreshToken: String? = null
+) : IAlleyState
