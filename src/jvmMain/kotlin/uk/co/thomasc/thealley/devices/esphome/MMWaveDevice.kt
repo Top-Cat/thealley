@@ -28,6 +28,7 @@ class MMWaveDevice(id: Int, config: MMWaveConfig, state: MMWaveState, stateStore
                 }
                 "movement" -> (ev.payload == "ON").let { occupied ->
                     if (updateState(state.copy(occupied = occupied))) {
+                        // TODO: This is pretending to be a relay but the device / config is not a relay
                         bus.emit(RelayStateEvent(id, ev.payload == "ON"))
                     }
                 }

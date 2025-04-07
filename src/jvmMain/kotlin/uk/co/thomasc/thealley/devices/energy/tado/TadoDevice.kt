@@ -21,9 +21,7 @@ class TadoDevice(id: Int, config: TadoConfig, state: TadoState, stateStore: ISta
 
     private val tado = Tado(
         at.topc.tado.config.TadoConfig(
-            config.email,
-            config.pass,
-            TadoOauthCreds.WebApp
+            config.email
         )
     )
 
