@@ -1,7 +1,6 @@
 package uk.co.thomasc.thealley.devices.energy.tado
 
 import at.topc.tado.Tado
-import at.topc.tado.config.TadoOauthCreds
 import at.topc.tado.data.eiq.TadoEIQReadingReq
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.GlobalScope
