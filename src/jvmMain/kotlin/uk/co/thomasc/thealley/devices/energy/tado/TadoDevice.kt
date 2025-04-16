@@ -24,7 +24,7 @@ class TadoDevice(id: Int, config: TadoConfig, state: TadoState, stateStore: ISta
             state.refreshToken,
             persistRefreshToken = { token ->
                 updateState {
-                    state.copy(
+                    this.state.copy(
                         refreshToken = token
                     )
                 }
