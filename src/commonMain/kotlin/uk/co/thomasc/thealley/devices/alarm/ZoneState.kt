@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.devices.alarm
 
-import uk.co.thomasc.thealley.EnumAsIntSerializer
 import kotlinx.serialization.Serializable
+import uk.co.thomasc.thealley.EnumAsIntSerializer
 
 @Serializable(with = ZoneState.ZoneStateSerializer::class)
 enum class ZoneState(val enc: Int) {
