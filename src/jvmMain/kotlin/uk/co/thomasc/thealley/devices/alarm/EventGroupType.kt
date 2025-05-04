@@ -1,6 +1,6 @@
 package uk.co.thomasc.thealley.devices.alarm
 
-import EnumAsIntSerializer
+import uk.co.thomasc.thealley.EnumAsIntSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable(with = EventGroupType.EventGroupTypeSerializer::class)
