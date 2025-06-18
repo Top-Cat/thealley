@@ -11,16 +11,16 @@ import uk.co.thomasc.thealley.devices.state.EmptyState
 @SerialName("Notify")
 data class NotifyConfig(
     override val name: String,
-    val session: String = "default",
-    val baseUrl: String = "http://waha",
-    val users: List<String> = listOf()
+    val topic: String = "default",
+    val baseUrl: String = "http://ntfy.web",
+    val token: String = ""
 ) : IAlleyConfig<EmptyState>,
     IConfigEditable<NotifyConfig> by SimpleConfigEditable(
         listOf(
             NotifyConfig::name.fieldEditor("Name") { c, n -> c.copy(name = n) },
-            NotifyConfig::session.fieldEditor("Session") { c, n -> c.copy(session = n) },
+            NotifyConfig::topic.fieldEditor("Topic") { c, n -> c.copy(topic = n) },
             NotifyConfig::baseUrl.fieldEditor("Base URL") { c, n -> c.copy(baseUrl = n) },
-            NotifyConfig::users.fieldEditor("Users") { c, n -> c.copy(users = n) }
+            NotifyConfig::token.fieldEditor("Token") { c, n -> c.copy(token = n) }
         )
     ) {
     override val defaultState = EmptyState

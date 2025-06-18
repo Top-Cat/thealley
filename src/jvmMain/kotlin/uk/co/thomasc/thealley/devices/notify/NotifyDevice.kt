@@ -3,6 +3,7 @@ package uk.co.thomasc.thealley.devices.notify
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.receiveDeserialized
 import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -22,24 +23,61 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.alarm.events.TexecomAreaEvent
 import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.types.NotifyConfig
-import uk.co.thomasc.thealley.websocketClient
 
-interface WahaRequest {
-    val session: String
+@Serializable
+data class NtfyPub(
+    val topic: String,
+    val message: String? = null,
+    val title: String? = null,
+    val tags: List<String>? = null,
+    val priority: Int? = null,
+    val actions: List<NtfyAction>? = null,
+    val click: String? = null,
+    val attach: String? = null,
+    val markdown: Boolean? = null,
+    val icon: String? = null,
+    val filename: String? = null,
+    val delay: String? = null,
+    val email: String? = null,
+    val call: String? = null
+)
+
+interface NtfyAction {
+    val action: String
+    val label: String
+    val clear: Boolean?
 }
 
-interface WahaChatRequest : WahaRequest {
-    val chatId: String
+@Serializable
+data class NtfyViewAction(
+    override val label: String,
+    val url: String,
+    override val clear: Boolean? = null
+) : NtfyAction {
+    override val action = "view"
 }
 
 @Serializable
-data class ChatRequest(override val chatId: String, val text: String, override val session: String) : WahaChatRequest
+data class NtfyBroadcastAction(
+    override val label: String,
+    val intent: String? = null,
+    val extras: Map<String, String>? = null,
+    override val clear: Boolean? = null
+) : NtfyAction {
+    override val action = "broadcast"
+}
 
 @Serializable
-data class SetSeenRequest(override val chatId: String, val messageId: String, override val session: String) : WahaChatRequest
-
-@Serializable
-data class TypingRequest(override val chatId: String, override val session: String) : WahaChatRequest
+data class NtfyHttpAction(
+    override val label: String,
+    val url: String,
+    val method: String? = null,
+    val headers: Map<String, String>? = null,
+    val body: String? = null,
+    override val clear: Boolean? = null
+) : NtfyAction {
+    override val action = "http"
+}
 
 class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<NotifyDevice, NotifyConfig, EmptyState>(id, config, state, stateStore) {
@@ -48,22 +86,7 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
 
     override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<TexecomAreaEvent> {
-            sendNotification("${it.status.emoji} Area '${it.areaName}' ${it.status.human}")
-        }
-
-        CoroutineScope(threadPool).launch {
-            websocketClient.webSocket(
-                method = HttpMethod.Get,
-                host = "waha",
-                port = 80,
-                path = "/ws?session=${config.session}&events=message"
-            ) {
-                while (true) {
-                    val othersMessage = receiveDeserialized<WahaEvent<WahaMessage>>()
-                    logger.info { "Received websocket message: $othersMessage" }
-                    setSeen(othersMessage.payload.from, othersMessage.payload.id)
-                }
-            }
+            sendNotification(it.status.human, "Area '${it.areaName}'", it.status.tag)
         }
 
         CoroutineScope(threadPool).launch {
@@ -74,38 +97,12 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
         }
     }
 
-    private suspend fun setSeen(user: String, id: String) {
+    private suspend fun sendNotification(title: String, message: String, tag: String) {
         channel.send {
-            it.post("${config.baseUrl}/api/sendSeen") {
+            it.post(config.baseUrl) {
                 contentType(ContentType.Application.Json)
-                setBody(SetSeenRequest(user, id, config.session))
-            }
-        }
-    }
-
-    private suspend fun sendNotification(text: String) {
-        config.users.map { u -> "$u@c.us" }.forEach { u ->
-            channel.send {
-                it.post("${config.baseUrl}/api/startTyping") {
-                    contentType(ContentType.Application.Json)
-                    setBody(TypingRequest(u, config.session))
-                }
-            }
-
-            delay(500L)
-
-            channel.send {
-                it.post("${config.baseUrl}/api/sendText") {
-                    contentType(ContentType.Application.Json)
-                    setBody(ChatRequest(u, text, config.session))
-                }
-            }
-
-            channel.send {
-                it.post("${config.baseUrl}/api/stopTyping") {
-                    contentType(ContentType.Application.Json)
-                    setBody(TypingRequest(u, config.session))
-                }
+                bearerAuth(config.token)
+                setBody(NtfyPub(config.topic, message, title, listOf(tag), actions = emptyList(), icon = "https://topc.at/images/tc.png"))
             }
         }
     }
