@@ -18,19 +18,7 @@ import uk.co.thomasc.thealley.devices.types.TadoConfig
 class TadoDevice(id: Int, config: TadoConfig, state: TadoState, stateStore: IStateUpdater<TadoState>) :
     AlleyDevice<TadoDevice, TadoConfig, TadoState>(id, config, state, stateStore) {
 
-    private val tado = Tado(
-        at.topc.tado.config.TadoConfig(
-            config.email,
-            state.refreshToken,
-            persistRefreshToken = { token ->
-                updateState {
-                    this.state.copy(
-                        refreshToken = token
-                    )
-                }
-            }
-        )
-    )
+    private lateinit var tado: Tado
 
     private val homeId = GlobalScope.async(start = CoroutineStart.LAZY) { tado.me().homes.first().id }
     private val home = GlobalScope.async(start = CoroutineStart.LAZY) { tado.home(getHomeId()) }
@@ -39,6 +27,23 @@ class TadoDevice(id: Int, config: TadoConfig, state: TadoState, stateStore: ISta
     suspend fun getHome() = home.await()
 
     override suspend fun init(bus: AlleyEventBusShim) {
+        tado = Tado(
+            at.topc.tado.config.TadoConfig(
+                config.email,
+                state.refreshToken,
+                persistRefreshToken = { token ->
+                    updateState {
+                        this.state.copy(
+                            refreshToken = token
+                        )
+                    }
+                },
+                deviceCodeHandler = { code ->
+                    bus.emit(TadoCodeEvent(config.email, code))
+                }
+            )
+        )
+
         bus.handle<BrightEvent> {
             if (!config.updateReadings) return@handle
 

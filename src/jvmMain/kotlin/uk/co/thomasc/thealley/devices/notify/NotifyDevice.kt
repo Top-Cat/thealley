@@ -18,6 +18,7 @@ import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.alarm.events.TexecomAreaEvent
+import uk.co.thomasc.thealley.devices.energy.tado.TadoCodeEvent
 import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.types.NotifyConfig
 
@@ -83,7 +84,11 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
 
     override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<TexecomAreaEvent> {
-            sendNotification(it.status.human, "Area '${it.areaName}'", it.status.tag)
+            sendNotification("Area ${it.status.human}", "Area '${it.areaName}'", it.status.tag)
+        }
+
+        bus.handle<TadoCodeEvent> {
+            sendNotification("Tado Authentication Required", "Visit ${it.response.verificationUriComplete} to complete tado login for ${it.account}", "key")
         }
 
         CoroutineScope(threadPool).launch {
