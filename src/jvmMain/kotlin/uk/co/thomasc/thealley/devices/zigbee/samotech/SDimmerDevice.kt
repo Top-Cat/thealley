@@ -78,7 +78,6 @@ class SDimmerDevice(id: Int, config: SDimmerConfig, state: SamotechState, stateS
         val newBrightness = if (update.state == ZRelayAction.OFF) null else update.brightness
 
         if (abs((newBrightness ?: 1024) - (state.lastBrightness ?: 1024)) > 10) {
-            logger.info { "SDimmer ignoring motion $newBrightness ${state.lastBrightness}" }
             updateState(state.copy(ignoreMotionUntil = Clock.System.now().plus(config.switchTimeout), lastBrightness = newBrightness))
         }
 

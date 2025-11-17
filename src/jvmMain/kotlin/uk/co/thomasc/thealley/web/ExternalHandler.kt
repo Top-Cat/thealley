@@ -8,6 +8,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -168,9 +169,7 @@ class ExternalHandler(private val bus: AlleyEventBusShim, private val deviceMapp
 
     private suspend fun executeRequest(userId: String, requestId: String, intent: ExecuteIntent) = ExecuteResponse(
         intent.payload.commands.map { cmd -> executeCommand(cmd, userId, requestId) }
-            .flatMap { cmd -> // Collate results
-                cmd.map { localDevices -> localDevices.await() }
-            }
+            .flatMap { cmd -> cmd.awaitAll() } // Collate results
             .groupBy({ it.result }, { it.device }).map { (status, devices) ->
                 ExecuteResponseCommand(
                     devices.map { device -> device.id },
