@@ -57,33 +57,43 @@ class Bright(private val email: String, private val pass: String) {
 
     private val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
-    suspend fun catchup(type: BrightResourceType): BrightResourceCatchup {
+    suspend fun catchup(type: BrightResourceType): BrightResourceCatchup? {
         val resourceId = resources.await().first { it.type == type }.resourceId
 
-        return client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/catchup") {
-            contentType(ContentType.Application.Json)
-            header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
-            header("token", tokenForGet())
-        }.body<BrightResourceCatchup>()
+        return try {
+            client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/catchup") {
+                contentType(ContentType.Application.Json)
+                header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
+                header("token", tokenForGet())
+            }.body<BrightResourceCatchup>()
+        } catch (e: Exception) {
+            logger.warn { "Error starting bright catchup (${e.message})" }
+            null
+        }
     }
 
-    suspend fun getReadings(type: BrightResourceType, period: BrightPeriod = BrightPeriod.PT30M, from: Instant? = null, to: Instant? = null): BrightResourceReadings {
+    suspend fun getReadings(type: BrightResourceType, period: BrightPeriod = BrightPeriod.PT30M, from: Instant? = null, to: Instant? = null): BrightResourceReadings? {
         val resourceId = resources.await().first { it.type == type }.resourceId
         val fromLocal = from?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
             ?: LocalDateTime.now().withSecond(1).withMinute(0).withHour(0)
         val toLocal = to?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
             ?: LocalDateTime.now().withSecond(59).withMinute(59).withHour(23)
 
-        return client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/readings") {
-            contentType(ContentType.Application.Json)
-            header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
-            header("token", tokenForGet())
-            parameter("from", fromLocal.format(format))
-            parameter("to", toLocal.format(format))
-            parameter("period", period)
-            parameter("function", BrightFunction.SUM)
-            parameter("nulls", 1)
-        }.body<BrightResourceReadings>()
+        return try {
+            client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/readings") {
+                contentType(ContentType.Application.Json)
+                header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
+                header("token", tokenForGet())
+                parameter("from", fromLocal.format(format))
+                parameter("to", toLocal.format(format))
+                parameter("period", period)
+                parameter("function", BrightFunction.SUM)
+                parameter("nulls", 1)
+            }.body<BrightResourceReadings>()
+        } catch (e: Exception) {
+            logger.warn { "Error getting bright readings (${e.message})" }
+            null
+        }
     }
 
     companion object : KLogging()

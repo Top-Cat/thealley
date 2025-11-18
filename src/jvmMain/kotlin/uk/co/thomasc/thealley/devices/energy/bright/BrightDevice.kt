@@ -24,7 +24,7 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
         bus.handle<TickEvent> { ev ->
             if (state.nextCatchup?.let { ev.now > it } != false) {
                 val catchup = bright.catchup(BrightResourceType.GAS_CONSUMPTION)
-                if (catchup.data.status != null) {
+                if (catchup?.data?.status != null) {
                     logger.debug { "Bright catchup initiated ${catchup.data.status}" }
                 }
 
@@ -34,10 +34,8 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
                 val readings = if (from < ev.now) {
                     logger.debug { "Getting readings from '$from' to '${ev.now}'" }
 
-                    bright
-                        .getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, ev.now)
-                        .readings
-                        .filter { it.consumption != null }
+                    val response = bright.getReadings(BrightResourceType.GAS_CONSUMPTION, BrightPeriod.PT1H, from, ev.now) ?: return@handle
+                    response.readings.filter { it.consumption != null }
                 } else {
                     listOf()
                 }
