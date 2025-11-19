@@ -37,7 +37,7 @@ internal class AlleyEventBusImpl : AlleyEventBus() {
             logger.debug { "Emitting event $event" }
         }
 
-        channel.send {
+        channel.trySend {
             listeners[event::class]?.filterIsInstance<EventHandler<T>>()?.forEach {
                 try {
                     it.invoke(event)

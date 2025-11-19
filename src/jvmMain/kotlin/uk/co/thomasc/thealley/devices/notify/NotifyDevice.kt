@@ -8,7 +8,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.serialization.Serializable
@@ -80,7 +79,7 @@ data class NtfyHttpAction(
 class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<NotifyDevice, NotifyConfig, EmptyState>(id, config, state, stateStore) {
 
-    private val channel = Channel<suspend (HttpClient) -> Unit>(Channel.Factory.RENDEZVOUS)
+    private val channel = Channel<suspend (HttpClient) -> Unit>(10)
 
     override suspend fun init(bus: AlleyEventBusShim) {
         bus.handle<TexecomAreaEvent> {
@@ -94,13 +93,12 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
         CoroutineScope(threadPool).launch {
             while (true) {
                 channel.receive().invoke(client)
-                delay(500L)
             }
         }
     }
 
-    private suspend fun sendNotification(title: String, message: String, tag: String) {
-        channel.send {
+    private fun sendNotification(title: String, message: String, tag: String) {
+        channel.trySend {
             it.post(config.baseUrl) {
                 contentType(ContentType.Application.Json)
                 bearerAuth(config.token)
