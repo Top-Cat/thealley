@@ -13,7 +13,5 @@ data class DualSwitchUpdate(
     @SerialName("state_l1")
     val state1: ZRelayAction,
     @SerialName("state_l2")
-    val state2: ZRelayAction,
-    @SerialName("power_on_behavior")
-    val powerOnBehavior: ZigbeePowerOnBehavior
+    val state2: ZRelayAction
 ) : ZigbeeUpdateMains

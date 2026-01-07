@@ -4,7 +4,10 @@ import kotlinx.serialization.json.Json
 
 val alleyJsonUgly = Json
 
-val alleyJson = Json(alleyJsonUgly) {
+val alleyJsonLenient = Json(alleyJsonUgly) {
     ignoreUnknownKeys = true
+}
+
+val alleyJson = Json(alleyJsonLenient) {
     prettyPrint = true
 }

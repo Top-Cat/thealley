@@ -1,6 +1,7 @@
 package uk.co.thomasc.thealley.devices.zigbee
 
 import kotlinx.serialization.KSerializer
+import uk.co.thomasc.thealley.alleyJsonLenient
 import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
@@ -29,7 +30,7 @@ abstract class ZigbeeDevice<X : ZigbeeUpdate, T : AlleyDevice<T, U, V>, U : IZig
 
     final override suspend fun init(bus: AlleyEventBusShim) {
         helper = Zigbee2MqttHelper(bus, config.prefix, config.deviceId, getEvent(), latch, condition, { json ->
-            alleyJsonUgly.decodeFromString(serializer, json)
+            alleyJsonLenient.decodeFromString(serializer, json)
         }) {
             onUpdate(bus, getState())
         }
