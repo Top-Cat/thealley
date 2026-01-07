@@ -2,7 +2,6 @@ package uk.co.thomasc.thealley.devices.zigbee
 
 import kotlinx.serialization.KSerializer
 import uk.co.thomasc.thealley.alleyJsonLenient
-import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
