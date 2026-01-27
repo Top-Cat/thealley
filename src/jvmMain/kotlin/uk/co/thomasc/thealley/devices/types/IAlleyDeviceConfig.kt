@@ -11,6 +11,7 @@ import uk.co.thomasc.thealley.devices.esphome.MMWaveDevice
 import uk.co.thomasc.thealley.devices.esphome.PS2Device
 import uk.co.thomasc.thealley.devices.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.PlugDevice
+import uk.co.thomasc.thealley.devices.leeds.bin.LeedsBinDevice
 import uk.co.thomasc.thealley.devices.notify.NotifyDevice
 import uk.co.thomasc.thealley.devices.onkyo.OnkyoDevice
 import uk.co.thomasc.thealley.devices.relay.RelayDevice
@@ -71,6 +72,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V
             is ConditionalConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ConditionalDevice)
             is DualDimmerConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::DualDimmerDevice)
             is DualSwitchConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::DualSwitchDevice)
+            is LeedsBinConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::LeedsBinDevice)
             is MDimmerConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::MDimmerDevice)
             is MMWaveConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::MMWaveDevice)
             is MotionConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::MotionDevice)

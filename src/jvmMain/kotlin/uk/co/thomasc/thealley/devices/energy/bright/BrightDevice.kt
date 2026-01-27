@@ -50,7 +50,7 @@ class BrightDevice(id: Int, config: BrightConfig, state: BrightState, stateStore
                 val mostRecentBucket = readings.maxOfOrNull { it.time } ?: state.latestReading
                 val tempTotal = newTotal + last2Days.mapNotNull { it.m3 }.sum()
 
-                val next = Instant.fromEpochSeconds(nextHalfHour(ev.now) + Random.Default.nextInt(120))
+                val next = Instant.fromEpochSeconds(nextHalfHour(ev.now) + Random.nextInt(120))
 
                 logger.debug { "Got ${readings.size} readings, Latest = $latest, Total = $newTotal, TempTotal = $tempTotal" }
                 logger.debug { readings.toString() }
