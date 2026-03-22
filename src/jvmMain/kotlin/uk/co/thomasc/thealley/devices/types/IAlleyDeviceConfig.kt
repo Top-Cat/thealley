@@ -7,7 +7,6 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.alarm.TexecomDevice
 import uk.co.thomasc.thealley.devices.energy.bright.BrightDevice
 import uk.co.thomasc.thealley.devices.energy.tado.TadoDevice
-import uk.co.thomasc.thealley.devices.zigbee.custom.MMWaveDevice
 import uk.co.thomasc.thealley.devices.esphome.PS2Device
 import uk.co.thomasc.thealley.devices.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.PlugDevice
@@ -29,6 +28,7 @@ import uk.co.thomasc.thealley.devices.unifi.UnifiDevice
 import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionDevice
 import uk.co.thomasc.thealley.devices.zigbee.blind.BlindDevice
 import uk.co.thomasc.thealley.devices.zigbee.candeo.CDimmerDevice
+import uk.co.thomasc.thealley.devices.zigbee.custom.MMWaveDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.DualDimmerDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.DualSwitchDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.MDimmerDevice
