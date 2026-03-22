@@ -11,8 +11,10 @@ import uk.co.thomasc.thealley.devices.state.esphome.MMWaveState
 @SerialName("MMWave")
 data class MMWaveConfig(
     override val name: String,
-    val prefix: String
+    override val deviceId: String,
+    override val prefix: String = "zigbee"
 ) : IAlleyConfig<MMWaveState>,
+    IZigbeeConfig<MMWaveState>,
     IAlleyLuxConfig,
     IConfigEditable<MMWaveConfig> by SimpleConfigEditable(
         listOf(

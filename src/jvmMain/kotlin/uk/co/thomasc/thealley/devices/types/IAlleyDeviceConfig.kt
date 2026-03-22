@@ -7,7 +7,7 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.alarm.TexecomDevice
 import uk.co.thomasc.thealley.devices.energy.bright.BrightDevice
 import uk.co.thomasc.thealley.devices.energy.tado.TadoDevice
-import uk.co.thomasc.thealley.devices.esphome.MMWaveDevice
+import uk.co.thomasc.thealley.devices.zigbee.custom.MMWaveDevice
 import uk.co.thomasc.thealley.devices.esphome.PS2Device
 import uk.co.thomasc.thealley.devices.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.PlugDevice

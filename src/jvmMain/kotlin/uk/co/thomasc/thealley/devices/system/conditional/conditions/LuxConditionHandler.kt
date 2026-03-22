@@ -1,7 +1,7 @@
 package uk.co.thomasc.thealley.devices.system.conditional.conditions
 
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
-import uk.co.thomasc.thealley.devices.esphome.LuxEvent
+import uk.co.thomasc.thealley.devices.zigbee.custom.LuxEvent
 
 class LuxConditionHandler(condition: LuxCondition) : Condition<LuxCondition>(condition) {
     override suspend fun setupHandler(bus: AlleyEventBusShim) {
