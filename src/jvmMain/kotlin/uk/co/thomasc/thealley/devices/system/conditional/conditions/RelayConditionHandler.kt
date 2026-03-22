@@ -25,7 +25,10 @@ class RelayConditionHandler(condition: RelayCondition) : Condition<RelayConditio
         }
 
         bus.handle<TickEvent> { ev ->
-            if (triggerAt < ev.now) updateCondition(true)
+            if (triggerAt < ev.now) {
+                updateCondition(true)
+                triggerAt = Instant.DISTANT_FUTURE
+            }
         }
     }
 }
