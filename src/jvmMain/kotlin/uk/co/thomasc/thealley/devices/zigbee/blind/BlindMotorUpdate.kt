@@ -33,6 +33,7 @@ data class ZigbeeOTAStatus(
 enum class ZigbeeOTAState {
     @SerialName("idle")
     IDLE,
+
     @SerialName("updating")
     UPDATING
 }
