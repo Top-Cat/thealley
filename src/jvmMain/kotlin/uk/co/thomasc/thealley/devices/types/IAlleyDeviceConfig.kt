@@ -29,6 +29,7 @@ import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionDevice
 import uk.co.thomasc.thealley.devices.zigbee.blind.BlindDevice
 import uk.co.thomasc.thealley.devices.zigbee.candeo.CDimmerDevice
 import uk.co.thomasc.thealley.devices.zigbee.custom.MMWaveDevice
+import uk.co.thomasc.thealley.devices.zigbee.custom.ZBlindDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.DualDimmerDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.DualSwitchDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.MDimmerDevice
@@ -95,6 +96,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V
             is TadoConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::TadoDevice)
             is TexecomConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::TexecomDevice)
             is UnifiConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::UnifiDevice)
+            is ZBlindConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBlindDevice)
             is ZBMiniConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBMiniDevice)
             is ZBMini2Config -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBMini2Device)
             is ZPlugConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZPlugDevice)
