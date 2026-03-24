@@ -9,9 +9,9 @@ import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateBattery
 data class MotionSensorUpdate(
     // Generic
     override val linkquality: Int,
-    override val battery: Int? = null,
+    override val battery: Float? = null,
     @SerialName("device_temperature")
-    override val deviceTemperature: Int? = null,
+    override val temperature: Float? = null,
 
     // Light sensor
     val voltage: Int = 0,
