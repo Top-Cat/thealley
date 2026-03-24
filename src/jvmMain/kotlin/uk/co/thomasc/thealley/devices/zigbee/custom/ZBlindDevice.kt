@@ -40,10 +40,10 @@ class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore:
     }
 
     private suspend fun sendCommand(bus: AlleyEventEmitter, cmd: BlindCommand) =
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}", "{\"state\": \"$cmd\"}"))
+        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", "{\"state\": \"$cmd\"}"))
 
     private suspend fun setPosition(bus: AlleyEventEmitter, pos: Int) =
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}", "{\"position\": \"$pos\"}"))
+        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", "{\"position\": \"$pos\"}"))
 
     override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) =
         sendCommand(bus, if (value) BlindCommand.OPEN else BlindCommand.CLOSE)
