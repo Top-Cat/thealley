@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
 
 internal class AlleyEventBusImpl : AlleyEventBus() {
     private val threadPool = newFixedThreadPoolContext(4, "AlleyEventBus")
-    private val channel = Channel<suspend () -> Unit>(50)
+    private val channel = Channel<suspend () -> Unit>(500)
     private val listeners = mutableMapOf<KClass<out IAlleyEvent>, MutableList<EventHandler<*>>>()
 
     fun start() {
@@ -37,7 +37,7 @@ internal class AlleyEventBusImpl : AlleyEventBus() {
             logger.debug { "Emitting event $event" }
         }
 
-        channel.trySend {
+        val result = channel.trySend {
             listeners[event::class]?.filterIsInstance<EventHandler<T>>()?.forEach {
                 try {
                     it.invoke(event)
@@ -45,6 +45,10 @@ internal class AlleyEventBusImpl : AlleyEventBus() {
                     logger.error(e) { "Error handing ${event.javaClass.simpleName}" }
                 }
             }
+        }
+
+        if (result.isFailure) {
+            logger.warn { "Bus was full and failed to queue ${event.javaClass.simpleName}" }
         }
     }
 
