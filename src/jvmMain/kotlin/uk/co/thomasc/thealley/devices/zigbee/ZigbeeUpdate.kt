@@ -63,5 +63,11 @@ enum class ZigbeeOTAState {
     IDLE,
 
     @SerialName("updating")
-    UPDATING
+    UPDATING,
+
+    @SerialName("available")
+    AVAILABLE,
+
+    @SerialName("scheduled")
+    SCHEDULED
 }
