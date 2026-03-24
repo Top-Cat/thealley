@@ -1,6 +1,5 @@
 package uk.co.thomasc.thealley.devices.zigbee.custom
 
-import kotlinx.coroutines.launch
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter

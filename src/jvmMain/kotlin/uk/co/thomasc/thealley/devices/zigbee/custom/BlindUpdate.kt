@@ -22,6 +22,3 @@ data class BlindUpdate(
     val state: BlindCommand,
     override val update: ZigbeeOTAStatus
 ) : ZigbeeUpdateBattery, ZigbeeTemperature, ZigbeeHumidity, ZigbeeOTANew
-
-
-
