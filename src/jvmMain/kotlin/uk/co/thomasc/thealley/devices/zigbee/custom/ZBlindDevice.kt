@@ -47,6 +47,12 @@ class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore:
     }
 
     override suspend fun onUpdate(bus: AlleyEventEmitter, update: BlindUpdate) {
+        if (update.battery != null && update.battery < 20 && updateState(state.copy(lowBatNotificationState = true))) {
+            bus.emit(LowBatteryEvent(id, update.battery))
+        } else if (update.battery != null && update.battery > 50) {
+            updateState(state.copy(lowBatNotificationState = false))
+        }
+
         if (updateState(state.copy(position = update.position, battery = update.battery?.roundToInt()))) {
             bus.emit(ReportStateEvent(this))
         }
