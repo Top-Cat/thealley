@@ -1,6 +1,5 @@
 package uk.co.thomasc.thealley.devices.zigbee.custom
 
-import at.topc.tado.client.DeviceCodeResponse
 import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 
 data class LowBatteryEvent(
