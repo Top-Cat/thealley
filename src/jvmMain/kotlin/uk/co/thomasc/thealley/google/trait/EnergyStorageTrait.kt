@@ -14,8 +14,8 @@ class EnergyStorageTrait(
     private val energyStorageDistanceUnitForUX: EnergyStorageDistanceUnit? = null,
     private val isRechargeable: Boolean? = null,
     private val getChargeState: suspend () -> State,
-    private val setCharging: (suspend (Boolean) -> Unit)? = null,
-    ) : GoogleHomeTrait<IEnergyStorageCommand<*>>() {
+    private val setCharging: (suspend (Boolean) -> Unit)? = null
+) : GoogleHomeTrait<IEnergyStorageCommand<*>>() {
     enum class EnergyStorageDistanceUnit {
         KILOMETERS, MILES
     }
