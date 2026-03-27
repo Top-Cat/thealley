@@ -57,7 +57,6 @@ import uk.co.thomasc.thealley.web.ExternalRoute
 import uk.co.thomasc.thealley.web.MainRoute
 import uk.co.thomasc.thealley.web.StatsRoute
 import javax.sql.DataSource
-import kotlin.collections.set
 
 fun setupDB(): DataSource {
     val dbHost = System.getenv("MYSQL_HOSTNAME") ?: "localhost"

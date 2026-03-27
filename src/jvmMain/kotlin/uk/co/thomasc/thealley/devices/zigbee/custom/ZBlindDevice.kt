@@ -12,8 +12,10 @@ import uk.co.thomasc.thealley.devices.types.ZBlindConfig
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeDevice
 import uk.co.thomasc.thealley.devices.zigbee.blind.BlindCommand
 import uk.co.thomasc.thealley.google.DeviceType
+import uk.co.thomasc.thealley.google.trait.EnergyStorageTrait
 import uk.co.thomasc.thealley.google.trait.IBlindState
 import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
+import kotlin.math.roundToInt
 
 class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore: IStateUpdater<BlindState>) :
     ZigbeeDevice<BlindUpdate, ZBlindDevice, ZBlindConfig, BlindState>(id, config, state, stateStore, BlindUpdate.serializer()), IAlleyLight {
@@ -29,12 +31,23 @@ class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore:
                 setPosition = {
                     setPosition(bus, it)
                 }
+            ),
+            EnergyStorageTrait(
+                queryOnlyEnergyStorage = true,
+                getChargeState = {
+                    EnergyStorageTrait.State(
+                        EnergyStorageTrait.GoogleDescriptiveCapacity.MEDIUM,
+                        listOfNotNull(
+                            state.battery?.let { EnergyStorageTrait.GoogleCapacity(it, EnergyStorageTrait.CapacityUnit.PERCENTAGE) }
+                        )
+                    )
+                }
             )
         )
     }
 
     override suspend fun onUpdate(bus: AlleyEventEmitter, update: BlindUpdate) {
-        if (updateState(state.copy(position = update.position))) {
+        if (updateState(state.copy(position = update.position, battery = update.battery?.roundToInt()))) {
             bus.emit(ReportStateEvent(this))
         }
     }

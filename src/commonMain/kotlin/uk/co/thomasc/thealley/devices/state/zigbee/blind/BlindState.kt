@@ -5,4 +5,4 @@ import uk.co.thomasc.thealley.devices.state.IAlleyState
 import uk.co.thomasc.thealley.devices.state.zigbee.IZigbeeState
 
 @Serializable
-data class BlindState(val position: Int? = null) : IZigbeeState, IAlleyState
+data class BlindState(val position: Int? = null, val battery: Int? = null) : IZigbeeState, IAlleyState
