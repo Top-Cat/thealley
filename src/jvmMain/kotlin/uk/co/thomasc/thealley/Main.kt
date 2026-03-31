@@ -222,6 +222,8 @@ fun Application.setup() {
 
         staticResources("/static", "static")
     }
+
+    LocalDiscovery().start()
 }
 
 fun main(args: Array<String>) {

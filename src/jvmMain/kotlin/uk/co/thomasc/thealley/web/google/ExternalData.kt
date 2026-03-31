@@ -50,7 +50,12 @@ data class AlleyDevice(
     val willReportState: Boolean,
     val deviceInfo: AlleyDeviceInfo? = null,
     val attributes: Map<String, JsonElement>? = null,
-    val customData: JsonElement? = null
+    val customData: AlleyDeviceData = AlleyDeviceData()
+)
+
+@Serializable
+data class AlleyDeviceData(
+    val localId: String = "thealley"
 )
 
 @Serializable
