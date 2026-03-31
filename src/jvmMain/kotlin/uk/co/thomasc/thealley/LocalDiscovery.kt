@@ -11,14 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import mu.KLogging
 
 class LocalDiscovery {
-    @Serializable
-    data class DiscoveryResponse(val ip: String, val port: Int, val id: String)
-    val defaultResponse = DiscoveryResponse("10.108.126.90", 5557, "thealley")
-
     fun start() {
         val discoverServer = aSocket(selector).udp().bind(InetSocketAddress("0.0.0.0", 5555))
 
@@ -28,7 +23,7 @@ class LocalDiscovery {
                 val message = packet.packet.readBytes().decodeToString()
                 println("Received from ${packet.address} -> $message")
 
-                val response = alleyJson.encodeToString(defaultResponse).encodeToByteArray()
+                val response = "thealley".encodeToByteArray()
                 discoverServer.send(Datagram(ByteReadPacket(response), packet.address))
             }
         }
