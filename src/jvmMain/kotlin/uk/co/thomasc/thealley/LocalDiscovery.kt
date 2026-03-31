@@ -1,35 +1,12 @@
 package uk.co.thomasc.thealley
 
-import io.ktor.network.selector.ActorSelectorManager
-import io.ktor.network.sockets.Datagram
-import io.ktor.network.sockets.InetSocketAddress
-import io.ktor.network.sockets.aSocket
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readBytes
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newFixedThreadPoolContext
-import mu.KLogging
+import javax.jmdns.JmDNS
+import javax.jmdns.ServiceInfo
 
 class LocalDiscovery {
     fun start() {
-        val discoverServer = aSocket(selector).udp().bind(InetSocketAddress("0.0.0.0", 5555))
-
-        CoroutineScope(threadPool).launch {
-            while (true) {
-                val packet = discoverServer.receive()
-                val message = packet.packet.readBytes().decodeToString()
-                println("Received from ${packet.address} -> $message")
-
-                val response = "thealley".encodeToByteArray()
-                discoverServer.send(Datagram(ByteReadPacket(response), packet.address))
-            }
-        }
-    }
-
-    companion object : KLogging() {
-        val threadPool = newFixedThreadPoolContext(2, "LocalDiscovery")
-        val selector = ActorSelectorManager(Dispatchers.IO)
+        val jmdns = JmDNS.create()
+        val serviceInfo = ServiceInfo.create("_alley._tcp.local.", "hub", 5557, "Home automation")
+        jmdns.registerService(serviceInfo);
     }
 }

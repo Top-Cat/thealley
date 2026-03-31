@@ -107,6 +107,7 @@ kotlin {
                 implementation("com.luckycatlabs:SunriseSunsetCalculator:1.2")
                 implementation("at.topc.tado:tado-kt:1.0.41")
                 implementation("com.google.auth:google-auth-library-oauth2-http:1.19.0")
+                implementation("javax.jmdns:jmdns:3.4.1")
 
                 // DB & Migrations
                 implementation("mysql:mysql-connector-java:8.0.33")
