@@ -50,15 +50,17 @@ data class AlleyDevice(
     val willReportState: Boolean,
     val deviceInfo: AlleyDeviceInfo? = null,
     val attributes: Map<String, JsonElement>? = null,
-    val customData: AlleyDeviceData
+    val otherDeviceIds: List<AlleyDeviceAlias> = listOf(),
+    val customData: JsonElement? = null
 )
 
 @Serializable
-data class AlleyDeviceData(
-    val localId: String
+data class AlleyDeviceAlias(
+    val deviceId: String,
+    val agentId: String? = null
 ) {
     companion object {
-        val default = AlleyDeviceData("thealley")
+        val default: AlleyDeviceAlias = AlleyDeviceAlias("thealley")
     }
 }
 

@@ -38,7 +38,7 @@ import uk.co.thomasc.thealley.google.followup.FollowUpPayload
 import uk.co.thomasc.thealley.google.followup.FollowUpResponse
 import uk.co.thomasc.thealley.google.followup.IFollowUp
 import uk.co.thomasc.thealley.web.google.AlleyDevice
-import uk.co.thomasc.thealley.web.google.AlleyDeviceData
+import uk.co.thomasc.thealley.web.google.AlleyDeviceAlias
 import uk.co.thomasc.thealley.web.google.AlleyDeviceNames
 import uk.co.thomasc.thealley.web.google.DisconnectIntent
 import uk.co.thomasc.thealley.web.google.DisconnectResponse
@@ -235,7 +235,7 @@ class ExternalHandler(private val bus: AlleyEventBusShim, private val deviceMapp
                     attributes = g.traits.fold(mapOf()) { a, b ->
                         a.plus(b.getAttributes())
                     },
-                    customData = AlleyDeviceData.default
+                    otherDeviceIds = listOf(AlleyDeviceAlias.default)
                 )
             }
         }
