@@ -10,10 +10,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import mu.KLogging
 
 class LocalDiscovery {
+    @Serializable
     data class DiscoveryResponse(val ip: String, val port: Int, val id: String)
     val defaultResponse = DiscoveryResponse("10.108.126.90", 5557, "thealley")
 
