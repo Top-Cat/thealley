@@ -15,9 +15,6 @@ import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
-import uk.co.thomasc.thealley.web.ExternalRoute.Routes
-
-data class SwitchData(val buttons: Map<Int, Int>)
 
 @Location("/control")
 class ControlRoute : IAlleyRoute {
@@ -40,7 +37,7 @@ class ControlRoute : IAlleyRoute {
     data class Switch(val switchId: Int, val api: ControlRoute)
 
     @Location("/googlelocal")
-    data class GoogleLocal(val api: Routes)
+    data class GoogleLocal(val api: ControlRoute)
 
     suspend fun setState(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, id: Int, state: Boolean) =
         when (val device = deviceMapper.getDevice(id)) {
