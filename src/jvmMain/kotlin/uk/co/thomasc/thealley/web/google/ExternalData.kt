@@ -58,11 +58,7 @@ data class AlleyDevice(
 data class AlleyDeviceAlias(
     val deviceId: String,
     val agentId: String? = null
-) {
-    companion object {
-        val default: AlleyDeviceAlias = AlleyDeviceAlias("thealley")
-    }
-}
+)
 
 @Serializable
 data class AlleyDeviceNames(val defaultNames: List<String>? = null, val name: String? = null, val nicknames: List<String>? = null)

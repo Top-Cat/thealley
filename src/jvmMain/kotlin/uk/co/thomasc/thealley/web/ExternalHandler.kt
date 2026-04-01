@@ -235,7 +235,7 @@ class ExternalHandler(private val bus: AlleyEventBusShim, private val deviceMapp
                     attributes = g.traits.fold(mapOf()) { a, b ->
                         a.plus(b.getAttributes())
                     },
-                    otherDeviceIds = listOf(AlleyDeviceAlias.default)
+                    otherDeviceIds = listOf(AlleyDeviceAlias("thealley-${it.id}"))
                 )
             }
         }
