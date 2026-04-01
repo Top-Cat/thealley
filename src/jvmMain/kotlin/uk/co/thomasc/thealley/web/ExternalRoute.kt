@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.web
 
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.locations.Location
 import io.ktor.server.locations.get
@@ -7,6 +8,7 @@ import io.ktor.server.locations.post
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.util.pipeline.PipelineContext
 import mu.KLogging
 import uk.co.thomasc.thealley.checkOauth
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
@@ -35,20 +37,28 @@ class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute 
             }
         }
 
+        suspend fun PipelineContext<*, ApplicationCall>.googleHandler(userId: String) {
+            try {
+                val obj = call.receive<GoogleHomeReq>()
+                logger.debug { "Received google home request $obj" }
+                val requestTime = measureTime {
+                    call.respond(externalHandler.handleRequest(userId, obj))
+                }
+                logger.info { "Processed ${obj.inputs.first().javaClass.name} in ${requestTime.inWholeMilliseconds}ms" }
+            } catch (e: Exception) {
+                logger.error(e) { "Error during external request" }
+                throw e
+            }
+        }
+
         post<Routes.GoogleHome> {
             checkOauth(alleyTokenStore) { userId ->
-                try {
-                    val obj = call.receive<GoogleHomeReq>()
-                    logger.debug { "Received google home request $obj" }
-                    val requestTime = measureTime {
-                        call.respond(externalHandler.handleRequest(userId, obj))
-                    }
-                    logger.info { "Processed ${obj.inputs.first().javaClass.name} in ${requestTime.inWholeMilliseconds}ms" }
-                } catch (e: Exception) {
-                    logger.error(e) { "Error during external request" }
-                    throw e
-                }
+                googleHandler(userId)
             }
+        }
+
+        post<ControlRoute.GoogleLocal> {
+            googleHandler("local")
         }
     }
 

@@ -11,18 +11,11 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.encodeToJsonElement
-import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
-import uk.co.thomasc.thealley.devices.GetStateException
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
-import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
-import uk.co.thomasc.thealley.web.google.QueryStatus
-import kotlin.collections.plus
+import uk.co.thomasc.thealley.web.ExternalRoute.Routes
 
 data class SwitchData(val buttons: Map<Int, Int>)
 
@@ -32,7 +25,7 @@ class ControlRoute : IAlleyRoute {
     data class ListRoute(val api: ControlRoute)
 
     @Location("/multi/{ids}")
-    data class Multi(val ids: String, val google: Boolean = false, val api: ControlRoute)
+    data class Multi(val ids: String, val api: ControlRoute)
 
     @Location("/{id}")
     data class Device(val id: Int, val api: ControlRoute)
@@ -45,6 +38,9 @@ class ControlRoute : IAlleyRoute {
 
     @Location("/switch/{switchId}")
     data class Switch(val switchId: Int, val api: ControlRoute)
+
+    @Location("/googlelocal")
+    data class GoogleLocal(val api: Routes)
 
     suspend fun setState(bus: AlleyEventBus, deviceMapper: AlleyDeviceMapper, id: Int, state: Boolean) =
         when (val device = deviceMapper.getDevice(id)) {
@@ -113,33 +109,12 @@ class ControlRoute : IAlleyRoute {
                 else -> BulbState(false)
             }
 
-        suspend fun getGoogleState(id: Int, defaultKeys: Set<String> = setOf("online", "status", "errorCode")) =
-            try {
-                val device = deviceMapper.getDevice(id)
-                device?.gh?.let { g ->
-                    g.traits.fold(
-                        mapOf<String, JsonElement>(
-                            "online" to JsonPrimitive(true),
-                            "status" to JsonPrimitive(QueryStatus.SUCCESS.name)
-                        ).filter { defaultKeys.contains(it.key) }
-                    ) { a, b ->
-                        a.plus(b.getState())
-                    }
-                } ?: throw GetStateException(GoogleHomeErrorCode.DeviceOffline)
-            } catch (e: GetStateException) {
-                mapOf(
-                    "online" to JsonPrimitive(false),
-                    "status" to JsonPrimitive(QueryStatus.ERROR.name),
-                    "errorCode" to alleyJson.encodeToJsonElement<GoogleHomeErrorCode>(e.errorCode)
-                ).filter { defaultKeys.contains(it.key) }
-            }
-
         get<Multi> { req ->
             val ids = req.ids.split(",").mapNotNull { n -> n.toIntOrNull() }
 
             val response = ids.asFlow().flatMapMerge(30) {
                 flow {
-                    emit(it to if (req.google) getGoogleState(it) else getStateForId(it))
+                    emit(it to getStateForId(it))
                 }
             }.toList().toMap()
 
