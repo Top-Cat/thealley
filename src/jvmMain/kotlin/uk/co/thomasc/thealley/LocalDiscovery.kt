@@ -6,7 +6,7 @@ import javax.jmdns.ServiceInfo
 
 class LocalDiscovery {
     fun start() {
-        val jmdns = JmDNS.create(InetAddress.getByName("10.2.1.1"))
+        val jmdns = JmDNS.create(InetAddress.getByName("10.2.1.2"))
         val discoveryData = mapOf(
             "id" to "thealley",
             "ip" to InetAddress.getLocalHost().hostAddress,
