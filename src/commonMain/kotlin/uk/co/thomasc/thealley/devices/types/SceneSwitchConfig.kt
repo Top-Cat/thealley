@@ -13,8 +13,7 @@ data class SceneSwitchConfig(
     override val name: String,
     override val deviceId: String,
     override val prefix: String = "zigbee",
-    val targets: List<Int>,
-    val sharedOff: Boolean = false
+    val targets: List<Int>
 ) : IAlleyConfig<SceneSwitchState>,
     IZigbeeConfig<SceneSwitchState>,
     IConfigEditable<SceneSwitchConfig> by SimpleConfigEditable(

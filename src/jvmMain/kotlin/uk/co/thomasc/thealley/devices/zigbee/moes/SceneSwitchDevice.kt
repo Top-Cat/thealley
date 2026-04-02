@@ -14,24 +14,14 @@ class SceneSwitchDevice(id: Int, config: SceneSwitchConfig, state: SceneSwitchSt
 
     override suspend fun onUpdate(bus: AlleyEventEmitter, update: SceneSwitchUpdate) {
         update.action?.let { action ->
-            val newState = if (config.sharedOff) {
-                if (state.state.any { it.value }) {
-                    state.state.mapValues { false }
-                } else {
-                    state.state.plus(action.button to true)
-                }
-            } else {
-                state.state.plus(action.button to !state.state.getOrDefault(action.button, false))
-            }
-
-            updateState(state.copy(state = newState))
+            updateState(state.copy(state = state.state.plus(action.button to !state.state.getOrDefault(action.button, false))))
 
             config.targets.getOrNull(action.button - 1)?.let { targetDevice ->
                 val device = dev.getDevice(targetDevice)
 
                 if (device is ZBlindDevice) {
                     val cmd = when {
-                        state.state[action.button] != true -> BlindCommand.STOP
+                        action.times > 1 -> BlindCommand.STOP
                         action.button == 1 -> BlindCommand.OPEN
                         else -> BlindCommand.CLOSE
                     }
