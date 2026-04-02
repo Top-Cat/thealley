@@ -13,24 +13,26 @@ class SceneSwitchDevice(id: Int, config: SceneSwitchConfig, state: SceneSwitchSt
     ZigbeeDevice<SceneSwitchUpdate, SceneSwitchDevice, SceneSwitchConfig, SceneSwitchState>(id, config, state, stateStore, SceneSwitchUpdate.serializer()) {
 
     override suspend fun onUpdate(bus: AlleyEventEmitter, update: SceneSwitchUpdate) {
-        updateState(
-            state.copy(
-                state = state.state.plus(update.action.button to !state.state.getOrDefault(update.action.button, false))
+        update.action?.let { action ->
+            updateState(
+                state.copy(
+                    state = state.state.plus(action.button to !state.state.getOrDefault(action.button, false))
+                )
             )
-        )
 
-        config.targets.getOrNull(update.action.button)?.let { targetDevice ->
-            val device = dev.getDevice(targetDevice)
+            config.targets.getOrNull(action.button)?.let { targetDevice ->
+                val device = dev.getDevice(targetDevice)
 
-            if (device is ZBlindDevice) {
-                val cmd = when {
-                    state.state[update.action.button] != true -> BlindCommand.STOP
-                    update.action.button == 1 -> BlindCommand.OPEN
-                    else -> BlindCommand.CLOSE
+                if (device is ZBlindDevice) {
+                    val cmd = when {
+                        state.state[action.button] != true -> BlindCommand.STOP
+                        action.button == 1 -> BlindCommand.OPEN
+                        else -> BlindCommand.CLOSE
+                    }
+                    device.sendCommand(bus, cmd)
                 }
-                device.sendCommand(bus, cmd)
+                // TODO: Other device types
             }
-            // TODO: Other device types
         }
     }
 }

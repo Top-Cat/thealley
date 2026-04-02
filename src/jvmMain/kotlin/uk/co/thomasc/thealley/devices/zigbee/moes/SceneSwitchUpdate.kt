@@ -9,7 +9,7 @@ data class SceneSwitchUpdate(
     override val linkquality: Int,
     override val battery: Float?,
 
-    val action: ZSceneAction
+    val action: ZSceneAction? = null
 ) : ZigbeeUpdateBattery
 
 enum class ZSceneAction(val button: Int, val times: Int) {
