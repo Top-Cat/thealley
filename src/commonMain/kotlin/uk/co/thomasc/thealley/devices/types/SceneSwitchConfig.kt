@@ -13,7 +13,8 @@ data class SceneSwitchConfig(
     override val name: String,
     override val deviceId: String,
     override val prefix: String = "zigbee",
-    val targets: List<Int>
+    val targets: List<Int>,
+    val sharedOff: Boolean = false
 ) : IAlleyConfig<SceneSwitchState>,
     IZigbeeConfig<SceneSwitchState>,
     IConfigEditable<SceneSwitchConfig> by SimpleConfigEditable(
@@ -24,6 +25,10 @@ data class SceneSwitchConfig(
             SceneSwitchConfig::targets.fieldEditor("Targets") { c, n -> c.copy(targets = n) }
         )
     ) {
+    fun shar() {
+        TODO("Not yet implemented")
+    }
+
     override val defaultState = SceneSwitchState()
     override val stateSerializer = SceneSwitchState.serializer()
 }
