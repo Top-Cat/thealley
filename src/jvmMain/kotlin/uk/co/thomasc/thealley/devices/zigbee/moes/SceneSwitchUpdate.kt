@@ -29,5 +29,5 @@ enum class ZSceneAction(val button: Int, val times: Int) {
     C_ONCE(3, 1),
 
     @SerialName("3_double")
-    C_DOUBLE(3, 2),
+    C_DOUBLE(3, 2)
 }

@@ -14,8 +14,8 @@ class SceneSwitchDevice(id: Int, config: SceneSwitchConfig, state: SceneSwitchSt
 
     override suspend fun onUpdate(bus: AlleyEventEmitter, update: SceneSwitchUpdate) {
         updateState(
-            state.copy(state =
-                state.state.plus(update.action.button to !state.state.getOrDefault(update.action.button, false))
+            state.copy(
+                state = state.state.plus(update.action.button to !state.state.getOrDefault(update.action.button, false))
             )
         )
 
