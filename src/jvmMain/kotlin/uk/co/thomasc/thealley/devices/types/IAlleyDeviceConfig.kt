@@ -33,6 +33,7 @@ import uk.co.thomasc.thealley.devices.zigbee.custom.ZBlindDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.DualDimmerDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.DualSwitchDevice
 import uk.co.thomasc.thealley.devices.zigbee.moes.MDimmerDevice
+import uk.co.thomasc.thealley.devices.zigbee.moes.SceneSwitchDevice
 import uk.co.thomasc.thealley.devices.zigbee.plug.ZPlugDevice
 import uk.co.thomasc.thealley.devices.zigbee.relay.PartialLightDevice
 import uk.co.thomasc.thealley.devices.zigbee.relay.PartialRelayDevice
@@ -87,6 +88,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V
             is RelayConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::RelayDevice)
             is SDimmerConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::SDimmerDevice)
             is SceneConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::SceneDevice)
+            is SceneSwitchConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::SceneSwitchDevice)
             is ScheduleConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ScheduleDevice)
             is SomfyBlindConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::SomfyBlindDevice)
             is SomfyGroupConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::SomfyGroupDevice)

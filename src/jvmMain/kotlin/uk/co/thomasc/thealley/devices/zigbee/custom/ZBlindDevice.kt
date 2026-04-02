@@ -58,7 +58,7 @@ class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore:
         }
     }
 
-    private suspend fun sendCommand(bus: AlleyEventEmitter, cmd: BlindCommand) =
+    suspend fun sendCommand(bus: AlleyEventEmitter, cmd: BlindCommand) =
         bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", "{\"state\": \"$cmd\"}"))
 
     private suspend fun setPosition(bus: AlleyEventEmitter, pos: Int) =
