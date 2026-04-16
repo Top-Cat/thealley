@@ -47,8 +47,8 @@ class LeedsBinDevice(id: Int, config: LeedsBinConfig, state: LeedsBinState, stat
                     parameter("endDate", ev.now.plus(180.days).toLocalDateTime(TimeZone.UTC).date)
                 }.body<List<LeedsBin>>()
 
-                val byType = bins
-                    .filter { it.date > ev.now.toLocalDateTime(TimeZone.UTC) }
+                val futureBins = bins.filter { it.date > ev.now.toLocalDateTime(TimeZone.UTC) }
+                val byType = futureBins
                     .groupBy({ it.type }, { it.day })
                     .mapValues { it.value.min() }
 
@@ -58,7 +58,7 @@ class LeedsBinDevice(id: Int, config: LeedsBinConfig, state: LeedsBinState, stat
 
                 logger.debug { "Got leeds bin days, Black = $nextBlack, Green = $nextGreen, Brown = $nextBrown" }
 
-                val next = bins.minOf { it.date.toInstant(TimeZone.UTC) }
+                val next = futureBins.minOf { it.date.toInstant(TimeZone.UTC) }
                 updateState(state.copy(nextCatchup = next, nextBlack = nextBlack, nextGreen = nextGreen, nextBrown = nextBrown))
 
                 bus.emit(LeedsBinEvent(nextBlack, nextGreen, nextBrown))
