@@ -44,7 +44,7 @@ class ExternalRoute(private val alleyTokenStore: AlleyTokenStore) : IAlleyRoute 
                 val requestTime = measureTime {
                     call.respond(externalHandler.handleRequest(userId, obj))
                 }
-                logger.info { "Processed ${obj.inputs.first().javaClass.name} in ${requestTime.inWholeMilliseconds}ms" }
+                logger.debug { "Processed ${obj.inputs.first().javaClass.name} in ${requestTime.inWholeMilliseconds}ms" }
             } catch (e: Exception) {
                 logger.error(e) { "Error during external request" }
                 throw e
