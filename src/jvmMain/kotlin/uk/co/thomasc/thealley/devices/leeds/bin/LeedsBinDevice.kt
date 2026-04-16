@@ -48,6 +48,7 @@ class LeedsBinDevice(id: Int, config: LeedsBinConfig, state: LeedsBinState, stat
                 }.body<List<LeedsBin>>()
 
                 val byType = bins
+                    .filter { it.date > ev.now.toLocalDateTime(TimeZone.UTC) }
                     .groupBy({ it.type }, { it.day })
                     .mapValues { it.value.min() }
 
