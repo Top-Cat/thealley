@@ -4,7 +4,6 @@ import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyMultiGangRelay
 import uk.co.thomasc.thealley.devices.state.EmptyState
-import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.DualSwitchConfig
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeDevice
 import uk.co.thomasc.thealley.devices.zigbee.relay.MultiGangUpdate
@@ -20,7 +19,7 @@ class DualSwitchDevice(id: Int, config: DualSwitchConfig, state: EmptyState, sta
             else -> ZMultiRelaySet(state1 = state)
         }
 
-        bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
+        sendUpdate(bus, json)
     }
 
     override suspend fun setPowerState(bus: AlleyEventEmitter, index: Int, value: Boolean) =

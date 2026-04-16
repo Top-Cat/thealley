@@ -6,7 +6,6 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
-import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.MDimmerConfig
 import uk.co.thomasc.thealley.devices.zigbee.relay.ZRelayAction
 import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeDimmerDevice
@@ -50,6 +49,6 @@ class MDimmerDevice(id: Int, config: MDimmerConfig, state: EmptyState, stateStor
         }
 
         val json = ZDimmerSet(lightState.brightness255(), action, null)
-        bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", json))
+        sendUpdate(bus, json)
     }
 }

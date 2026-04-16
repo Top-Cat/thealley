@@ -7,7 +7,6 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.state.zigbee.blind.BlindState
 import uk.co.thomasc.thealley.devices.system.ReportStateEvent
-import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.ZBlindConfig
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeDevice
 import uk.co.thomasc.thealley.devices.zigbee.blind.BlindCommand
@@ -59,10 +58,10 @@ class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore:
     }
 
     suspend fun sendCommand(bus: AlleyEventEmitter, cmd: BlindCommand) =
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", "{\"state\": \"$cmd\"}"))
+        sendUpdate(bus, "{\"state\": \"$cmd\"}")
 
     private suspend fun setPosition(bus: AlleyEventEmitter, pos: Int) =
-        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", "{\"position\": $pos}"))
+        sendUpdate(bus, "{\"position\": $pos}")
 
     override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) =
         sendCommand(bus, if (value) BlindCommand.OPEN else BlindCommand.CLOSE)

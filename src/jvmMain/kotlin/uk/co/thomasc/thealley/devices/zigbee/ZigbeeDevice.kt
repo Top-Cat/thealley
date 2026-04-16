@@ -1,7 +1,9 @@
 package uk.co.thomasc.thealley.devices.zigbee
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.encodeToString
 import uk.co.thomasc.thealley.alleyJsonLenient
+import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
@@ -46,4 +48,11 @@ abstract class ZigbeeDevice<X : ZigbeeUpdate, T : AlleyDevice<T, U, V>, U : IZig
     }
 
     abstract suspend fun onUpdate(bus: AlleyEventEmitter, update: X)
+
+    protected suspend inline fun <reified Z> sendUpdate(bus: AlleyEventEmitter, update: Z) =
+        sendUpdate(bus, alleyJsonUgly.encodeToString(update))
+
+    protected suspend fun sendUpdate(bus: AlleyEventEmitter, payload: String) {
+        bus.emit(MqttSendEvent("${config.prefix}/${config.deviceId}/set", payload))
+    }
 }

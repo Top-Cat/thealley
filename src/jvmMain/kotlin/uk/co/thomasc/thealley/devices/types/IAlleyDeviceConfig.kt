@@ -10,6 +10,7 @@ import uk.co.thomasc.thealley.devices.energy.tado.TadoDevice
 import uk.co.thomasc.thealley.devices.esphome.PS2Device
 import uk.co.thomasc.thealley.devices.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.PlugDevice
+import uk.co.thomasc.thealley.devices.leeds.bin.BinDisplayDevice
 import uk.co.thomasc.thealley.devices.leeds.bin.LeedsBinDevice
 import uk.co.thomasc.thealley.devices.notify.NotifyDevice
 import uk.co.thomasc.thealley.devices.onkyo.OnkyoDevice
@@ -67,6 +68,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V
 
     companion object {
         fun fromConfig(config: IAlleyConfigBase) = when (config) {
+            is BinDisplayConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::BinDisplayDevice)
             is BlindConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::BlindDevice)
             is BrightConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::BrightDevice)
             is BulbConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::BulbDevice)

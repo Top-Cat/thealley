@@ -6,7 +6,6 @@ import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyRelay
 import uk.co.thomasc.thealley.devices.state.zigbee.IZigbeeState
-import uk.co.thomasc.thealley.devices.system.mqtt.MqttSendEvent
 import uk.co.thomasc.thealley.devices.types.IZigbeeConfig
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeDevice
 
@@ -19,7 +18,7 @@ abstract class ZigbeeRelayDevice<X : ZigbeeUpdateRelay, T : AlleyDevice<T, U, V>
 ) : ZigbeeDevice<X, T, U, V>(id, config, state, stateStore, serializer), IAlleyRelay {
 
     private suspend fun setLightState(bus: AlleyEventEmitter, state: ZRelayAction) {
-        bus.emit(MqttSendEvent.from("${config.prefix}/${config.deviceId}/set", ZRelaySet(state)))
+        sendUpdate(bus, ZRelaySet(state))
     }
 
     override suspend fun setPowerState(bus: AlleyEventEmitter, value: Boolean) = setLightState(bus, if (value) ZRelayAction.ON else ZRelayAction.OFF)
