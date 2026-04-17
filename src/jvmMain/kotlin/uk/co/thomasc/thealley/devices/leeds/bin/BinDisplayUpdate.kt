@@ -25,6 +25,6 @@ data class TimeUpdateCommand(
 @Serializable
 data class BinDisplayTimes(
     val black: Long,
-    val brown: Long,
-    val green: Long
+    val green: Long,
+    val brown: Long
 )
