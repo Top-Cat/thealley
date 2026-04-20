@@ -1,8 +1,10 @@
 package uk.co.thomasc.thealley.devices.zigbee.custom
 
+import kotlinx.serialization.json.JsonPrimitive
 import mu.KLogging
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
+import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.generic.IAlleyLight
 import uk.co.thomasc.thealley.devices.state.zigbee.blind.BlindState
@@ -17,7 +19,7 @@ import uk.co.thomasc.thealley.google.trait.OpenCloseTrait
 import kotlin.math.roundToInt
 
 class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore: IStateUpdater<BlindState>) :
-    ZigbeeDevice<BlindUpdate, ZBlindDevice, ZBlindConfig, BlindState>(id, config, state, stateStore, BlindUpdate.serializer()), IAlleyLight {
+    ZigbeeDevice<BlindUpdate, ZBlindDevice, ZBlindConfig, BlindState>(id, config, state, stateStore, BlindUpdate.serializer()), IAlleyLight, IAlleyStats {
 
     override suspend fun onInit(bus: AlleyEventBusShim) {
         registerGoogleHomeDevice(
@@ -55,6 +57,14 @@ class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore:
         if (updateState(state.copy(position = update.position, battery = update.battery?.roundToInt()))) {
             bus.emit(ReportStateEvent(this))
         }
+
+        props["temperature"] = JsonPrimitive(update.temperature.toDouble())
+        update.humidity?.let {
+            props["humidity"] = JsonPrimitive(update.humidity.toDouble())
+        }
+        update.battery?.let {
+            props["battery"] = JsonPrimitive(update.battery.toDouble())
+        }
     }
 
     suspend fun sendCommand(bus: AlleyEventEmitter, cmd: BlindCommand) =
@@ -77,6 +87,8 @@ class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore:
     override suspend fun getPowerState() = (state.position ?: 0) > 0
 
     override suspend fun togglePowerState(bus: AlleyEventEmitter) = setPowerState(bus, !getPowerState())
+
+    override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()
 
     companion object : KLogging()
 }
