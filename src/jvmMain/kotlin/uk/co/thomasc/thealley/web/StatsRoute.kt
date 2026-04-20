@@ -18,7 +18,7 @@ import uk.co.thomasc.thealley.devices.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.PlugDevice
 import uk.co.thomasc.thealley.devices.relay.RelayDevice
 import uk.co.thomasc.thealley.web.stats.BulbResponse
-import uk.co.thomasc.thealley.web.stats.GenericResponse
+import uk.co.thomasc.thealley.web.stats.GenericStatsResponse
 import uk.co.thomasc.thealley.web.stats.PlugResponse
 import uk.co.thomasc.thealley.web.stats.RelayResponse
 import uk.co.thomasc.thealley.web.stats.TransformedZoneState
@@ -103,8 +103,9 @@ class StatsRoute : IAlleyRoute {
         get<Generic> {
             getStats(deviceMapper, {
                 if (it is IAlleyStats) {
-                    GenericResponse(
+                    GenericStatsResponse(
                         it.id,
+                        it.config.name,
                         it.props
                     )
                 } else {
