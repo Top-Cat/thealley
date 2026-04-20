@@ -12,11 +12,13 @@ import kotlinx.coroutines.flow.toList
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyDeviceMapper
 import uk.co.thomasc.thealley.devices.AlleyEventBus
+import uk.co.thomasc.thealley.devices.IAlleyStats
 import uk.co.thomasc.thealley.devices.energy.tado.TadoDevice
 import uk.co.thomasc.thealley.devices.kasa.bulb.BulbDevice
 import uk.co.thomasc.thealley.devices.kasa.plug.PlugDevice
 import uk.co.thomasc.thealley.devices.relay.RelayDevice
 import uk.co.thomasc.thealley.web.stats.BulbResponse
+import uk.co.thomasc.thealley.web.stats.GenericResponse
 import uk.co.thomasc.thealley.web.stats.PlugResponse
 import uk.co.thomasc.thealley.web.stats.RelayResponse
 import uk.co.thomasc.thealley.web.stats.TransformedZoneState
@@ -31,6 +33,9 @@ class StatsRoute : IAlleyRoute {
 
     @Location("/relay")
     data class Relay(val api: StatsRoute)
+
+    @Location("/generic")
+    data class Generic(val api: StatsRoute)
 
     @Location("/tado")
     data class Tado(val api: StatsRoute)
@@ -91,6 +96,21 @@ class StatsRoute : IAlleyRoute {
                     relay.props
                 )
             }).let {
+                call.respond(it)
+            }
+        }
+
+        get<Generic> {
+            getStats(deviceMapper, {
+                if (it is IAlleyStats) {
+                    GenericResponse(
+                        it.id,
+                        it.props
+                    )
+                } else {
+                    null
+                }
+            }).filterNotNull().let {
                 call.respond(it)
             }
         }
