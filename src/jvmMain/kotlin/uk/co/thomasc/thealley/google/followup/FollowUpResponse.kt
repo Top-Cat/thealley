@@ -18,12 +18,10 @@ data class FollowUpPayload(
 
 @Serializable
 data class FollowUpDevices(
-    val notifications: Map<String, Map<String, FollowUpNotification>>? = null,
+    val notifications: Map<String, Map<String, IFollowUpNotification>>? = null,
     val states: Map<String, JsonObject>? = null
 )
 
-@Serializable
-data class FollowUpNotification(
-    val priority: Int,
-    val followUpResponse: JsonObject
-)
+interface IFollowUpNotification {
+    val priority: Int
+}

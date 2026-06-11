@@ -1,6 +1,7 @@
 package uk.co.thomasc.thealley.google.followup
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 import uk.co.thomasc.thealley.web.google.GoogleHomeErrorCode
 
 @Serializable
@@ -21,6 +22,12 @@ data class FollowUpFailure(
 sealed class FollowUpSuccess : IFollowUp {
     override val status = IFollowUp.Status.SUCCESS
 }
+
+@Serializable
+data class NetworkControlNotification(
+    override val priority: Int,
+    val followUpResponse: JsonObject
+) : IFollowUpNotification
 
 @Serializable
 data class NetworkDownloadSpeedMbps(val networkDownloadSpeedMbps: Float) : FollowUpSuccess()

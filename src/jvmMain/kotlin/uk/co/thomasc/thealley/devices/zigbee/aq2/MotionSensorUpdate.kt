@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.aq2
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeTemperature
@@ -12,6 +13,8 @@ data class MotionSensorUpdate(
     override val battery: Float? = null,
     @SerialName("device_temperature")
     override val temperature: Float? = null,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null,
 
     // Light sensor
     val voltage: Int = 0,

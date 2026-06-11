@@ -39,6 +39,7 @@ import uk.co.thomasc.thealley.devices.zigbee.plug.ZPlugDevice
 import uk.co.thomasc.thealley.devices.zigbee.relay.PartialLightDevice
 import uk.co.thomasc.thealley.devices.zigbee.relay.PartialRelayDevice
 import uk.co.thomasc.thealley.devices.zigbee.samotech.SDimmerDevice
+import uk.co.thomasc.thealley.devices.zigbee.sonoff.WaterSensorDevice
 import uk.co.thomasc.thealley.devices.zigbee.zbmini.ZBMini2Device
 import uk.co.thomasc.thealley.devices.zigbee.zbmini.ZBMiniDevice
 import uk.co.thomasc.thealley.system.StateUpdaterFactory
@@ -100,6 +101,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V
             is TadoConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::TadoDevice)
             is TexecomConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::TexecomDevice)
             is UnifiConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::UnifiDevice)
+            is WaterSensorConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::WaterSensorDevice)
             is ZBlindConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBlindDevice)
             is ZBMiniConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBMiniDevice)
             is ZBMini2Config -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBMini2Device)

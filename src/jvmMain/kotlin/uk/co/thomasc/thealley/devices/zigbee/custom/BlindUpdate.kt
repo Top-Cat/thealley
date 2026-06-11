@@ -1,5 +1,7 @@
 package uk.co.thomasc.thealley.devices.zigbee.custom
 
+import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeHumidity
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeOTANew
@@ -16,6 +18,8 @@ data class BlindUpdate(
     override val temperature: Float,
     override val humidity: Float?,
     override val linkquality: Int,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null,
     val position: Int,
     val velocityLift: Int,
     val setup: ZRelayAction,

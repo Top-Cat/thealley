@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.moes
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdate
@@ -8,6 +9,8 @@ import uk.co.thomasc.thealley.devices.zigbee.relay.ZRelayAction
 @Serializable
 data class DualDimmerUpdate(
     override val linkquality: Int,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null,
 
     @SerialName("backlight_mode")
     val backlightMode: ZigbeeBacklightMode,

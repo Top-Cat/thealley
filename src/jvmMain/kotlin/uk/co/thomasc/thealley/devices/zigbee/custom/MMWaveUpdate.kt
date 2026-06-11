@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.custom
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeOTANew
@@ -16,5 +17,7 @@ data class MMWaveUpdate(
     val occupancyTimeout: Int,
     override val temperature: Float,
     override val linkquality: Int,
-    override val update: ZigbeeOTAStatus
+    override val update: ZigbeeOTAStatus,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null
 ) : ZigbeeTemperature, ZigbeeOTANew

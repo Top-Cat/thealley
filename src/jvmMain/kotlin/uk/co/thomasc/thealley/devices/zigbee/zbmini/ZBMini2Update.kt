@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.zbmini
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeOTAInfo
@@ -11,6 +12,8 @@ import uk.co.thomasc.thealley.devices.zigbee.relay.ZigbeeUpdateRelay
 @Serializable
 data class ZBMini2Update(
     override val linkquality: Int,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null,
 
     override val state: ZRelayAction,
 

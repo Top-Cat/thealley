@@ -36,6 +36,9 @@ enum class DeviceType(val requiredTraits: Set<KClass<out GoogleHomeTrait<out IGo
     @SerialName("action.devices.types.SECURITYSYSTEM")
     SECURITYSYSTEM(setOf(ArmDisarmTrait::class)),
 
+    @SerialName("action.devices.types.SENSOR")
+    SENSOR(setOf()),
+
     @SerialName("action.devices.types.SWITCH")
     SWITCH(setOf(OnOffTrait::class))
 }

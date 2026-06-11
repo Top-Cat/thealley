@@ -26,6 +26,7 @@ class MMWaveDevice(id: Int, config: MMWaveConfig, state: MMWaveState, stateStore
         }
 
         props["temperature"] = JsonPrimitive(update.temperature.toDouble())
+        props["illuminance"] = JsonPrimitive(lux)
     }
 
     override val props: MutableMap<String, JsonPrimitive> = mutableMapOf()

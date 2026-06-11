@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.moes
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateBattery
@@ -8,6 +9,8 @@ import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateBattery
 data class SceneSwitchUpdate(
     override val linkquality: Int,
     override val battery: Float?,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null,
 
     val action: ZSceneAction? = null
 ) : ZigbeeUpdateBattery

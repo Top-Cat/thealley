@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.moes
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeUpdateMains
@@ -9,6 +10,8 @@ import uk.co.thomasc.thealley.devices.zigbee.relay.ZRelayAction
 data class DualSwitchUpdate(
     override val linkquality: Int,
     override val voltage: Float = 0f,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null,
 
     @SerialName("state_l1")
     val state1: ZRelayAction,

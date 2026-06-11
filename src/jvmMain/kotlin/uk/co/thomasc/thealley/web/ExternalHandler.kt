@@ -33,10 +33,10 @@ import uk.co.thomasc.thealley.devices.system.ReportStateEvent
 import uk.co.thomasc.thealley.google.command.IGoogleHomeFollowUpCommand
 import uk.co.thomasc.thealley.google.followup.FollowUpAuth
 import uk.co.thomasc.thealley.google.followup.FollowUpDevices
-import uk.co.thomasc.thealley.google.followup.FollowUpNotification
 import uk.co.thomasc.thealley.google.followup.FollowUpPayload
 import uk.co.thomasc.thealley.google.followup.FollowUpResponse
 import uk.co.thomasc.thealley.google.followup.IFollowUp
+import uk.co.thomasc.thealley.google.followup.NetworkControlNotification
 import uk.co.thomasc.thealley.web.google.AlleyDevice
 import uk.co.thomasc.thealley.web.google.AlleyDeviceAlias
 import uk.co.thomasc.thealley.web.google.AlleyDeviceNames
@@ -73,7 +73,12 @@ class ExternalHandler(private val bus: AlleyEventBusShim, private val deviceMapp
                         requestId = UUID.randomUUID().toString(),
                         payload = FollowUpPayload(
                             FollowUpDevices(
-                                states = mapOf(
+                                it.notifications?.let { notif ->
+                                    mapOf(
+                                        device.id.toString() to notif
+                                    )
+                                },
+                                mapOf(
                                     device.id.toString() to JsonObject(getState(device, setOf("online")))
                                 )
                             )
@@ -108,7 +113,7 @@ class ExternalHandler(private val bus: AlleyEventBusShim, private val deviceMapp
                     FollowUpDevices(
                         mapOf(
                             deviceId to mapOf(
-                                trait to FollowUpNotification(0, JsonObject(followUpObject))
+                                trait to NetworkControlNotification(0, JsonObject(followUpObject))
                             )
                         )
                     )

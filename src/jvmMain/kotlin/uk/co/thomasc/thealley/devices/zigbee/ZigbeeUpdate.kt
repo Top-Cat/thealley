@@ -1,10 +1,12 @@
 package uk.co.thomasc.thealley.devices.zigbee
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 interface ZigbeeUpdate {
     val linkquality: Int
+    val lastSeen: Instant?
 }
 
 interface ZigbeeTemperature : ZigbeeUpdate {

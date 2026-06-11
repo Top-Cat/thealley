@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.plug
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeOTAInfo
@@ -28,5 +29,7 @@ data class ZPlugUpdate(
 
     @SerialName("update_available")
     override val updateAvailable: Boolean? = null,
-    override val update: ZigbeeOTAInfo? = null
+    override val update: ZigbeeOTAInfo? = null,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null
 ) : ZigbeeUpdateMains, ZigbeePowerMonitoring, ZigbeeUpdateRelay, ZigbeeUpdateOTA

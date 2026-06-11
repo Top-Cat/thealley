@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.devices.zigbee.blind
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uk.co.thomasc.thealley.devices.zigbee.ZigbeeOTANew
@@ -20,5 +21,7 @@ data class BlindMotorUpdate(
     val powerOutageCount: Int? = null,
     val running: Boolean? = null,
     val state: BlindUpdateState? = null,
-    override val update: ZigbeeOTAStatus
+    override val update: ZigbeeOTAStatus,
+    @SerialName("last_seen")
+    override val lastSeen: Instant? = null
 ) : ZigbeeUpdateBattery, ZigbeeOTANew

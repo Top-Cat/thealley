@@ -4,6 +4,7 @@ import kotlinx.serialization.json.JsonElement
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommand
 import uk.co.thomasc.thealley.google.command.IGoogleHomeCommandBase
 import uk.co.thomasc.thealley.google.followup.IFollowUpHandler
+import uk.co.thomasc.thealley.google.followup.IFollowUpNotification
 import uk.co.thomasc.thealley.web.google.ExecuteStatus
 import kotlin.reflect.KClass
 
@@ -16,6 +17,7 @@ sealed class GoogleHomeTrait<T : IGoogleHomeCommand<*>> {
         ExecuteStatus.SUCCESS()
     open suspend fun handleCommand(cmd: T, followUp: IFollowUpHandler) =
         handleCommand(cmd)
+    open fun getNotification(): Pair<String, IFollowUpNotification>? = null
 
     @Suppress("UNCHECKED_CAST")
     internal suspend fun handleUnsafe(cmd: IGoogleHomeCommandBase, followUp: IFollowUpHandler) =
