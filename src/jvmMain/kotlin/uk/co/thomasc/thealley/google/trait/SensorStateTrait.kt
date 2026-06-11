@@ -5,7 +5,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.google.command.ISensorStateCommand
-import uk.co.thomasc.thealley.google.followup.IFollowUpNotification
+import uk.co.thomasc.thealley.google.followup.SensorStateNotification
 import uk.co.thomasc.thealley.google.trait.CurrentSensorStateData.CurrentSensorState
 import uk.co.thomasc.thealley.web.google.ExecuteStatus
 
@@ -132,13 +132,4 @@ class SensorStateTrait(
     override suspend fun handleCommand(cmd: ISensorStateCommand<*>): ExecuteStatus {
         return ExecuteStatus.SUCCESS()
     }
-}
-
-@Serializable
-data class SensorStateNotification(
-    override val priority: Int,
-    val name: String,
-    val currentSensorState: String
-) : IFollowUpNotification {
-    constructor(sensorState: SensorState, state: String) : this(0, sensorState.human, state)
 }

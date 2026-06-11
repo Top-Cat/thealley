@@ -2,6 +2,7 @@ package uk.co.thomasc.thealley.google.followup
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import uk.co.thomasc.thealley.google.trait.SensorState
 
 @Serializable
 data class FollowUpResponse(
@@ -22,6 +23,16 @@ data class FollowUpDevices(
     val states: Map<String, JsonObject>? = null
 )
 
-interface IFollowUpNotification {
+@Serializable
+sealed interface IFollowUpNotification {
     val priority: Int
+}
+
+@Serializable
+data class SensorStateNotification(
+    override val priority: Int,
+    val name: String,
+    val currentSensorState: String
+) : IFollowUpNotification {
+    constructor(sensorState: SensorState, state: String) : this(0, sensorState.human, state)
 }

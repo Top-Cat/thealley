@@ -43,9 +43,9 @@ interface ZigbeeOTANew : ZigbeeUpdate {
 @Serializable
 data class ZigbeeOTAInfo(
     @SerialName("installed_version")
-    val installedVersion: Int,
+    val installedVersion: Int? = null,
     @SerialName("latest_version")
-    val latestVersion: Int,
+    val latestVersion: Int? = null,
     val state: String?,
     val progress: Float? = null,
     val remaining: Int? = null
