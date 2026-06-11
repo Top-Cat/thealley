@@ -71,6 +71,7 @@ class ExternalHandler(private val bus: AlleyEventBusShim, private val deviceMapp
                     FollowUpResponse(
                         "top_cat",
                         requestId = UUID.randomUUID().toString(),
+                        eventId = UUID.randomUUID().toString(),
                         payload = FollowUpPayload(
                             FollowUpDevices(
                                 it.notifications?.let { notif ->
