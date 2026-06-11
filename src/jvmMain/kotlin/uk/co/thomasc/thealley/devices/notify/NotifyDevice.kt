@@ -21,6 +21,7 @@ import uk.co.thomasc.thealley.devices.energy.tado.TadoCodeEvent
 import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.types.NotifyConfig
 import uk.co.thomasc.thealley.devices.zigbee.custom.LowBatteryEvent
+import uk.co.thomasc.thealley.devices.zigbee.sonoff.WaterLeakEvent
 
 class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>, val dev: AlleyDeviceMapper) :
     AlleyDevice<NotifyDevice, NotifyConfig, EmptyState>(id, config, state, stateStore) {
@@ -39,6 +40,11 @@ class NotifyDevice(id: Int, config: NotifyConfig, state: EmptyState, stateStore:
         bus.handle<LowBatteryEvent> {
             val device: AlleyDevice<*, *, *> = dev.getDevice(it.deviceId) ?: throw Exception("Device not found")
             sendNotification("${device.config.name} has low battery", "${device.config.name} battery level is at ${it.batteryLevel}", "battery")
+        }
+
+        bus.handle<WaterLeakEvent> {
+            val device: AlleyDevice<*, *, *> = dev.getDevice(it.deviceId) ?: throw Exception("Device not found")
+            sendNotification("Water leak detected", "${device.config.name} has detected a water leak", "sweat_drops")
         }
 
         CoroutineScope(threadPool).launch {

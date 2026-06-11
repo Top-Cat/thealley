@@ -47,6 +47,7 @@ class WaterSensorDevice(id: Int, config: WaterSensorConfig, state: WaterSensorSt
         }
 
         val notifications = if (updateState(state.copy(alarmState = update.waterLeak)) && update.waterLeak) {
+            bus.emit(WaterLeakEvent(id))
             gh?.traits?.mapNotNull { it.getNotification() }?.toMap()
         } else {
             null
