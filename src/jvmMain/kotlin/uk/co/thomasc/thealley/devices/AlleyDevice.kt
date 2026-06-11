@@ -41,15 +41,15 @@ abstract class AlleyDevice<A : AlleyDevice<A, T, U>, T : IAlleyConfig<U>, U : IA
     val gh
         get() = googleHome
 
-    fun registerGoogleHomeDevice(type: DeviceType, willReportState: Boolean, vararg traits: GoogleHomeTrait<*>) =
-        registerGoogleHomeDevice(type, willReportState, null, *traits)
+    fun registerGoogleHomeDevice(type: DeviceType, willReportState: Boolean, notificationSupport: Boolean, vararg traits: GoogleHomeTrait<*>) =
+        registerGoogleHomeDevice(type, willReportState, notificationSupport, null, *traits)
 
-    fun registerGoogleHomeDevice(type: DeviceType, willReportState: Boolean, deviceInfo: (() -> AlleyDeviceInfo)? = null, vararg traits: GoogleHomeTrait<*>) {
+    fun registerGoogleHomeDevice(type: DeviceType, willReportState: Boolean, notificationSupport: Boolean, deviceInfo: (() -> AlleyDeviceInfo)? = null, vararg traits: GoogleHomeTrait<*>) {
         type.requiredTraits.firstOrNull { required -> !traits.any { trait -> required.isInstance(trait) } }?.let {
             throw MissingTraitException(it)
         }
 
-        googleHome = GoogleHomeInfo(type, traits.toSet(), willReportState, deviceInfo)
+        googleHome = GoogleHomeInfo(type, traits.toSet(), willReportState, notificationSupport, deviceInfo)
     }
 
     suspend fun getStateAsString() = stateStore.encoded(state)

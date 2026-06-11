@@ -8,5 +8,6 @@ data class GoogleHomeInfo(
     val type: DeviceType,
     val traits: Set<GoogleHomeTrait<*>>,
     val willReportState: Boolean = false,
+    val notificationSupport: Boolean = false,
     val deviceInfo: (() -> AlleyDeviceInfo)? = null
 )

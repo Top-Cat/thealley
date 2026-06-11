@@ -28,6 +28,7 @@ class SDimmerDevice(id: Int, config: SDimmerConfig, state: SamotechState, stateS
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

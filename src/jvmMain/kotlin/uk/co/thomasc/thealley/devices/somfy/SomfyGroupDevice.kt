@@ -46,6 +46,7 @@ class SomfyGroupDevice(id: Int, config: SomfyGroupConfig, state: SomfyGroupState
         registerGoogleHomeDevice(
             DeviceType.BLINDS,
             true,
+            false,
             OpenCloseTrait(
                 true, // Can't set midway position
                 getPosition = {

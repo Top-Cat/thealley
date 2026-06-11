@@ -21,6 +21,7 @@ class WaterSensorDevice(id: Int, config: WaterSensorConfig, state: WaterSensorSt
         registerGoogleHomeDevice(
             DeviceType.SENSOR,
             true,
+            true,
             SensorStateTrait(
                 setOf(SensorState.WaterLeak),
                 {

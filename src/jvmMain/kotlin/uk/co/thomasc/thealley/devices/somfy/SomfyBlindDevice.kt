@@ -48,6 +48,7 @@ class SomfyBlindDevice(id: Int, config: SomfyBlindConfig, state: SomfyBlindState
         registerGoogleHomeDevice(
             DeviceType.BLINDS,
             true,
+            false,
             OpenCloseTrait(
                 getPosition = {
                     IBlindState.SingleDirection(state.position, state.target)

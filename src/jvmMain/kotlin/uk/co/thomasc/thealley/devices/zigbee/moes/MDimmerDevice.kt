@@ -21,6 +21,7 @@ class MDimmerDevice(id: Int, config: MDimmerConfig, state: EmptyState, stateStor
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

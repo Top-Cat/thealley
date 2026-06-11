@@ -59,6 +59,7 @@ class TexecomDevice(id: Int, config: TexecomConfig, state: TexecomState, stateSt
         registerGoogleHomeDevice(
             DeviceType.SECURITYSYSTEM,
             true,
+            false,
             {
                 AlleyDeviceInfo("Texecom", deviceInfo.model, deviceInfo.firmwareVersion, deviceInfo.version)
             },

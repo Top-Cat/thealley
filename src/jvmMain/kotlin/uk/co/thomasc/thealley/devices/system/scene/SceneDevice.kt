@@ -80,6 +80,7 @@ class SceneDevice(id: Int, config: SceneConfig, state: SceneState, stateStore: I
         registerGoogleHomeDevice(
             DeviceType.SCENE,
             false,
+            false,
             SceneTrait(
                 executeScene = {
                     execute(bus)

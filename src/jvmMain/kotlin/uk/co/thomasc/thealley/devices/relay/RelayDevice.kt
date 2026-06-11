@@ -71,6 +71,7 @@ class RelayDevice(id: Int, config: RelayConfig, state: RelayState, stateStore: I
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             false,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

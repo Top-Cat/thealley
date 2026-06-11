@@ -71,6 +71,7 @@ class PartialLightDevice(id: Int, config: PartialLightConfig, state: EmptyState,
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

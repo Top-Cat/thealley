@@ -20,6 +20,7 @@ class BlindDevice(id: Int, config: BlindConfig, state: BlindState, stateStore: I
         registerGoogleHomeDevice(
             DeviceType.BLINDS,
             false,
+            false,
             OpenCloseTrait(
                 getPosition = {
                     IBlindState.SingleDirection(state.position ?: 0)

@@ -51,6 +51,7 @@ data class AlleyDevice(
     val deviceInfo: AlleyDeviceInfo? = null,
     val attributes: Map<String, JsonElement>? = null,
     val otherDeviceIds: List<AlleyDeviceAlias> = listOf(),
+    val notificationSupportedByAgent: Boolean = false,
     val customData: JsonElement? = null
 )
 

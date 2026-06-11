@@ -49,6 +49,7 @@ class PartialRelayDevice(id: Int, config: PartialRelayConfig, state: EmptyState,
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

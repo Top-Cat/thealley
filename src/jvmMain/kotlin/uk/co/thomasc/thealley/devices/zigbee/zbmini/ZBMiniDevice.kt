@@ -18,6 +18,7 @@ class ZBMiniDevice(id: Int, config: ZBMiniConfig, state: EmptyState, stateStore:
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

@@ -18,6 +18,7 @@ class ZPlugDevice(id: Int, config: ZPlugConfig, state: EmptyState, stateStore: I
         registerGoogleHomeDevice(
             DeviceType.OUTLET,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

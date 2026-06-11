@@ -15,6 +15,7 @@ class UnifiDevice(id: Int, config: UnifiConfig, state: EmptyState, stateStore: I
         registerGoogleHomeDevice(
             DeviceType.NETWORK,
             false,
+            false,
             NetworkControlTrait(
                 NetworkControlTrait.NetworkControlAttributes(
                     supportsGettingGuestNetworkPassword = true,

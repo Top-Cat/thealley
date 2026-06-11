@@ -43,6 +43,7 @@ class PS2Device(id: Int, config: PS2Config, state: PS2State, stateStore: IStateU
         registerGoogleHomeDevice(
             DeviceType.OUTLET,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

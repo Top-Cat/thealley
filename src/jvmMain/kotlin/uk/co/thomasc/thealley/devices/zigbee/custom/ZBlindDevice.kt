@@ -25,6 +25,7 @@ class ZBlindDevice(id: Int, config: ZBlindConfig, state: BlindState, stateStore:
         registerGoogleHomeDevice(
             DeviceType.BLINDS,
             true,
+            false,
             OpenCloseTrait(
                 getPosition = {
                     IBlindState.SingleDirection(state.position ?: 0)

@@ -19,6 +19,7 @@ class CDimmerDevice(id: Int, config: CDimmerConfig, state: EmptyState, stateStor
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {

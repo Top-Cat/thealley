@@ -35,6 +35,7 @@ class BulbDevice(id: Int, config: BulbConfig, state: BulbState, stateStore: ISta
         registerGoogleHomeDevice(
             DeviceType.LIGHT,
             true,
+            false,
             OnOffTrait(
                 getOnOff = ::getPowerState,
                 setOnOff = {
