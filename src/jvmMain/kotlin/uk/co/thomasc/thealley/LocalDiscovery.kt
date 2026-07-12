@@ -1,7 +1,6 @@
 package uk.co.thomasc.thealley
 
 import java.net.Inet4Address
-import java.net.InetAddress
 import java.net.NetworkInterface
 import javax.jmdns.JmDNS
 import javax.jmdns.ServiceInfo
@@ -13,12 +12,10 @@ class LocalDiscovery {
             .filterIsInstance<Inet4Address>()
             .first()
 
-        val calicoIp = InetAddress.getLocalHost().hostAddress
-
         val jmdns = JmDNS.create(lanIp)
         val discoveryData = mapOf(
             "id" to "thealley",
-            "ip" to calicoIp,
+            "ip" to "10.2.238.149",
             "port" to "8080"
         )
         val serviceInfo = ServiceInfo.create("_alley._tcp.local.", "hub", 8080, 1, 1, false, discoveryData)
