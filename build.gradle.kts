@@ -19,7 +19,7 @@ group = "uk.co.thomasc"
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://artifactory.kirkstall.top-cat.me") }
+    maven { url = uri("https://repo.topc.at/releases") }
 }
 
 kotlin {
@@ -105,7 +105,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
                 implementation("com.luckycatlabs:SunriseSunsetCalculator:1.2")
-                implementation("at.topc.tado:tado-kt:1.0.41")
+                implementation("at.topc.tado:tado-kt:1.0.43")
                 implementation("com.google.auth:google-auth-library-oauth2-http:1.19.0")
                 implementation("javax.jmdns:jmdns:3.4.1")
 
