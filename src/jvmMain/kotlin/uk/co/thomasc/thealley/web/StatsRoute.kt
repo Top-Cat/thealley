@@ -1,5 +1,6 @@
 package uk.co.thomasc.thealley.web
 
+import at.topc.tado.client.TadoRequestException
 import io.ktor.server.application.call
 import io.ktor.server.locations.Location
 import io.ktor.server.locations.get
@@ -116,12 +117,12 @@ class StatsRoute : IAlleyRoute {
             }
         }
 
-        suspend fun mapHome(tado: TadoDevice): List<TransformedZoneState> {
+        suspend fun mapHome(tado: TadoDevice): List<TransformedZoneState> = try {
             val home = tado.getHome()
-            val zones = tado.getHome().getZones().associateBy { it.id }
+            val zones = tado.zones.associateBy { it.id }
             val zoneStates = home.getZoneStates().zoneStates
 
-            return zones.map { zone ->
+            zones.map { zone ->
                 val state = zoneStates[zone.key]
                 TransformedZoneState(
                     tado.getHomeId().toString(),
@@ -134,6 +135,8 @@ class StatsRoute : IAlleyRoute {
                     state?.sensorDataPoints ?: mapOf()
                 )
             }
+        } catch (_: TadoRequestException) {
+            emptyList()
         }
 
         get<Tado> {
