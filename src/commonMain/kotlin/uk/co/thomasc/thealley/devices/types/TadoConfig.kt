@@ -13,14 +13,16 @@ data class TadoConfig(
     override val name: String,
     val email: String,
     val pass: String,
-    val updateReadings: Boolean = false
+    val updateReadings: Boolean = false,
+    val homeId: Int = 0
 ) : IAlleyConfig<TadoState>,
     IConfigEditable<TadoConfig> by SimpleConfigEditable(
         listOf(
             TadoConfig::name.fieldEditor("Name") { c, n -> c.copy(name = n) },
             TadoConfig::email.fieldEditor("Email") { c, n -> c.copy(email = n) },
             TadoConfig::pass.fieldEditor("Password", password = true) { c, n -> c.copy(pass = n) },
-            TadoConfig::updateReadings.fieldEditor("Update readings") { c, n -> c.copy(updateReadings = n) }
+            TadoConfig::updateReadings.fieldEditor("Update readings") { c, n -> c.copy(updateReadings = n) },
+            TadoConfig::homeId.fieldEditor("Home ID") { c, n -> c.copy(homeId = n) }
         )
     ) {
     override val defaultState = TadoState()

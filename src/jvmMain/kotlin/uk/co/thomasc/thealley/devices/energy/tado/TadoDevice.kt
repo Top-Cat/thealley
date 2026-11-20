@@ -22,7 +22,7 @@ class TadoDevice(id: Int, config: TadoConfig, state: TadoState, stateStore: ISta
 
     private lateinit var tado: Tado
 
-    private val homeId = GlobalScope.async(start = CoroutineStart.LAZY) { tado.me().homes.first().id }
+    private val homeId = GlobalScope.async(start = CoroutineStart.LAZY) { tado.me().homes.first { config.homeId == 0 || it.id == config.homeId }.id }
     private val home = GlobalScope.async(start = CoroutineStart.LAZY) { tado.home(getHomeId()) }
 
     val zones by cached(1.hours) {
