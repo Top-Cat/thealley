@@ -99,8 +99,10 @@ class Bright(private val email: String, private val pass: String) {
     private val format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
     suspend fun catchup(type: BrightResourceType): BrightResourceCatchup? {
+        val resourceId = resourceId(type) ?: return null
+
         return try {
-            client.get("https://api.glowmarkt.com/api/v0-1/resource/${resourceId(type)}/catchup") {
+            client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/catchup") {
                 contentType(ContentType.Application.Json)
                 header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
                 header("token", tokenForGet())
@@ -112,13 +114,14 @@ class Bright(private val email: String, private val pass: String) {
     }
 
     suspend fun getReadings(type: BrightResourceType, period: BrightPeriod = BrightPeriod.PT30M, from: Instant? = null, to: Instant? = null): BrightResourceReadings? {
+        val resourceId = resourceId(type) ?: return null
         val fromLocal = from?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
             ?: LocalDateTime.now().withSecond(1).withMinute(0).withHour(0)
         val toLocal = to?.toLocalDateTime(TimeZone.UTC)?.toJavaLocalDateTime()
             ?: LocalDateTime.now().withSecond(59).withMinute(59).withHour(23)
 
         return try {
-            client.get("https://api.glowmarkt.com/api/v0-1/resource/${resourceId(type)}/readings") {
+            client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/readings") {
                 contentType(ContentType.Application.Json)
                 header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
                 header("token", tokenForGet())
