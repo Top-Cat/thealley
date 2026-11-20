@@ -6,7 +6,6 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.utils.io.CancellationException
@@ -20,7 +19,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import mu.KLogging
-import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.client
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -123,7 +121,7 @@ class Bright(private val email: String, private val pass: String) {
             ?: LocalDateTime.now().withSecond(59).withMinute(59).withHour(23)
 
         return try {
-            val result = client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/readings") {
+            client.get("https://api.glowmarkt.com/api/v0-1/resource/$resourceId/readings") {
                 contentType(ContentType.Application.Json)
                 header("applicationId", "b0f1b774-a586-4f72-9edd-27ead8aa7a8d")
                 header("token", tokenForGet())
@@ -132,13 +130,7 @@ class Bright(private val email: String, private val pass: String) {
                 parameter("period", period)
                 parameter("function", BrightFunction.SUM)
                 parameter("nulls", 1)
-            }
-
-            val body = result.bodyAsText()
-            logger.warn { "Reading result: ${result.status} $body" }
-
-            alleyJson.decodeFromString<BrightResourceReadings>(body)
-            // result.body<BrightResourceReadings>()
+            }.body<BrightResourceReadings>()
         } catch (e: Exception) {
             logger.warn { "Error getting bright readings (${e.message})" }
             null
