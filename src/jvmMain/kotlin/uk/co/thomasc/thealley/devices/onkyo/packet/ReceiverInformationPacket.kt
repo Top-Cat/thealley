@@ -7,7 +7,7 @@ data class ReceiverInformationPacket(val command: Command = Command.Status) : IO
     constructor(command: String) : this(
         when (command) {
             QUERY -> Command.Status
-            else -> Command.Data(XML.decodeFromString(command))
+            else -> Command.Data(XML.v1.decodeFromString(command))
         }
     )
 

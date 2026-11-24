@@ -1,6 +1,11 @@
-FROM eclipse-temurin:17-jdk
+FROM debian:trixie-slim
 
 ARG BUILDVER=dev-SNAPSHOT
+
+RUN apt update && \
+    apt install -y --no-install-recommends \
+        openjdk-21-jdk-headless curl && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app
 WORKDIR /app

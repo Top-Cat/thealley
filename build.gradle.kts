@@ -1,18 +1,20 @@
 import io.miret.etienne.gradle.sass.CompileSass
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val kotlinVersion: String by project
 val exposedVersion: String by project
+val jettyVersion: String by project
 val ktorVersion: String by project
 val myndocsOauthVersion: String by project
 
 plugins {
-    kotlin("multiplatform") version "1.9.20"
-    kotlin("plugin.serialization") version "1.9.20"
+    kotlin("multiplatform") version "2.4.0"
+    kotlin("plugin.serialization") version "2.4.0"
     id("io.miret.etienne.sass") version "1.1.2"
     id("org.jlleitschuh.gradle.ktlint") version "11.5.1"
-    application
 }
 
 group = "uk.co.thomasc"
@@ -24,18 +26,22 @@ repositories {
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "17"
-        }
+        compilerOptions.jvmTarget = JvmTarget.JVM_21
         testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
+            useJUnit()
         }
-        withJava()
+
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        binaries {
+            executable {
+                mainClass.set("uk.co.thomasc.thealley.MainKt")
+            }
+        }
     }
-    js(IR) {
+    js {
         browser {
             binaries.executable()
             webpackTask {
@@ -85,7 +91,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-                implementation("io.github.pdvrieze.xmlutil:serialization:0.86.2")
+                implementation("io.github.pdvrieze.xmlutil:serialization:1.0.2")
 
                 implementation("io.ktor:ktor-server-auth:$ktorVersion")
                 implementation("io.ktor:ktor-server-mustache:$ktorVersion")
@@ -108,6 +114,13 @@ kotlin {
                 implementation("at.topc.tado:tado-kt:1.0.45")
                 implementation("com.google.auth:google-auth-library-oauth2-http:1.19.0")
                 implementation("javax.jmdns:jmdns:3.4.1")
+
+                // WiiM
+                implementation("org.jupnp:org.jupnp:3.0.5")
+                implementation("javax.servlet:javax.servlet-api:4.0.1")
+                implementation("org.eclipse.jetty:jetty-server:$jettyVersion")
+                implementation("org.eclipse.jetty:jetty-servlet:$jettyVersion")
+                implementation("org.eclipse.jetty:jetty-client:$jettyVersion")
 
                 // DB & Migrations
                 implementation("mysql:mysql-connector-java:8.0.33")
@@ -135,8 +148,6 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation(kotlin("test-junit5"))
-
                 implementation("org.junit.jupiter:junit-jupiter-api:5.0.0")
                 implementation("org.junit.jupiter:junit-jupiter-engine:5.0.0")
             }
@@ -174,25 +185,30 @@ ktlint {
     }
 }
 
-application {
-    mainClass.set("uk.co.thomasc.thealley.MainKt")
+val webpack = tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
+    sourceMaps = true
+    outputDirectory.set(layout.buildDirectory.file("processedResources/jvm/main/assets").get().asFile)
+    if (System.getenv("BUILD_NUMBER") == null) {
+        mode = org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.Mode.DEVELOPMENT
+    }
 }
 
-tasks.getByName<CompileSass>("compileSass") {
-    dependsOn(tasks.getByName("kotlinNpmInstall"))
+val sass = tasks.getByName<CompileSass>("compileSass") {
+    dependsOn(tasks.getByName("kotlinNpmInstall"), webpack)
 
-    outputDir = file("$buildDir/processedResources/jvm/main/static")
+    outputDir = layout.buildDirectory.file("processedResources/jvm/main/assets").get().asFile
     setSourceDir(file("$projectDir/src/jvmMain/sass"))
-    loadPath(file("$buildDir/js/node_modules"))
+    loadPath(layout.buildDirectory.file("js/node_modules").get().asFile)
 
-    @Suppress("INACCESSIBLE_TYPE")
     style = compressed
 }
 
-tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
-    mainOutputFileName.set("output.js")
-    sourceMaps = true
-    outputDirectory.set(file("$buildDir/processedResources/jvm/main/static"))
+tasks.getByName<Task>("jvmProcessResources") {
+    dependsOn(sass)
+}
+
+tasks.named("jsBrowserDistribution") {
+    dependsOn("jvmProcessResources")
 }
 
 tasks.withType<AbstractCopyTask> {
@@ -203,28 +219,21 @@ tasks.withType<AbstractArchiveTask> {
     isPreserveFileTimestamps = true
 }
 
-tasks.getByName<Jar>("jvmJar") {
-    dependsOn(tasks.getByName("jsBrowserProductionWebpack"), tasks.getByName("compileSass"))
-    val jsBrowserProductionWebpack = tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack")
+val jvmJar = tasks.getByName<Jar>("jvmJar") {
+    dependsOn(webpack, sass)
 
-    from(jsBrowserProductionWebpack.outputDirectory.get())
-    listOf(jsBrowserProductionWebpack.mainOutputFileName.get(), jsBrowserProductionWebpack.mainOutputFileName.get() + ".map", "modules.js", "modules.js.map").forEach {
-        from(File(jsBrowserProductionWebpack.outputDirectory.get().asFile, it))
+    from(webpack.outputDirectory.get())
+    listOf(webpack.mainOutputFileName.get(), webpack.mainOutputFileName.get() + ".map", "modules.js", "modules.js.map").forEach {
+        from(File(webpack.outputDirectory.get().asFile, it))
     }
 }
 
-tasks.getByName<JavaExec>("run") {
-    dependsOn(tasks.getByName<Jar>("jvmJar"))
-    classpath(tasks.getByName<Jar>("jvmJar"))
+tasks.getByName<Test>("jvmTest") {
+    dependsOn(webpack, sass)
+    environment("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1")
 }
 
-distributions {
-    main {
-        contents {
-            from("$buildDir/libs") {
-                rename("${rootProject.name}-jvm", rootProject.name)
-                into("lib")
-            }
-        }
-    }
+tasks.getByName<JavaExec>("runJvm") {
+    dependsOn(jvmJar)
+    classpath(jvmJar)
 }

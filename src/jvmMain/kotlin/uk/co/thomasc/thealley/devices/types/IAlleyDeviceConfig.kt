@@ -26,6 +26,7 @@ import uk.co.thomasc.thealley.devices.system.scene.SceneDevice
 import uk.co.thomasc.thealley.devices.system.schedule.ScheduleDevice
 import uk.co.thomasc.thealley.devices.system.sun.SunDevice
 import uk.co.thomasc.thealley.devices.unifi.UnifiDevice
+import uk.co.thomasc.thealley.devices.wiim.WiimDevice
 import uk.co.thomasc.thealley.devices.zigbee.aq2.MotionDevice
 import uk.co.thomasc.thealley.devices.zigbee.blind.BlindDevice
 import uk.co.thomasc.thealley.devices.zigbee.candeo.CDimmerDevice
@@ -102,6 +103,7 @@ sealed class IAlleyDeviceConfig<T : AlleyDevice<T, U, V>, U : IAlleyConfig<V>, V
             is TexecomConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::TexecomDevice)
             is UnifiConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::UnifiDevice)
             is WaterSensorConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::WaterSensorDevice)
+            is WiimConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::WiimDevice)
             is ZBlindConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBlindDevice)
             is ZBMiniConfig -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBMiniDevice)
             is ZBMini2Config -> GenericAlleyDeviceConfig.fromConfig(config, ::ZBMini2Device)
