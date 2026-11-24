@@ -9,7 +9,7 @@ RUN apt update && \
 
 RUN mkdir -p /app
 WORKDIR /app
-COPY build/install/thealley .
+COPY build/install/thealley-jvm .
 
 ENV BUILDVER=$BUILDVER
 
