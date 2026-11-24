@@ -231,6 +231,7 @@ val jvmJar = tasks.getByName<Jar>("jvmJar") {
 tasks.getByName<Test>("jvmTest") {
     dependsOn(webpack, sass)
     environment("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1")
+    useJUnitPlatform()
 }
 
 tasks.getByName<JavaExec>("runJvm") {
