@@ -187,7 +187,7 @@ ktlint {
 
 val webpack = tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
     sourceMaps = true
-    outputDirectory.set(layout.buildDirectory.file("processedResources/jvm/main/assets").get().asFile)
+    outputDirectory.set(layout.buildDirectory.file("processedResources/jvm/main/static").get().asFile)
     if (System.getenv("BUILD_NUMBER") == null) {
         mode = org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.Mode.DEVELOPMENT
     }
@@ -196,7 +196,7 @@ val webpack = tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
 val sass = tasks.getByName<CompileSass>("compileSass") {
     dependsOn(tasks.getByName("kotlinNpmInstall"), webpack)
 
-    outputDir = layout.buildDirectory.file("processedResources/jvm/main/assets").get().asFile
+    outputDir = layout.buildDirectory.file("processedResources/jvm/main/static").get().asFile
     setSourceDir(file("$projectDir/src/jvmMain/sass"))
     loadPath(layout.buildDirectory.file("js/node_modules").get().asFile)
 
