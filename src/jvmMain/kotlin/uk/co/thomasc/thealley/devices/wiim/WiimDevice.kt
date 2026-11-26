@@ -18,18 +18,19 @@ import java.net.Inet4Address
 import java.net.NetworkInterface
 
 val discoveryInterface = System.getenv("WIIM_IFACE") ?: "eth0"
+val discoveryPort = System.getenv("UPNP_PORT").toIntOrNull() ?: 8081
 
 class WiimDevice(id: Int, config: WiimConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<WiimDevice, WiimConfig, EmptyState>(id, config, state, stateStore) {
 
     val address = NetworkInterface.getByName(discoveryInterface)
-        .inetAddresses.asSequence()
-        .filterIsInstance<Inet4Address>()
-        .first()
+        ?.inetAddresses?.asSequence()
+        ?.filterIsInstance<Inet4Address>()
+        ?.first()
 
-    val upnp = object : UpnpServiceImpl(DefaultUpnpServiceConfiguration()) {
+    val upnp = object : UpnpServiceImpl(DefaultUpnpServiceConfiguration(discoveryPort)) {
         override fun createRouter(protocolFactory: ProtocolFactory?, registry: Registry?) =
-            FixedCallbackRouter(configuration, protocolFactory!!, address)
+            address?.let { FixedCallbackRouter(configuration, protocolFactory!!, address) } ?: super.createRouter(protocolFactory, registry)
     }
 
     override suspend fun init(bus: AlleyEventBusShim) {
