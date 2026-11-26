@@ -5,6 +5,7 @@ import org.jupnp.DefaultUpnpServiceConfiguration
 import org.jupnp.UpnpServiceImpl
 import org.jupnp.model.meta.RemoteDevice
 import org.jupnp.model.types.UDAServiceType
+import org.jupnp.protocol.ProtocolFactory
 import org.jupnp.registry.DefaultRegistryListener
 import org.jupnp.registry.Registry
 import uk.co.thomasc.thealley.devices.AlleyDevice
@@ -13,11 +14,23 @@ import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 import uk.co.thomasc.thealley.devices.types.WiimConfig
+import java.net.Inet4Address
+import java.net.NetworkInterface
+
+val discoveryInterface = System.getenv("WIIM_IFACE") ?: "eth0"
 
 class WiimDevice(id: Int, config: WiimConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<WiimDevice, WiimConfig, EmptyState>(id, config, state, stateStore) {
 
-    val upnp = UpnpServiceImpl(DefaultUpnpServiceConfiguration())
+    val address = NetworkInterface.getByName(discoveryInterface)
+        .inetAddresses.asSequence()
+        .filterIsInstance<Inet4Address>()
+        .first()
+
+    val upnp = object : UpnpServiceImpl(DefaultUpnpServiceConfiguration()) {
+        override fun createRouter(protocolFactory: ProtocolFactory?, registry: Registry?) =
+            FixedCallbackRouter(configuration, protocolFactory!!, address)
+    }
 
     override suspend fun init(bus: AlleyEventBusShim) {
         upnp.startup()
