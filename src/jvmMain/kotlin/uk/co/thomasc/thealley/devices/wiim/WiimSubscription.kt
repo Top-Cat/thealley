@@ -47,13 +47,13 @@ class WiimSubscription(val bus: AlleyEventEmitter, service: Service<*, *>, contr
     override fun eventsMissed(sub: GENASubscription<*>, numberOfMissedEvents: Int) =
         log.warn { "Missed $numberOfMissedEvents events" }
 
-    override fun ended(sub: GENASubscription<*>, reason: CancelReason?, response: UpnpResponse?) =
+    override fun ended(sub: GENASubscription<*>, reason: CancelReason?, response: UpnpResponse?) {
         log.warn { "Subscription ended: $reason" }
-
-    override fun failed(sub: GENASubscription<*>?, response: UpnpResponse?, ex: Exception?, defaultMsg: String?) {
-        log.error { "Subscription failed: $defaultMsg" }
         controlPoint.execute(this)
     }
+
+    override fun failed(sub: GENASubscription<*>?, response: UpnpResponse?, ex: Exception?, defaultMsg: String?) =
+        log.error { "Subscription failed: $defaultMsg" }
 
     companion object : KLogging() {
         private val threadPool = newFixedThreadPoolContext(2, "WiimDevice")

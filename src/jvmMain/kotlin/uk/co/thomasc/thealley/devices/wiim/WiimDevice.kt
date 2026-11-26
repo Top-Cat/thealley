@@ -4,6 +4,7 @@ import mu.KLogging
 import org.jupnp.DefaultUpnpServiceConfiguration
 import org.jupnp.UpnpServiceImpl
 import org.jupnp.model.meta.RemoteDevice
+import org.jupnp.model.types.ServiceType
 import org.jupnp.model.types.UDAServiceType
 import org.jupnp.protocol.ProtocolFactory
 import org.jupnp.registry.DefaultRegistryListener
@@ -24,7 +25,10 @@ class WiimDevice(id: Int, config: WiimConfig, state: EmptyState, stateStore: ISt
 
     val address = discoveryAddress?.let { Inet4Address.getByName(it) }
 
-    val upnp = object : UpnpServiceImpl(DefaultUpnpServiceConfiguration(discoveryPort)) {
+    val upnp = object : UpnpServiceImpl(object : DefaultUpnpServiceConfiguration(discoveryPort) {
+        override fun getExclusiveServiceTypes(): Array<ServiceType> =
+            arrayOf(UDAServiceType("AVTransport", 1))
+    }) {
         override fun createRouter(protocolFactory: ProtocolFactory, registry: Registry?) =
             address?.let { FixedCallbackRouter(configuration, protocolFactory, address, discoveryPort) } ?: super.createRouter(protocolFactory, registry)
     }
