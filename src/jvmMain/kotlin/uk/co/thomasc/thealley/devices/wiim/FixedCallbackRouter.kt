@@ -9,8 +9,11 @@ import java.net.InetAddress
 class FixedCallbackRouter(
     config: UpnpServiceConfiguration,
     protocolFactory: ProtocolFactory,
-    private val callbackAddress: InetAddress
+    private val callbackAddress: InetAddress,
+    private val port: Int
 ) : RouterImpl(config, protocolFactory) {
     override fun getActiveStreamServers(preferredAddress: InetAddress?): List<NetworkAddress?>? =
-        super.getActiveStreamServers(callbackAddress)
+        listOf(
+            NetworkAddress(callbackAddress, port, networkAddressFactory.getHardwareAddress(preferredAddress))
+        )
 }
