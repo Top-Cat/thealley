@@ -8,6 +8,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import kotlin.time.Duration
 
 val magic = Packet("!xECNQSTN")
 
@@ -31,7 +32,7 @@ suspend fun receiveDiscovery(socket: DatagramSocket): List<DiscoveryResult?> {
         val regex = Regex("!(\\d)ECN([^/]*)/(\\d{5})/(\\w{2})/(.{0,12})")
         val packet = Packet.parse(buffer).content()
         regex.matchAt(packet, 0)
-    } catch (e: SocketTimeoutException) {
+    } catch (_: SocketTimeoutException) {
         return listOf()
     }
 
@@ -43,9 +44,9 @@ suspend fun receiveDiscovery(socket: DatagramSocket): List<DiscoveryResult?> {
     }
 }
 
-suspend fun discovery(timeout: Long) =
+suspend fun discovery(timeout: Duration) =
     withTimeoutOrNull(timeout) {
-        val address = InetSocketAddress("10.48.3.255", 60128)
+        val address = InetSocketAddress("10.2.3.255", 60128)
         val socket = DatagramSocket()
         socket.soTimeout = 100
         socket.broadcast = true

@@ -6,15 +6,18 @@ import kotlinx.html.js.onChangeFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
 import react.Props
+import react.dom.defaultValue
 import react.dom.div
 import react.dom.input
 import react.dom.option
 import react.dom.select
 import react.fc
 import uk.co.thomasc.thealley.devices.system.conditional.actions.IConditionAction
+import uk.co.thomasc.thealley.devices.system.conditional.actions.OnkyoConditionAction
 import uk.co.thomasc.thealley.devices.system.conditional.actions.RelayConditionAction
 import uk.co.thomasc.thealley.devices.system.conditional.actions.SceneConditionAction
 import uk.co.thomasc.thealley.devices.types.IAlleyRelayConfig
+import uk.co.thomasc.thealley.devices.types.OnkyoConfig
 import uk.co.thomasc.thealley.devices.types.SceneConfig
 
 external interface ConditionActionEditorProps : Props {
@@ -79,6 +82,35 @@ val conditionActionEditor = fc<ConditionActionEditorProps> { props ->
                     props.updateAction(action.copy(sceneId = it.first()))
                 }
                 attrs.changeSize = false
+            }
+        is OnkyoConditionAction ->
+            div {
+                devicePicker {
+                    attrs.fieldName = props.fieldName
+                    attrs.deviceLookup = props.deviceLookup.filter {
+                        it.value.config is OnkyoConfig
+                    }
+                    attrs.deviceIds = listOf(action.deviceId)
+                    attrs.updateDeviceIds = {
+                        props.updateAction(action.copy(deviceId = it.first()))
+                    }
+                    attrs.changeSize = false
+                }
+                input(InputType.text) {
+                    attrs.id = "onkyo-input-${props.fieldName}"
+                    attrs.defaultValue = action.input ?: ""
+                    attrs.onChangeFunction = { ev ->
+                        props.updateAction(action.copy(input = (ev.currentTarget as HTMLInputElement).value.ifBlank { null }))
+                    }
+                }
+                input(InputType.number) {
+                    attrs.id = "onkyo-volume-${props.fieldName}"
+                    attrs.defaultValue = "${action.volume ?: 0}"
+                    attrs.onChangeFunction = { ev ->
+                        val raw = (ev.currentTarget as HTMLInputElement).value.toIntOrNull()
+                        props.updateAction(action.copy(volume = if (raw == 0) null else raw))
+                    }
+                }
             }
         null ->
             div {

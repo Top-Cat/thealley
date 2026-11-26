@@ -35,9 +35,16 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
 
     private suspend fun getPowerState() = conn.send<PowerPacket>(PowerPacket())?.command == PowerPacket.PowerCommand.On
 
-    private suspend fun setPowerState(state: Boolean) = conn.send<PowerPacket>(
+    suspend fun setPowerState(state: Boolean) = conn.send<PowerPacket>(
         PowerPacket(if (state) PowerPacket.PowerCommand.On else PowerPacket.PowerCommand.Off)
     )
+
+    // Sets input by name "PHONO", "TV" or id "22", "2b"
+    suspend fun setInput(inputName: String) = conn.send<InputPacket>(
+        InputPacket(InputPacket.InputCommand.Input(information.device.selectorList.list.find { it.name == inputName }?.id ?: inputName))
+    )
+
+    suspend fun setVolume(volume: Int) = conn.send<MasterVolumePacket>(MasterVolumePacket(MasterVolumePacket.VolumeCommand.Level(volume)))
 
     private val information by cached(1.hours) {
         val cmd = conn.send<ReceiverInformationPacket>(ReceiverInformationPacket())?.command
@@ -96,9 +103,7 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                 previousInput = {
                     conn.send<InputPacket>(InputPacket(InputPacket.InputCommand.Up))
                 },
-                setInput = { inputName ->
-                    conn.send<InputPacket>(InputPacket(InputPacket.InputCommand.Input(inputName)))
-                }
+                setInput = ::setInput
             ),
             MediaStateTrait(
                 // TODO: This trait
@@ -162,8 +167,7 @@ class OnkyoDevice(id: Int, config: OnkyoConfig, state: EmptyState, stateStore: I
                         ?: throw GetStateException(GoogleHomeErrorCode.TransientError)
                 },
                 setVolume = { vol ->
-                    val res = conn.send<MasterVolumePacket>(MasterVolumePacket(MasterVolumePacket.VolumeCommand.Level(vol)))
-                    (res?.command as? MasterVolumePacket.VolumeCommand.Level)?.level
+                    (setVolume(vol)?.command as? MasterVolumePacket.VolumeCommand.Level)?.level
                 },
                 setVolumeRelative = { rel ->
                     val command = when {

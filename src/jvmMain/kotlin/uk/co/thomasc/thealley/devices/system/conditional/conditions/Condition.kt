@@ -24,4 +24,5 @@ fun ICondition.handler() = when (this) {
     is SunCondition -> SunConditionHandler(this)
     is TexecomAreaCondition -> TexecomAreaConditionHandler(this)
     is TexecomZoneCondition -> TexecomZoneConditionHandler(this)
+    is WiimCondition -> WiimConditionHandler(this)
 }

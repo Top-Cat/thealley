@@ -20,8 +20,10 @@ import uk.co.thomasc.thealley.devices.system.conditional.conditions.RelayConditi
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.SunCondition
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.TexecomAreaCondition
 import uk.co.thomasc.thealley.devices.system.conditional.conditions.TexecomZoneCondition
+import uk.co.thomasc.thealley.devices.system.conditional.conditions.WiimCondition
 import uk.co.thomasc.thealley.devices.types.IAlleyLuxConfig
 import uk.co.thomasc.thealley.devices.types.IAlleyRelayConfig
+import uk.co.thomasc.thealley.devices.wiim.TransportState
 
 external interface ConditionEditorProps : Props {
     var fieldName: String
@@ -160,6 +162,28 @@ val conditionEditor = fc<ConditionEditorProps> { props ->
                         option {
                             attrs.selected = condition.zoneState == zoneStatus
                             +zoneStatus.name
+                        }
+                    }
+                }
+            }
+        is WiimCondition ->
+            div {
+                input(InputType.text) {
+                    attrs.id = "wiim-${props.fieldName}"
+                    attrs.defaultValue = condition.uuid
+                    attrs.onChangeFunction = { ev ->
+                        props.updateCondition(condition.copy(uuid = (ev.currentTarget as HTMLInputElement).value))
+                    }
+                }
+                select {
+                    attrs.onChangeFunction = { ev ->
+                        val newStatus = TransportState.valueOf((ev.currentTarget as HTMLSelectElement).value)
+                        props.updateCondition(condition.copy(state = newStatus))
+                    }
+                    TransportState.entries.forEach { ts ->
+                        option {
+                            attrs.selected = condition.state == ts
+                            +ts.name
                         }
                     }
                 }
