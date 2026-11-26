@@ -33,16 +33,19 @@ class WiimDevice(id: Int, config: WiimConfig, state: EmptyState, stateStore: ISt
         upnp.startup()
 
         upnp.registry.addListener(object : DefaultRegistryListener() {
-            override fun remoteDeviceAdded(registry: Registry, device: RemoteDevice) {
+            fun findTransport(device: RemoteDevice) {
                 val avTransport = device.findService(UDAServiceType("AVTransport")) ?: return
                 logger.info { "Found renderer: ${device.details?.friendlyName} (${device.identity.udn})" }
 
-                val callback = WiimSubscription(bus, avTransport)
-                upnp.controlPoint.execute(callback)
+                WiimSubscription(bus, avTransport, upnp.controlPoint)
             }
 
+            override fun remoteDeviceAdded(registry: Registry, device: RemoteDevice) = findTransport(device)
+
             override fun remoteDeviceRemoved(registry: Registry, device: RemoteDevice) =
-                logger.warn { "Lost device: ${device.details?.friendlyName}" }
+                logger.warn { "Lost device: ${device.details?.friendlyName}" }.also {
+                    findTransport(device)
+                }
         })
 
         upnp.controlPoint.search()

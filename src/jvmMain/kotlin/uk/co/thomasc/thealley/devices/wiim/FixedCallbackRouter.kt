@@ -12,7 +12,7 @@ class FixedCallbackRouter(
     private val callbackAddress: InetAddress,
     private val port: Int
 ) : RouterImpl(config, protocolFactory) {
-    override fun getActiveStreamServers(preferredAddress: InetAddress?): List<NetworkAddress?>? =
+    override fun getActiveStreamServers(preferredAddress: InetAddress?): List<NetworkAddress?> =
         listOf(
             NetworkAddress(callbackAddress, port, networkAddressFactory.getHardwareAddress(preferredAddress))
         )

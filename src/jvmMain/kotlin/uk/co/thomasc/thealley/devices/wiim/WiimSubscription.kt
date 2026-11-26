@@ -7,6 +7,7 @@ import kotlinx.serialization.decodeFromString
 import mu.KLogging
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.serialization.XML
+import org.jupnp.controlpoint.ControlPoint
 import org.jupnp.controlpoint.SubscriptionCallback
 import org.jupnp.model.gena.CancelReason
 import org.jupnp.model.gena.GENASubscription
@@ -14,9 +15,13 @@ import org.jupnp.model.message.UpnpResponse
 import org.jupnp.model.meta.Service
 import uk.co.thomasc.thealley.devices.AlleyEventEmitter
 
-class WiimSubscription(val bus: AlleyEventEmitter, service: Service<*, *>) : SubscriptionCallback(service, 600) {
+class WiimSubscription(val bus: AlleyEventEmitter, service: Service<*, *>, controlPoint: ControlPoint) : SubscriptionCallback(service, 600) {
     private val device = service.device.details.friendlyName
     private val udn = service.device.identity.udn.identifierString
+
+    init {
+        controlPoint.execute(this)
+    }
 
     override fun established(sub: GENASubscription<*>) {
         log.debug { "Subscribed: ${sub.subscriptionId}" }
@@ -45,8 +50,10 @@ class WiimSubscription(val bus: AlleyEventEmitter, service: Service<*, *>) : Sub
     override fun ended(sub: GENASubscription<*>, reason: CancelReason?, response: UpnpResponse?) =
         log.warn { "Subscription ended: $reason" }
 
-    override fun failed(sub: GENASubscription<*>?, response: UpnpResponse?, ex: Exception?, defaultMsg: String?) =
+    override fun failed(sub: GENASubscription<*>?, response: UpnpResponse?, ex: Exception?, defaultMsg: String?) {
         log.error { "Subscription failed: $defaultMsg" }
+        controlPoint.execute(this)
+    }
 
     companion object : KLogging() {
         private val threadPool = newFixedThreadPoolContext(2, "WiimDevice")
