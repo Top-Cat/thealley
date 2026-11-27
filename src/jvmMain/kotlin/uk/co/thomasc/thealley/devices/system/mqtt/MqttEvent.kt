@@ -1,6 +1,5 @@
 package uk.co.thomasc.thealley.devices.system.mqtt
 
-import kotlinx.serialization.encodeToString
 import uk.co.thomasc.thealley.alleyJsonUgly
 import uk.co.thomasc.thealley.devices.system.IAlleyEvent
 

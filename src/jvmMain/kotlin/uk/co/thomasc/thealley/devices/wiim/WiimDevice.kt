@@ -1,65 +1,55 @@
 package uk.co.thomasc.thealley.devices.wiim
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import mu.KLogging
-import org.jupnp.DefaultUpnpServiceConfiguration
-import org.jupnp.UpnpServiceImpl
-import org.jupnp.model.meta.RemoteDevice
-import org.jupnp.model.types.ServiceType
-import org.jupnp.model.types.UDAServiceType
-import org.jupnp.protocol.ProtocolFactory
-import org.jupnp.registry.DefaultRegistryListener
-import org.jupnp.registry.Registry
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.serialization.XML
+import uk.co.thomasc.thealley.alleyJson
 import uk.co.thomasc.thealley.devices.AlleyDevice
 import uk.co.thomasc.thealley.devices.AlleyEventBusShim
 import uk.co.thomasc.thealley.devices.IStateUpdater
 import uk.co.thomasc.thealley.devices.state.EmptyState
 import uk.co.thomasc.thealley.devices.system.IAlleyEvent
+import uk.co.thomasc.thealley.devices.system.mqtt.MqttMessageEvent
 import uk.co.thomasc.thealley.devices.types.WiimConfig
-import java.net.Inet4Address
 
-val discoveryAddress = System.getenv("UPNP_IP")?.ifBlank { null }
-val discoveryPort = System.getenv("UPNP_PORT")?.toIntOrNull() ?: 8081
+@Serializable
+data class UpnpUpdate(
+    @SerialName("LastChange")
+    val lastChange: String
+)
 
 class WiimDevice(id: Int, config: WiimConfig, state: EmptyState, stateStore: IStateUpdater<EmptyState>) :
     AlleyDevice<WiimDevice, WiimConfig, EmptyState>(id, config, state, stateStore) {
 
-    val address = discoveryAddress?.let { Inet4Address.getByName(it) }
-
-    val upnp = object : UpnpServiceImpl(object : DefaultUpnpServiceConfiguration(discoveryPort) {
-        override fun getExclusiveServiceTypes(): Array<ServiceType> =
-            arrayOf(UDAServiceType("AVTransport", 1))
-    }) {
-        override fun createRouter(protocolFactory: ProtocolFactory, registry: Registry?) =
-            address?.let { FixedCallbackRouter(configuration, protocolFactory, address, discoveryPort) } ?: super.createRouter(protocolFactory, registry)
-    }
-
     override suspend fun init(bus: AlleyEventBusShim) {
-        upnp.startup()
+        bus.handle<MqttMessageEvent> { ev ->
+            val parts = ev.topic.split('/')
 
-        upnp.registry.addListener(object : DefaultRegistryListener() {
-            fun findTransport(device: RemoteDevice) {
-                val avTransport = device.findService(UDAServiceType("AVTransport")) ?: return
-                logger.info { "Found renderer: ${device.details?.friendlyName} (${device.identity.udn})" }
+            if (parts.size < 3 || parts[0] != "upnp" || parts[2] != "urn:upnp-org:serviceId:AVTransport") return@handle
+            val uuid = parts[1].lowercase().removePrefix("uuid:")
+            val type = parts[2]
 
-                WiimSubscription(bus, avTransport, upnp.controlPoint)
+            val msg = alleyJson.decodeFromString<UpnpUpdate>(ev.payload)
+
+            try {
+                val change = xml.decodeFromString<UpnpEvent>(msg.lastChange)
+                val newState = change.transportState() ?: return@handle
+
+                logger.info { "[$uuid] TransportState -> $newState" }
+
+                bus.emit(WiimEvent(uuid, newState))
+            } catch (e: XmlException) {
+                logger.error(e) { "[$type] ${msg.lastChange}" }
             }
-
-            override fun remoteDeviceAdded(registry: Registry, device: RemoteDevice) = findTransport(device)
-
-            override fun remoteDeviceRemoved(registry: Registry, device: RemoteDevice) =
-                logger.warn { "Lost device: ${device.details?.friendlyName}" }.also {
-                    findTransport(device)
-                }
-        })
-
-        upnp.controlPoint.search()
+        }
     }
 
-    override fun close() {
-        upnp.shutdown()
+    companion object : KLogging() {
+        val xml = XML.v1 { policy { ignoreUnknownChildren() } }
     }
-
-    companion object : KLogging()
 }
 
-data class WiimEvent(val uuid: String, val name: String, val state: TransportState) : IAlleyEvent
+data class WiimEvent(val uuid: String, val state: TransportState) : IAlleyEvent
